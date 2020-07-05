@@ -110,9 +110,9 @@ public class RepoUtils implements IRepositoryConstants {
     
     /**
      * Get the enclosing local repo folder for a model
-     * It is assumed that the model is located at localRepoFolder/model.archimate
+     * It is assumed that the model is located at localRepoFolder/.git/temp.archimate
      * @param model
-     * @return The folder
+     * @return The folder or null
      */
     public static File getLocalRepositoryFolderForModel(IArchimateModel model) {
         if(model == null) {
@@ -120,8 +120,11 @@ public class RepoUtils implements IRepositoryConstants {
         }
         
         File file = model.getFile();
-        File parent = file.getParentFile();
+        if(file == null || !file.getName().equals(TEMP_MODEL_FILENAME)) {
+            return null;
+        }
         
+        File parent = file.getParentFile();
         if(parent == null || !parent.getName().equals(".git")) { //$NON-NLS-1$
             return null;
         }

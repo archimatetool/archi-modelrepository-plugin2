@@ -7,12 +7,20 @@ package com.archimatetool.modelrepository.repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.StoredConfig;
 
+import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 
 /**
@@ -74,7 +82,6 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public File getModelFile() {
-        // TODO - this will be in the local repo folder and will be named something else
         return new File(getLocalRepositoryFolder(), "/.git/" + "temp.archimate"); //$NON-NLS-1$ //$NON-NLS-2$
     }
     
@@ -98,6 +105,50 @@ public class ArchiRepository implements IArchiRepository {
         return null;
     }
 
+    @Override
+    public void copyModelToWorkingDirectory() throws IOException {
+        // Delete the images folder
+        File imagesFolder = new File(getLocalRepositoryFolder(), IMAGES_FOLDER);
+        FileUtils.deleteFolder(imagesFolder);
+        
+        File modelFile = getModelFile();
+        
+        // Model is in archive format and contains images
+        if(IArchiveManager.FACTORY.isArchiveFile(modelFile)) {
+            imagesFolder.mkdirs();
+            
+            ZipFile zipFile = new ZipFile(modelFile);
+            
+            // Open model zip file and extract and copy all entries
+            for(Enumeration<? extends ZipEntry> enm = zipFile.entries(); enm.hasMoreElements();) {
+                ZipEntry zipEntry = enm.nextElement();
+                String entryName = zipEntry.getName();
+                InputStream in = zipFile.getInputStream(zipEntry);
+                File outFile = null;
+                
+                if(entryName.startsWith("images/")) { //$NON-NLS-1$
+                    outFile = new File(getLocalRepositoryFolder(), entryName);
+                }
+                if(entryName.equalsIgnoreCase("model.xml")) { //$NON-NLS-1$
+                    outFile = new File(getLocalRepositoryFolder(), "model.archimate"); //$NON-NLS-1$
+                }
+                
+                if(outFile != null) {
+                    Files.copy(in, outFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
+                
+                in.close();
+            }
+            
+            zipFile.close();
+        }
+        // A normal file so copy it
+        else {
+            File outFile = new File(getLocalRepositoryFolder(), "model.archimate"); //$NON-NLS-1$
+            Files.copy(getModelFile().toPath(), outFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+    
     @Override
     public boolean equals(Object obj) {
         if((obj != null) && (obj instanceof ArchiRepository)) {

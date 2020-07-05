@@ -108,6 +108,15 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
                 // Update the model's name in the config file
                 repo.updateName();
                 
+                // Copy the model file
+                try {
+                    repo.copyModelToWorkingDirectory();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                    log(IStatus.ERROR, "Could not copy model to working directory", ex); //$NON-NLS-1$
+                }
+                
                 // Notify listeners that the repo changed
                 RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);
             }

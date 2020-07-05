@@ -8,7 +8,7 @@ import com.archimatetool.model.IArchimateModel;
 public interface IArchiRepository extends IRepositoryConstants {
 
     /**
-     * @return The local repository folder
+     * @return The local repository folder (aka the working directory)
      */
     File getLocalRepositoryFolder();
 
@@ -28,7 +28,7 @@ public interface IArchiRepository extends IRepositoryConstants {
     void updateName();
 
     /**
-     * @return The .archimate file in the repository
+     * @return The temp.archimate file in the repository
      */
     File getModelFile();
 
@@ -45,5 +45,10 @@ public interface IArchiRepository extends IRepositoryConstants {
      * @return The model or null if not found
      */
     IArchimateModel getModel();
-
+    
+    /**
+     * Copy the temp model file and any imnages to the working directory
+     * @throws IOException
+     */
+    void copyModelToWorkingDirectory() throws IOException;
 }

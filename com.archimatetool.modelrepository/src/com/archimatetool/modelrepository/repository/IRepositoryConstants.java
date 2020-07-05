@@ -14,6 +14,16 @@ package com.archimatetool.modelrepository.repository;
 public interface IRepositoryConstants {
     
     /**
+     * Filename for temp.archimate file
+     */
+    String TEMP_MODEL_FILENAME = "temp.archimate"; //$NON-NLS-1$
+
+    /**
+     * Name of folder for images
+     */
+    String IMAGES_FOLDER = "images"; //$NON-NLS-1$
+    
+    /**
      * File name of user name/password for each git repo
      */
     String REPO_CREDENTIALS_FILE = "credentials"; //$NON-NLS-1$
