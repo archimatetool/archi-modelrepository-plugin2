@@ -82,7 +82,7 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public File getModelFile() {
-        return new File(getLocalRepositoryFolder(), "/.git/" + "temp.archimate"); //$NON-NLS-1$ //$NON-NLS-2$
+        return new File(getLocalGitFolder(), TEMP_MODEL_FILENAME);
     }
     
     @Override
@@ -130,7 +130,7 @@ public class ArchiRepository implements IArchiRepository {
                     outFile = new File(getLocalRepositoryFolder(), entryName);
                 }
                 if(entryName.equalsIgnoreCase("model.xml")) { //$NON-NLS-1$
-                    outFile = new File(getLocalRepositoryFolder(), "model.archimate"); //$NON-NLS-1$
+                    outFile = new File(getLocalRepositoryFolder(), MODEL_FILENAME);
                 }
                 
                 if(outFile != null) {
@@ -144,7 +144,7 @@ public class ArchiRepository implements IArchiRepository {
         }
         // A normal file so copy it
         else {
-            File outFile = new File(getLocalRepositoryFolder(), "model.archimate"); //$NON-NLS-1$
+            File outFile = new File(getLocalRepositoryFolder(), MODEL_FILENAME);
             Files.copy(getModelFile().toPath(), outFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
     }

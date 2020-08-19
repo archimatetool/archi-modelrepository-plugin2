@@ -121,7 +121,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         if(folder.exists() && folder.isDirectory()) {
             for(File file : getRootFolder().listFiles()) {
-                if(RepoUtils.isGitRepository(file)) {
+                if(RepoUtils.isArchiGitRepository(file)) {
                     repos.add(new ArchiRepository(file));
                 }
             }
