@@ -102,10 +102,10 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
         // Notify on Save
         if(evt.getPropertyName().equals(IEditorModelManager.PROPERTY_MODEL_SAVED)) {
             IArchimateModel model = (IArchimateModel)evt.getNewValue();
-            if(RepoUtils.isModelInLocalRepository(model)) {
+            if(RepoUtils.isModelInArchiRepository(model)) {
                 IArchiRepository repo = new ArchiRepository(RepoUtils.getLocalRepositoryFolderForModel(model));
                 
-                // Update the model's name in the config file
+                // Update the model's name in the archi file
                 repo.updateName();
                 
                 // Copy the model file

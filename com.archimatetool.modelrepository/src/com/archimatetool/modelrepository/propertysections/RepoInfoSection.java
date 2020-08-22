@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 
@@ -62,7 +63,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
                 fFile = fArchiRepo.getLocalRepositoryFolder().getAbsolutePath();
                 fTextFile.setText(fFile);
                 
-                fURL = fArchiRepo.getOnlineRepositoryURL();
+                fURL = StringUtils.safeString(fArchiRepo.getOnlineRepositoryURL());
                 fTextURL.setText(fURL);
                 
                 fBranch = ""; //$NON-NLS-1$

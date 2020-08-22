@@ -96,18 +96,17 @@ public class RepoUtils implements IRepositoryConstants {
             return false;
         }
         
-        // If the "model.archimate" file exists and .git folder exists...
-        File modelFile = new File(folder, MODEL_FILENAME);
-        File gitFolder = new File(folder, ".git"); //$NON-NLS-1$
-        return modelFile.exists() && gitFolder.exists() && gitFolder.isDirectory();
+        // If the "archi" properties file exists
+        File archiFile = new File(folder, "/.git/archi"); //$NON-NLS-1$
+        return archiFile.exists() && archiFile.isFile();
     }
     
     /**
      * @param model
-     * @return true if a model is in a local repo folder
+     * @return true if a model is in an Archi repo folder
      */
-    public static boolean isModelInLocalRepository(IArchimateModel model) {
-        return getLocalRepositoryFolderForModel(model) != null;
+    public static boolean isModelInArchiRepository(IArchimateModel model) {
+        return isArchiGitRepository(getLocalRepositoryFolderForModel(model));
     }
     
     /**

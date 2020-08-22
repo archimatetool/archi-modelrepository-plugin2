@@ -58,14 +58,4 @@ public interface IRepositoryConstants {
      * Head
      */
     String HEAD = "HEAD";
-    
-    /**
-     * Config section where we store our stuff
-     */
-    String CONFIG_ARCHI_SECTION = "archi";
-    
-    /**
-     * Config name of model
-     */
-    String CONFIG_KEY_NAME = "name";
 }

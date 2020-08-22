@@ -40,7 +40,7 @@ public class ShowInRepositoryViewHandler extends AbstractModelSelectionHandler {
     
     @Override
     public boolean isEnabled() {
-        return RepoUtils.isModelInLocalRepository(getActiveArchimateModel());
+        return RepoUtils.isModelInArchiRepository(getActiveArchimateModel());
     }
 
 }

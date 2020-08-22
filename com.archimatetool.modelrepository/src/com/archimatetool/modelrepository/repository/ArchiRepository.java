@@ -16,7 +16,6 @@ import java.util.zip.ZipFile;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ConfigConstants;
-import org.eclipse.jgit.lib.StoredConfig;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -52,27 +51,24 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public String getName() {
-        String name = null;
-        
-        // Get the name from the config file
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            name = git.getRepository().getConfig().getString(CONFIG_ARCHI_SECTION, null, CONFIG_KEY_NAME);
+        try {
+            return ArchiRepositoryProperties.open(this).getProperty("name", Messages.ArchiRepository_0); //$NON-NLS-1$
         }
         catch(IOException ex) {
             ex.printStackTrace();
         }
-        
-        return name == null ? Messages.ArchiRepository_0 : name;
+
+        return Messages.ArchiRepository_0;
     }
     
     @Override
     public void updateName() {
         IArchimateModel model = getModel();
         if(model != null) {
-            try(Git git = Git.open(getLocalRepositoryFolder())) {
-                StoredConfig config = git.getRepository().getConfig();
-                config.setString(CONFIG_ARCHI_SECTION, null, CONFIG_KEY_NAME, model.getName());
-                config.save();
+            try {
+                ArchiRepositoryProperties properties = ArchiRepositoryProperties.open(this);
+                properties.setProperty("name", model.getName()); //$NON-NLS-1$
+                properties.save();
             }
             catch(IOException ex) {
                 ex.printStackTrace();

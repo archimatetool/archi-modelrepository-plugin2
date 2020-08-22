@@ -276,7 +276,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         // Model selected, but is it in a git repo?
         IArchimateModel model = part.getAdapter(IArchimateModel.class);
         if(model != null) {
-            if(RepoUtils.isModelInLocalRepository(model)) {
+            if(RepoUtils.isModelInArchiRepository(model)) {
                 IArchiRepository selectedRepository = new ArchiRepository(RepoUtils.getLocalRepositoryFolderForModel(model));
                 getViewer().setSelection(new StructuredSelection(selectedRepository));
             }
