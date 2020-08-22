@@ -111,7 +111,7 @@ public class RepoUtils implements IRepositoryConstants {
     
     /**
      * Get the enclosing local repo folder for a model
-     * It is assumed that the model is located at localRepoFolder/.git/temp.archimate
+     * It is assumed that the model is located at localRepoFolder/.git/model.archimate
      * @param model
      * @return The folder or null
      */
@@ -121,7 +121,7 @@ public class RepoUtils implements IRepositoryConstants {
         }
         
         File file = model.getFile();
-        if(file == null || !file.getName().equals(TEMP_MODEL_FILENAME)) {
+        if(file == null || !file.getName().equals(MODEL_FILENAME)) {
             return null;
         }
         

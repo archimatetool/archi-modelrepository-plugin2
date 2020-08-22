@@ -78,7 +78,7 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public File getModelFile() {
-        return new File(getLocalGitFolder(), TEMP_MODEL_FILENAME);
+        return new File(getLocalGitFolder(), MODEL_FILENAME);
     }
     
     @Override

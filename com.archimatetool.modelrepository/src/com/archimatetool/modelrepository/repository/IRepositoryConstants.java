@@ -15,11 +15,6 @@ package com.archimatetool.modelrepository.repository;
 public interface IRepositoryConstants {
     
     /**
-     * Filename for temp.archimate file
-     */
-    String TEMP_MODEL_FILENAME = "temp.archimate";
-    
-    /**
      * Filename for model.archimate file
      */
     String MODEL_FILENAME = "model.archimate";
