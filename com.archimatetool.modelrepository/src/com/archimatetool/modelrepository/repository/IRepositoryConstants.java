@@ -15,10 +15,15 @@ package com.archimatetool.modelrepository.repository;
 public interface IRepositoryConstants {
     
     /**
-     * Filename for model.archimate file
+     * Filename for model.archimate file in .git folder
      */
     String MODEL_FILENAME = "model.archimate";
 
+    /**
+     * Filename for working model - this ensures user does not open this one!
+     */
+    String WORKING_MODEL_FILENAME = "model.xml";
+    
     /**
      * Name of folder for images
      */

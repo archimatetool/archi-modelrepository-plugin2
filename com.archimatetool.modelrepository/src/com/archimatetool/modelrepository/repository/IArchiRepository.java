@@ -28,7 +28,7 @@ public interface IArchiRepository extends IRepositoryConstants {
     void updateName();
 
     /**
-     * @return The temp.archimate file in the repository
+     * @return The .git/model.archimate file in the repository
      */
     File getModelFile();
 
