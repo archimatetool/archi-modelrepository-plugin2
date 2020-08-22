@@ -10,8 +10,7 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Image;
 
-import com.archimatetool.modelrepository.IModelRepositoryImages;
-import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.views.repositories.IModelRepositoryTreeEntry;
 
 
 public class LabelProvider implements ILabelProvider {
@@ -35,22 +34,28 @@ public class LabelProvider implements ILabelProvider {
 
     @Override
     public Image getImage(Object element) {
-        return IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
+        if(element instanceof IStructuredSelection) {
+            element = ((IStructuredSelection)element).getFirstElement();
+        }
+        
+        if(element instanceof IModelRepositoryTreeEntry) {
+            return ((IModelRepositoryTreeEntry)element).getImage();
+        }
+        
+        return null;
     }
 
     @Override
     public String getText(Object element) {
-        if(!(element instanceof IStructuredSelection)) {
-            return " "; //$NON-NLS-1$
+        if(element instanceof IStructuredSelection) {
+            element = ((IStructuredSelection)element).getFirstElement();
         }
         
-        element = ((IStructuredSelection)element).getFirstElement();
-        
-        if(element instanceof IArchiRepository) {
-            return ((IArchiRepository)element).getName();
+        if(element instanceof IModelRepositoryTreeEntry) {
+            return ((IModelRepositoryTreeEntry)element).getName();
         }
         
-        return null;
+        return " "; //$NON-NLS-1$
     }
 
 }

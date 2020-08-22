@@ -5,39 +5,44 @@
  */
 package com.archimatetool.modelrepository.views.repositories;
 
-import java.io.File;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewerEditor;
+import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
+import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
+import org.eclipse.jface.viewers.ICellModifier;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.TreeViewerEditor;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TreeItem;
+import org.jdom2.JDOMException;
 
+import com.archimatetool.editor.ui.components.TreeTextCellEditor;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
-import com.archimatetool.modelrepository.ModelRepositoryPlugin;
-import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
-import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 
 
 /**
  * Repository Tree Viewer
  */
-public class ModelRepositoryTreeViewer extends TreeViewer implements IRepositoryListener {
+public class ModelRepositoryTreeViewer extends TreeViewer implements IRepositoryListener, IRepositoryTreeModelListener {
 
     /**
      * Constructor
@@ -53,20 +58,100 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         // Dispose of this and clean up
         getTree().addDisposeListener(e -> {
             RepositoryListenerManager.INSTANCE.removeListener(ModelRepositoryTreeViewer.this);
+            RepositoryTreeModel.getInstance().dispose();
         });
         
+        // Tooltip support
         ColumnViewerToolTipSupport.enableFor(this);
+        
+        // Drag and Drop support
+        new ModelRepositoryTreeViewerDragDropHandler(this);
         
         setComparator(new ViewerComparator() {
             @Override
-            public int compare(Viewer viewer, Object e1, Object e2) {
-                IArchiRepository r1 = (IArchiRepository)e1;
-                IArchiRepository r2 = (IArchiRepository)e2;
-                return r1.getName().compareToIgnoreCase(r2.getName());
+            public int compare(Viewer viewer, Object o1, Object o2) {
+                int cat1 = category(o1);
+                int cat2 = category(o2);
+
+                if(cat1 != cat2) {
+                    return cat1 - cat2;
+                }
+                
+                IModelRepositoryTreeEntry e1 = (IModelRepositoryTreeEntry)o1;
+                IModelRepositoryTreeEntry e2 = (IModelRepositoryTreeEntry)o2;
+                
+                return e1.getName().compareToIgnoreCase(e2.getName());
+            }
+            
+            @Override
+            public int category(Object element) {
+                if(element instanceof Group) {
+                    return 0;
+                }
+                if(element instanceof RepositoryRef) {
+                    return 1;
+                }
+                return 0;
             }
         });
         
-        setInput(""); //$NON-NLS-1$
+        
+        // Cell Editor
+        TreeTextCellEditor cellEditor = new TreeTextCellEditor(getTree());
+        setColumnProperties(new String[]{ "col1" }); //$NON-NLS-1$
+        setCellEditors(new CellEditor[]{ cellEditor });
+
+        // Edit cell programmatically, not on mouse click
+        TreeViewerEditor.create(this, new ColumnViewerEditorActivationStrategy(this){
+            @Override
+            protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent event) {
+                return event.eventType == ColumnViewerEditorActivationEvent.PROGRAMMATIC;
+            }  
+            
+        }, ColumnViewerEditor.DEFAULT);
+
+        setCellEditors(new CellEditor[]{ cellEditor });
+        
+        setCellModifier(new ICellModifier() {
+            @Override
+            public void modify(Object element, String property, Object value) {
+                if(element instanceof TreeItem) {
+                    Object data = ((TreeItem)element).getData();
+                    if(data instanceof Group) {
+                        String text = (String)value;
+                        if(!text.isEmpty()) {
+                            ((Group)data).setName(text);
+                        }
+                    }
+                }
+            }
+            
+            @Override
+            public Object getValue(Object element, String property) {
+                if(element instanceof Group) {
+                    return ((Group)element).getName();
+                }
+                return null;
+            }
+            
+            @Override
+            public boolean canModify(Object element, String property) {
+                return element instanceof Group;
+            }
+        });
+        
+        try {
+            RepositoryTreeModel.getInstance().loadManifest();
+        }
+        catch(IOException | JDOMException ex) {
+            ex.printStackTrace();
+        }
+        
+        RepositoryTreeModel.getInstance().addListener(this);
+        
+        setInput(RepositoryTreeModel.getInstance());
+        
+        expandAll();
         
         // TODO
         
@@ -105,29 +190,18 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         }
     }
     
-    /**
-     * @return Root folder of model repos
-     */
-    private File getRootFolder() {
-        return ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder();
-    }
-    
-    /**
-     * @return All repos in the file system
-     */
-    protected List<IArchiRepository> getRepositories(File folder) {
-        // Only show top level folders that are git repos
-        List<IArchiRepository> repos = new ArrayList<IArchiRepository>();
+    @Override
+    public void treeEntryChanged(IModelRepositoryTreeEntry entry) {
+        TreePath[] expanded = getExpandedTreePaths(); // save these to restore expanded state
+        refresh(entry.getParent());
+        setExpandedTreePaths(expanded);
         
-        if(folder.exists() && folder.isDirectory()) {
-            for(File file : getRootFolder().listFiles()) {
-                if(RepoUtils.isArchiGitRepository(file)) {
-                    repos.add(new ArchiRepository(file));
-                }
-            }
+        try {
+            RepositoryTreeModel.getInstance().saveManifest();
         }
-        
-        return repos;
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
     }
     
     // ===============================================================================================
@@ -149,24 +223,22 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         @Override
         public Object[] getElements(Object parent) {
-            return getChildren(getRootFolder());
+            return getChildren(parent);
         }
         
         @Override
         public Object getParent(Object child) {
-            if(child instanceof File) {
-                return ((File)child).getParentFile();
+            if(child instanceof IModelRepositoryTreeEntry) {
+                return ((IModelRepositoryTreeEntry)child).getParent();
             }
-            if(child instanceof IArchiRepository) {
-                return ((IArchiRepository)child).getLocalRepositoryFolder().getParentFile();
-            }
+            
             return null;
         }
         
         @Override
         public Object[] getChildren(Object parent) {
-            if(parent instanceof File) {
-                return getRepositories((File)parent).toArray();
+            if(parent instanceof Group) {
+                return ((Group)parent).getAll().toArray();
             }
             
             return new Object[0];
@@ -174,6 +246,10 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         @Override
         public boolean hasChildren(Object parent) {
+            if(parent instanceof Group) {
+                return !((Group)parent).getAll().isEmpty();
+            }
+            
             return false;
         }
     }
@@ -252,8 +328,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         @Override
         public void update(ViewerCell cell) {
-            if(cell.getElement() instanceof IArchiRepository) {
-                IArchiRepository repo = (IArchiRepository)cell.getElement();
+            if(cell.getElement() instanceof RepositoryRef) {
+                IArchiRepository repo = ((RepositoryRef)cell.getElement()).getArchiRepository();
                 
                 // Local repo was perhaps deleted
                 if(!repo.getLocalRepositoryFolder().exists()) {
@@ -271,12 +347,18 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 // Image
                 cell.setImage(getImage(repo));
             }
+            
+            if(cell.getElement() instanceof Group) {
+                Group group = (Group)cell.getElement();
+                cell.setText(group.getName());
+                cell.setImage(group.getImage());
+            }
         }
         
         @Override
         public String getToolTipText(Object element) {
-            if(element instanceof IArchiRepository) {
-                IArchiRepository repo = (IArchiRepository)element;
+            if(element instanceof RepositoryRef) {
+                IArchiRepository repo = ((RepositoryRef)element).getArchiRepository();
                 
                 String s = repo.getName();
                 
@@ -286,6 +368,10 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 }
                 
                 return s;
+            }
+            
+            if(element instanceof Group) {
+                return ((Group)element).getName();
             }
             
             return null;

@@ -12,7 +12,6 @@ public class Messages extends NLS {
 
     public static String AbstractModelAction_2;
 
-    public static String PropertiesAction_0;
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

@@ -10,7 +10,6 @@ import org.eclipse.core.commands.ExecutionException;
 
 import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
 import com.archimatetool.editor.ui.services.ViewManager;
-import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.views.repositories.ModelRepositoryView;
 
@@ -27,7 +26,7 @@ public class ShowInRepositoryViewHandler extends AbstractModelSelectionHandler {
         ModelRepositoryView part = (ModelRepositoryView)ViewManager.showViewPart(ModelRepositoryView.ID, false);
         
         if(part != null && getActiveArchimateModel() != null) {
-            part.selectObject(new ArchiRepository(RepoUtils.getLocalRepositoryFolderForModel(getActiveArchimateModel())));
+            part.selectObject(getActiveArchimateModel());
         }
         
         return null;

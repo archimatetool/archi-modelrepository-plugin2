@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Text;
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.views.repositories.RepositoryRef;
 
 
 /**
@@ -28,17 +29,12 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
     public static class Filter implements IFilter {
         @Override
         public boolean select(Object object) {
-            return object instanceof IArchiRepository;
+            return object instanceof RepositoryRef;
         }
     }
     
     private Text fTextFile, fTextURL, fTextCurrentBranch;
     
-    // Store these because of the Mac focus bug
-    String fFile, fURL, fBranch;
-    
-    private IArchiRepository fArchiRepo;
-
     public RepoInfoSection() {
     }
 
@@ -56,21 +52,25 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
 
     @Override
     protected void handleSelection(IStructuredSelection selection) {
-        if(selection.getFirstElement() instanceof IArchiRepository) {
-            fArchiRepo = (IArchiRepository)selection.getFirstElement();
+        if(selection.getFirstElement() instanceof RepositoryRef) {
+            IArchiRepository repo = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
             
             try {
-                fFile = fArchiRepo.getLocalRepositoryFolder().getAbsolutePath();
-                fTextFile.setText(fFile);
-                
-                fURL = StringUtils.safeString(fArchiRepo.getOnlineRepositoryURL());
-                fTextURL.setText(fURL);
-                
-                fBranch = ""; //$NON-NLS-1$
-                
+                fTextFile.setText(repo.getLocalRepositoryFolder().getAbsolutePath());
+                fTextURL.setText(StringUtils.safeString(repo.getOnlineRepositoryURL()));
+
+                String branch = ""; //$NON-NLS-1$
+
                 // TODO
-                
-                fTextCurrentBranch.setText(fBranch);
+//                    BranchStatus status = repo.getBranchStatus();
+//                    if(status != null) {
+//                        BranchInfo branchInfo = status.getCurrentLocalBranch();
+//                        if(branchInfo != null) {
+//                            fBranch = branchInfo.getShortName();
+//                        }
+//                    }
+
+                fTextCurrentBranch.setText(branch);
             }
             catch(IOException ex) {
                 ex.printStackTrace();

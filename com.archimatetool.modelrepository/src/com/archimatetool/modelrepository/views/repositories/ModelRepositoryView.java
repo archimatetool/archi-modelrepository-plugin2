@@ -5,6 +5,9 @@
  */
 package com.archimatetool.modelrepository.views.repositories;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -15,6 +18,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -23,14 +27,17 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
@@ -40,10 +47,10 @@ import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributo
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.services.ViewManager;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
-import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
-import com.archimatetool.modelrepository.actions.PropertiesAction;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -69,8 +76,14 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     /*
      * Actions
      */
-    private IModelRepositoryAction fActionProperties;
     
+    private IAction fActionOpen;
+    private IAction fActionAddGroup;
+    private IAction fActionAddRepository;
+    private IAction fActionRemoveEntry;
+    private IAction fActionRenameEntry;
+    private IAction fActionSelectAll;
+    private IAction fActionProperties;
 
     @Override
     public void createPartControl(Composite parent) {
@@ -109,9 +122,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
          */
         getViewer().addDoubleClickListener((event) -> {
             Object obj = ((IStructuredSelection)event.getSelection()).getFirstElement();
-            if(obj instanceof IArchiRepository) {
+            if(obj instanceof RepositoryRef) {
+                IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
+                
                 BusyIndicator.showWhile(Display.getCurrent(), () -> {
-                    IEditorModelManager.INSTANCE.openModel(((IArchiRepository)obj).getModelFile());
+                    IEditorModelManager.INSTANCE.openModel(repo.getModelFile());
                 });
             }
         });
@@ -126,12 +141,195 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private void makeActions() {
         // TODO More actions here...
         
-        fActionProperties = new PropertiesAction(getViewSite().getWorkbenchWindow());
-        fActionProperties.setEnabled(false);
+        // Open Model
+        fActionOpen = new Action(Messages.ModelRepositoryView_13) {
+            @Override
+            public void run() {
+                Object selected = ((IStructuredSelection)getViewer().getSelection()).getFirstElement();
+                if(selected instanceof RepositoryRef) {
+                    BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
+                        @Override
+                        public void run() {
+                            IEditorModelManager.INSTANCE.openModel(((RepositoryRef)selected).getArchiRepository().getModelFile());
+                        }
+                    });
+                }
+            }
+        };
+        
+        // Add New Group
+        fActionAddGroup = new Action(Messages.ModelRepositoryView_2, IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_GROUP)) {
+            @Override
+            public void run() {
+                addNewGroup();
+            }
+        };
+        
+        // Add Existing Repository
+        fActionAddRepository = new Action(Messages.ModelRepositoryView_3, IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_MODEL)) {
+            @Override
+            public void run() {
+                addNewRepositoryRef();
+            }
+        };
+        
+        // Remove Entry
+        fActionRemoveEntry = new Action(Messages.ModelRepositoryView_4) {
+            @Override
+            public void run() {
+                removeSelected();
+            }
+        };
+        
+        // Rename
+        fActionRenameEntry = new Action(Messages.ModelRepositoryView_5) {
+            @Override
+            public void run() {
+                Object o = ((IStructuredSelection)getViewer().getSelection()).getFirstElement();
+                if(o != null) {
+                    getViewer().editElement(o, 0);
+                }
+            }
+            
+            @Override
+            public String getActionDefinitionId() {
+                return "org.eclipse.ui.edit.rename"; // Ensures key binding is displayed //$NON-NLS-1$
+            }
+        };
+        
+        // Select All
+        fActionSelectAll = new Action(Messages.ModelRepositoryView_6) {
+            @Override
+            public void run() {
+                getViewer().getTree().selectAll();
+            }
+            
+            @Override
+            public String getActionDefinitionId() {
+                return "org.eclipse.ui.edit.selectAll"; // Ensures key binding is displayed //$NON-NLS-1$
+            }
+        };
+
+        // Properties
+        fActionProperties = new Action(Messages.ModelRepositoryView_14) {
+            @Override
+            public void run() {
+                ViewManager.showViewPart(ViewManager.PROPERTIES_VIEW, false);
+            }
+            
+            @Override
+            public String getActionDefinitionId() {
+                return IWorkbenchCommandConstants.FILE_PROPERTIES; // Ensures key binding is displayed
+            }
+        };
         
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
 //        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
+    }
+    
+    private void addNewGroup() {
+        NewGroupDialog dialog = new NewGroupDialog(getViewSite().getShell());
+        if(dialog.open()) {
+            String name = dialog.getGroupName();
+            if(name != null) {
+                Group parentGroup = getSelectedParentGroup();
+                
+                Group newGroup = new Group(name);
+                parentGroup.add(newGroup);
+                
+                try {
+                    RepositoryTreeModel.getInstance().saveManifest();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+                
+                getViewer().refresh();
+                getViewer().expandToLevel(parentGroup, 1);
+                getViewer().setSelection(new StructuredSelection(newGroup));
+            }
+        }
+    }
+    
+    private void addNewRepositoryRef() {
+        DirectoryDialog dialog = new DirectoryDialog(getViewSite().getShell());
+        dialog.setText(Messages.ModelRepositoryView_7);
+        
+        String path = dialog.open();
+        if(path != null) {
+            File folder = new File(path);
+            
+            // This is an Archi Repository folder
+            if(RepoUtils.isArchiGitRepository(folder)) {
+                // But we already have it...
+                if(RepositoryTreeModel.getInstance().hasRepositoryRef(folder)) {
+                    MessageDialog.openInformation(getViewSite().getShell(),
+                            Messages.ModelRepositoryView_8,
+                            NLS.bind(Messages.ModelRepositoryView_9, folder));
+                    return;
+                }
+                
+                Group parentGroup = getSelectedParentGroup();
+                
+                RepositoryRef ref = new RepositoryRef(new ArchiRepository(folder));
+                parentGroup.add(ref);
+                
+                try {
+                    RepositoryTreeModel.getInstance().saveManifest();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+
+                getViewer().refresh();
+                getViewer().expandToLevel(parentGroup, 1);
+                getViewer().setSelection(new StructuredSelection(ref));
+            }
+            else {
+                MessageDialog.openInformation(getViewSite().getShell(),
+                        Messages.ModelRepositoryView_8,
+                        Messages.ModelRepositoryView_10);
+            }
+        }
+    }
+    
+    private void removeSelected() {
+        if(MessageDialog.openQuestion(getViewSite().getShell(),
+                Messages.ModelRepositoryView_11,
+                Messages.ModelRepositoryView_12)) {
+            for(Object object : ((IStructuredSelection)getViewer().getSelection()).toArray()) {
+                if(object instanceof IModelRepositoryTreeEntry) {
+                    ((IModelRepositoryTreeEntry)object).delete();
+                }
+            }
+            
+            try {
+                RepositoryTreeModel.getInstance().saveManifest();
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+            }
+            
+            getViewer().refresh();
+        }
+    }
+    
+    /**
+     * @return The current selection's parent group
+     */
+    private Group getSelectedParentGroup() {
+        Object object = ((IStructuredSelection)getViewer().getSelection()).getFirstElement();
+        
+        if(object instanceof Group) {
+            return ((Group)object);
+        }
+        
+        if(object instanceof RepositoryRef) {
+            return ((RepositoryRef)object).getParent();
+        }
+        
+        return RepositoryTreeModel.getInstance();
     }
 
     /**
@@ -142,6 +340,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         
         // Register our interest in the global menu actions
         actionBars.setGlobalActionHandler(ActionFactory.PROPERTIES.getId(), fActionProperties);
+        actionBars.setGlobalActionHandler(ActionFactory.RENAME.getId(), fActionRenameEntry);
+        actionBars.setGlobalActionHandler(ActionFactory.SELECT_ALL.getId(), fActionSelectAll);
     }
 
     /**
@@ -207,7 +407,6 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         
         // TODO
         //manager.add(fActionClone);
-        //manager.add(fActionDelete);
     }
     
     /**
@@ -217,34 +416,26 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private void updateActions(ISelection selection) {
         Object obj = ((IStructuredSelection)selection).getFirstElement();
         
-        if(obj instanceof IArchiRepository) {
-            IArchiRepository repo = (IArchiRepository)obj;
-            
-            // TODO
-            //fActionRefresh.setRepository(repo);
-            //fActionOpen.setRepository(repo);
-            //fActionDelete.setRepository(repo);
-            //fActionAbortChanges.setRepository(repo);
-            
-            //fActionCommit.setRepository(repo);
-            //fActionPush.setRepository(repo);
-            
+        // TODO
+        if(obj instanceof RepositoryRef) {
+            //IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
             //fActionShowInHistory.setRepository(repo);
             //fActionShowInBranches.setRepository(repo);
-            
-            fActionProperties.setRepository(repo);
         }
     }
     
     private void updateStatusBar(ISelection selection) {
         Object obj = ((IStructuredSelection)selection).getFirstElement();
         
-        if(obj instanceof IArchiRepository) {
-            IArchiRepository repo = (IArchiRepository)obj;
+        if(obj instanceof RepositoryRef) {
+            IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
             ModelRepoTreeLabelProvider labelProvider = (ModelRepoTreeLabelProvider)getViewer().getLabelProvider();
             Image image = labelProvider.getImage(repo);
             String text = repo.getName() + " - " + labelProvider.getStatusText(repo); //$NON-NLS-1$
             getViewSite().getActionBars().getStatusLineManager().setMessage(image, text);
+        }
+        else if(obj instanceof Group) {
+            getViewSite().getActionBars().getStatusLineManager().setMessage(IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_GROUP), ((Group)obj).getName());
         }
         else {
             getViewSite().getActionBars().getStatusLineManager().setMessage(null, ""); //$NON-NLS-1$
@@ -252,16 +443,34 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     }
     
     private void fillContextMenu(IMenuManager manager) {
+        Object obj = ((IStructuredSelection)getViewer().getSelection()).getFirstElement();
+        
         // TODO
         if(getViewer().getSelection().isEmpty()) {
             //manager.add(fActionClone);
+            manager.add(new Separator());
+            manager.add(fActionAddGroup);
+            manager.add(fActionAddRepository);
         }
         else {
-            //manager.add(fActionOpen);
-            //manager.add(fActionShowInHistory);
-            //manager.add(fActionShowInBranches);
-            manager.add(new Separator());
-            //manager.add(fActionDelete);
+            if(obj instanceof RepositoryRef) {
+                manager.add(fActionOpen);
+                //manager.add(fActionShowInHistory);
+                //manager.add(fActionShowInBranches);
+                manager.add(new Separator());
+                manager.add(fActionAddGroup);
+                manager.add(fActionAddRepository);
+                manager.add(new Separator());
+                manager.add(fActionRemoveEntry);
+            }
+            else if(obj instanceof Group) {
+                manager.add(fActionAddGroup);
+                manager.add(fActionAddRepository);
+                manager.add(new Separator());
+                manager.add(fActionRenameEntry);
+                manager.add(fActionRemoveEntry);
+            }
+            
             manager.add(new Separator());
             manager.add(fActionProperties);
         }
@@ -273,16 +482,26 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             return;
         }
         
-        // Model selected, but is it in a git repo?
+        // Model selected
         IArchimateModel model = part.getAdapter(IArchimateModel.class);
-        if(model != null) {
-            if(RepoUtils.isModelInArchiRepository(model)) {
-                IArchiRepository selectedRepository = new ArchiRepository(RepoUtils.getLocalRepositoryFolderForModel(model));
-                getViewer().setSelection(new StructuredSelection(selectedRepository));
-            }
-        }
+        selectObject(model);
     }
 
+    public void selectObject(Object object) {
+        // Model
+        if(object instanceof IArchimateModel) {
+            object = RepositoryTreeModel.getInstance().findRepositoryRef(RepoUtils.getLocalRepositoryFolderForModel((IArchimateModel)object));
+        }
+        // Repository
+        else if(object instanceof IArchiRepository) {
+            object = RepositoryTreeModel.getInstance().findRepositoryRef(((IArchiRepository)object).getLocalRepositoryFolder());
+        }
+        
+        if(object != null) {
+            getViewer().setSelection(new StructuredSelection(object));
+        }
+    }
+    
     /**
      * @return The Viewer
      */
@@ -295,10 +514,6 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         if(getViewer() != null) {
             getViewer().getControl().setFocus();
         }
-    }
-    
-    public void selectObject(Object object) {
-        getViewer().setSelection(new StructuredSelection(object));
     }
     
     @Override

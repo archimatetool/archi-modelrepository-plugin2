@@ -6,6 +6,8 @@ public class Messages extends NLS {
 
     private static final String BUNDLE_NAME = "com.archimatetool.modelrepository.propertysections.messages"; //$NON-NLS-1$
 
+    public static String GroupSection_0;
+
     public static String RepoInfoSection_0;
 
     public static String RepoInfoSection_1;

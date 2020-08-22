@@ -133,7 +133,7 @@
          <propertyTab
                category="main.category"
                id="info.tab"
-               label="Information]">
+               label="Information">
          </propertyTab>
          <propertyTab
                afterTab="info.tab"
@@ -157,6 +157,12 @@
                class="com.archimatetool.modelrepository.propertysections.RepoInfoSection"
                filter="com.archimatetool.modelrepository.propertysections.RepoInfoSection$Filter"
                id="infoSection"
+               tab="info.tab">
+         </propertySection>
+         <propertySection
+               class="com.archimatetool.modelrepository.propertysections.GroupSection"
+               filter="com.archimatetool.modelrepository.propertysections.GroupSection$Filter"
+               id="groupSection"
                tab="info.tab">
          </propertySection>
       </propertySections>
