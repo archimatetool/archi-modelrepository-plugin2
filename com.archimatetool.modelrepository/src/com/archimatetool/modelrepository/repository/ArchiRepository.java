@@ -102,6 +102,14 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
+    public boolean hasChangesToCommit() throws IOException, GitAPIException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            Status status = git.status().call();
+            return !status.isClean();
+        }
+    }
+
+    @Override
     public File getLocalRepositoryFolder() {
         return fLocalRepoFolder;
     }

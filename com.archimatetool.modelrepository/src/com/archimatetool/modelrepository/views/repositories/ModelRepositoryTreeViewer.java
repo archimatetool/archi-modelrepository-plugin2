@@ -24,12 +24,14 @@ import org.eclipse.jface.viewers.TreeViewerEditor;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TreeItem;
 import org.jdom2.JDOMException;
 
+import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.components.TreeTextCellEditor;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
@@ -158,10 +160,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         expandAll();
         
         // TODO
-        
-        // Refresh File System Job
-        // new RefreshFilesJob(this);
-        
         // Fetch Job
         // new FetchJob(this);
     }
@@ -178,7 +176,18 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
 
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
-        refresh();
+        switch(eventName) {
+            case IRepositoryListener.REPOSITORY_CHANGED:
+                RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(repository.getLocalRepositoryFolder());
+                if(ref != null) {
+                    update(ref, null);
+                }
+                break;
+                
+            default:
+                refresh();
+        }
+
     }
     
     @Override
@@ -324,6 +333,27 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 String currentLocalBranch = ""; //$NON-NLS-1$
 
                 // TODO Get status, current branch etc...
+                boolean hasUnpushedCommits = false;
+                boolean hasRemoteCommits = false;
+                boolean hasLocalChanges = false;
+                
+                try {
+                    hasLocalChanges = repo.hasChangesToCommit();
+                }
+                catch(IOException | GitAPIException ex) {
+                    ex.printStackTrace();
+                }
+                
+                StatusCache sc = new StatusCache(hasUnpushedCommits, hasRemoteCommits, hasLocalChanges);
+                cache.put(repo, sc);
+
+                // Red text
+                if(hasUnpushedCommits || hasRemoteCommits || hasLocalChanges) {
+                    cell.setForeground(ColorFactory.get(255, 64, 0));
+                }
+                else {
+                    cell.setForeground(null);
+                }
                 
                 // Repository name and current branch
                 cell.setText(repo.getName() + " [" + currentLocalBranch + "]"); //$NON-NLS-1$ //$NON-NLS-2$

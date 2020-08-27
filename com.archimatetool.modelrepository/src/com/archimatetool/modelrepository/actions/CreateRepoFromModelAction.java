@@ -63,9 +63,6 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             // Save the model (this will trigger copying the xml file and set the name in the "archi" file)
             IEditorModelManager.INSTANCE.saveModel(fModel);
             
-            // Add to the Tree Model
-            RepositoryTreeModel.getInstance().addNewRepositoryRef(getRepository());
-
             // Commit changes
             getRepository().commitChanges("First Commit", false);
             
@@ -77,6 +74,9 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
 //            
             // TODO Push to remote if URL is set
             // ProxyAuthenticator.update(repoURL);
+
+            // Add to the Tree Model last so that the correct status is shown
+            RepositoryTreeModel.getInstance().addNewRepositoryRef(getRepository());
         }
         catch(Exception ex) {
             displayErrorDialog("New Model Repository", ex);
