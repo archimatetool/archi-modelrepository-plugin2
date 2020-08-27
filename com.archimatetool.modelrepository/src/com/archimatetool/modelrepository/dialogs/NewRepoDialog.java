@@ -199,6 +199,12 @@ public class NewRepoDialog extends TitleAreaDialog {
         super.setErrorMessage(message);
         getButton(IDialogConstants.OK_ID).setEnabled(message == null);
     }
+    
+    @Override
+    protected void createButtonsForButtonBar(Composite parent) {
+        super.createButtonsForButtonBar(parent);
+        getButton(IDialogConstants.OK_ID).setEnabled(false);
+    }
 
     public UsernamePassword getUsernamePassword() {
         return new UsernamePassword(username, password);
