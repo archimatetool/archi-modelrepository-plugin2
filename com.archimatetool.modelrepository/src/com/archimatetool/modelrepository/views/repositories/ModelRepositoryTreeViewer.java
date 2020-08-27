@@ -321,6 +321,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         @Override
         public void update(ViewerCell cell) {
+            // Need to clear this
+            cell.setForeground(null);
+            
             if(cell.getElement() instanceof RepositoryRef) {
                 IArchiRepository repo = ((RepositoryRef)cell.getElement()).getArchiRepository();
                 
@@ -351,9 +354,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 // Red text
                 if(hasUnpushedCommits || hasRemoteCommits || hasLocalChanges) {
                     cell.setForeground(ColorFactory.get(255, 64, 0));
-                }
-                else {
-                    cell.setForeground(null);
                 }
                 
                 // Repository name and current branch
