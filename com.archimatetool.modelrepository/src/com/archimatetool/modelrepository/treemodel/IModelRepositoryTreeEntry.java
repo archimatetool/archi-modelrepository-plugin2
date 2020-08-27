@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.views.repositories;
+package com.archimatetool.modelrepository.treemodel;
 
 import org.eclipse.swt.graphics.Image;
 

@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.views.repositories;
+package com.archimatetool.modelrepository.treemodel;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class RepositoryTreeModel extends Group {
     private RepositoryTreeModel() {
         super(null);
     }
-    
+
     /**
      * @return All Repository Refs in this tree model
      */
@@ -93,7 +93,7 @@ public class RepositoryTreeModel extends Group {
         return null;
     }
     
-    void loadManifest() throws IOException, JDOMException {
+    public void loadManifest() throws IOException, JDOMException {
         groups = new ArrayList<Group>();
         repos = new ArrayList<RepositoryRef>();
         
@@ -133,7 +133,7 @@ public class RepositoryTreeModel extends Group {
         }
     }
     
-    void saveManifest() throws IOException {
+    public void saveManifest() throws IOException {
         Document doc = new Document();
         Element rootElement = new Element("repositories"); //$NON-NLS-1$
         doc.setRootElement(rootElement);

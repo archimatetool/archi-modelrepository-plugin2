@@ -30,6 +30,7 @@ import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 
@@ -199,10 +200,9 @@ public class NewRepoDialog extends TitleAreaDialog {
         getButton(IDialogConstants.OK_ID).setEnabled(message == null);
     }
 
-    // TODO
-//    public UsernamePassword getUsernamePassword() {
-//        return new UsernamePassword(username, password);
-//    }
+    public UsernamePassword getUsernamePassword() {
+        return new UsernamePassword(username, password);
+    }
     
     public String getURL() {
         return URL;

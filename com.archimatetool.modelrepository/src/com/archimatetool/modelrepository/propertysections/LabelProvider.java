@@ -10,7 +10,7 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Image;
 
-import com.archimatetool.modelrepository.views.repositories.IModelRepositoryTreeEntry;
+import com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry;
 
 
 public class LabelProvider implements ILabelProvider {

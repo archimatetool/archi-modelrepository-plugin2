@@ -3,14 +3,16 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.views.repositories;
+package com.archimatetool.modelrepository.treemodel;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 /**
  * User Group
@@ -36,13 +38,62 @@ public class Group implements IModelRepositoryTreeEntry {
         return name;
     }
     
-    public void setName(String name) {
+    public void setName(String name, boolean doSave) {
         if(name != null && !name.equals(this.name)) {
             this.name = name;
             RepositoryTreeModel.getInstance().fireListenerEvent(this);
+            
+            if(doSave) {
+                try {
+                    RepositoryTreeModel.getInstance().saveManifest();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
         }
     }
     
+    /**
+     * Add a new Repository Ref
+     * @param repository
+     */
+    public RepositoryRef addNewRepositoryRef(IArchiRepository repository) {
+        RepositoryRef ref = new RepositoryRef(repository);
+        add(ref);
+        
+        RepositoryTreeModel.getInstance().fireListenerEvent(ref);
+        
+        try {
+            RepositoryTreeModel.getInstance().saveManifest();
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        return ref;
+    }
+    
+    /**
+     * Add a new Group
+     * @param name
+     */
+    public Group addNewGroup(String name) {
+        Group group = new Group(name);
+        add(group);
+        
+        RepositoryTreeModel.getInstance().fireListenerEvent(group);
+        
+        try {
+            RepositoryTreeModel.getInstance().saveManifest();
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        return group;
+    }
+
     public void add(IModelRepositoryTreeEntry entry) {
         // Remove from old parent
         entry.delete();

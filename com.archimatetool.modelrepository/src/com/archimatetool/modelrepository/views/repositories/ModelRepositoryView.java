@@ -55,6 +55,10 @@ import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
+import com.archimatetool.modelrepository.treemodel.Group;
+import com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry;
+import com.archimatetool.modelrepository.treemodel.RepositoryRef;
+import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 import com.archimatetool.modelrepository.views.repositories.ModelRepositoryTreeViewer.ModelRepoTreeLabelProvider;
 
 
@@ -234,18 +238,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             String name = dialog.getGroupName();
             if(name != null) {
                 Group parentGroup = getSelectedParentGroup();
-                
-                Group newGroup = new Group(name);
-                parentGroup.add(newGroup);
-                
-                try {
-                    RepositoryTreeModel.getInstance().saveManifest();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-                
-                getViewer().refresh();
+                Group newGroup = parentGroup.addNewGroup(name);
+
                 getViewer().expandToLevel(parentGroup, 1);
                 getViewer().setSelection(new StructuredSelection(newGroup));
             }
@@ -271,18 +265,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 }
                 
                 Group parentGroup = getSelectedParentGroup();
+                RepositoryRef ref = parentGroup.addNewRepositoryRef(new ArchiRepository(folder));
                 
-                RepositoryRef ref = new RepositoryRef(new ArchiRepository(folder));
-                parentGroup.add(ref);
-                
-                try {
-                    RepositoryTreeModel.getInstance().saveManifest();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-
-                getViewer().refresh();
                 getViewer().expandToLevel(parentGroup, 1);
                 getViewer().setSelection(new StructuredSelection(ref));
             }

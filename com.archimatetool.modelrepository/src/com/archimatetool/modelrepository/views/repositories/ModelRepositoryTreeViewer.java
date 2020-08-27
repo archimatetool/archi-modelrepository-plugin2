@@ -18,7 +18,6 @@ import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ICellModifier;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerEditor;
@@ -37,6 +36,11 @@ import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
+import com.archimatetool.modelrepository.treemodel.Group;
+import com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry;
+import com.archimatetool.modelrepository.treemodel.IRepositoryTreeModelListener;
+import com.archimatetool.modelrepository.treemodel.RepositoryRef;
+import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 
 
 /**
@@ -120,7 +124,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     if(data instanceof Group) {
                         String text = (String)value;
                         if(!text.isEmpty()) {
-                            ((Group)data).setName(text);
+                            ((Group)data).setName(text, true);
                         }
                     }
                 }
@@ -174,20 +178,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
 
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
-        switch(eventName) {
-            case IRepositoryListener.REPOSITORY_ADDED:
-                refresh();
-                setSelection(new StructuredSelection(repository));
-                break;
-                
-            case IRepositoryListener.REPOSITORY_DELETED:
-                refresh();
-                break;
-
-            default:
-                refresh();
-                break;
-        }
+        refresh();
     }
     
     @Override
@@ -195,13 +186,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         TreePath[] expanded = getExpandedTreePaths(); // save these to restore expanded state
         refresh(entry.getParent());
         setExpandedTreePaths(expanded);
-        
-        try {
-            RepositoryTreeModel.getInstance().saveManifest();
-        }
-        catch(IOException ex) {
-            ex.printStackTrace();
-        }
     }
     
     // ===============================================================================================

@@ -11,9 +11,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
-import com.archimatetool.modelrepository.views.repositories.Group;
-import com.archimatetool.modelrepository.views.repositories.IModelRepositoryTreeEntry;
-import com.archimatetool.modelrepository.views.repositories.IRepositoryTreeModelListener;
+import com.archimatetool.modelrepository.treemodel.Group;
+import com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry;
+import com.archimatetool.modelrepository.treemodel.IRepositoryTreeModelListener;
 
 
 /**
@@ -51,7 +51,7 @@ public class GroupSection extends AbstractArchiPropertySection implements IRepos
                 }
                 else {
                     isSetting = true;
-                    group.setName(newText);
+                    group.setName(newText, true);
                     isSetting = false;
                 }
             }

@@ -15,8 +15,7 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.dialogs.NewRepoDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
-import com.archimatetool.modelrepository.views.repositories.RepositoryRef;
-import com.archimatetool.modelrepository.views.repositories.RepositoryTreeModel;
+import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 
 /**
  * Create an online repo from an existing model
@@ -65,8 +64,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             IEditorModelManager.INSTANCE.saveModel(fModel);
             
             // Add to the Tree Model
-            RepositoryRef ref = new RepositoryRef(getRepository());
-            RepositoryTreeModel.getInstance().add(ref);
+            RepositoryTreeModel.getInstance().addNewRepositoryRef(getRepository());
 
             // Commit changes
             getRepository().commitChanges("First Commit", false);

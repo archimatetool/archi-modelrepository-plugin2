@@ -19,6 +19,10 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.TransferData;
 import org.eclipse.swt.widgets.TreeItem;
 
+import com.archimatetool.modelrepository.treemodel.Group;
+import com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry;
+import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
+
 
 
 

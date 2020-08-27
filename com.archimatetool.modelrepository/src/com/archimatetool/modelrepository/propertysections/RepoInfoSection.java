@@ -16,7 +16,7 @@ import org.eclipse.swt.widgets.Text;
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
-import com.archimatetool.modelrepository.views.repositories.RepositoryRef;
+import com.archimatetool.modelrepository.treemodel.RepositoryRef;
 
 
 /**
