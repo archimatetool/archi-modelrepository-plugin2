@@ -13,6 +13,11 @@
             id="com.archimatetool.modelrepository.command.showInRepositoryView"
             name="Show in Collaboration Workspace">
       </command>
+      <command
+            defaultHandler="com.archimatetool.modelrepository.actions.CreateRepoFromModelHandler"
+            id="com.archimatetool.modelrepository.command.createRepoFromModel"
+            name="Add Local Model to Workspace">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -26,6 +31,11 @@
                   name="com.archimatetool.modelrepository.popup.start"
                   visible="true">
             </separator>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.createRepoFromModel"
+                  icon="img/createRepository.png"
+                  style="push">
+            </command>
             <separator
                   name="com.archimatetool.modelrepository.popup.separator2"
                   visible="true">
@@ -47,6 +57,11 @@
          <menu
                id="com.archimatetool.modelrepository.menu"
                label="Collaboration">
+            <command
+                  commandId="com.archimatetool.modelrepository.command.createRepoFromModel"
+                  icon="img/createRepository.png"
+                  style="push">
+            </command>
             <separator
                   name="com.archimatetool.modelrepository.menu.separator1"
                   visible="true">
@@ -68,6 +83,11 @@
             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=toolbar_views">
          <toolbar
                id="com.archimatetool.modelrepository.toolbar">
+            <command
+                  commandId="com.archimatetool.modelrepository.command.createRepoFromModel"
+                  icon="img/createRepository.png"
+                  style="push">
+            </command>
             <separator
                   name="com.archimatetool.modelrepository.separator1"
                   visible="true">

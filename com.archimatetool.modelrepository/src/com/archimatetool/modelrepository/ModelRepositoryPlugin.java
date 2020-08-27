@@ -14,6 +14,7 @@ import java.net.URL;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -106,13 +107,13 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
                 IArchiRepository repo = new ArchiRepository(RepoUtils.getLocalRepositoryFolderForModel(model));
                 
                 // Update the model's name in the archi file
-                repo.updateName();
+                repo.setName(model.getName());
                 
                 // Copy the model file
                 try {
                     repo.copyModelToWorkingDirectory();
                 }
-                catch(IOException ex) {
+                catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();
                     log(IStatus.ERROR, "Could not copy model to working directory", ex); //$NON-NLS-1$
                 }

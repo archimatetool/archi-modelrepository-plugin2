@@ -55,6 +55,11 @@ public interface IRepositoryConstants {
     String MASTER = "master";
 
     /**
+     * Main branch
+     */
+    String MAIN = "main";
+
+    /**
      * Head
      */
     String HEAD = "HEAD";
