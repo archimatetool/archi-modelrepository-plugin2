@@ -26,13 +26,18 @@ public interface IArchiRepository extends IRepositoryConstants {
      */
     RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException;
 
-
     /**
      * @return true if there are changes to commit in the working tree
      * @throws IOException
      * @throws GitAPIException
      */
     boolean hasChangesToCommit() throws IOException, GitAPIException;
+
+    /**
+     * @return The short name of the current local branch
+     * @throws IOException
+     */
+    String getCurrentLocalBranchName() throws IOException;
 
     /**
      * @return The local repository folder (aka the working directory)

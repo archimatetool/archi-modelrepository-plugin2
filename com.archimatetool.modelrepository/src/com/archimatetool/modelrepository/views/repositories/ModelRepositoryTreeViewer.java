@@ -331,13 +331,14 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 
                 // Check status of current branch
                 String currentLocalBranch = ""; //$NON-NLS-1$
-
+                
                 // TODO Get status, current branch etc...
                 boolean hasUnpushedCommits = false;
                 boolean hasRemoteCommits = false;
                 boolean hasLocalChanges = false;
                 
                 try {
+                    currentLocalBranch = repo.getCurrentLocalBranchName();
                     hasLocalChanges = repo.hasChangesToCommit();
                 }
                 catch(IOException | GitAPIException ex) {

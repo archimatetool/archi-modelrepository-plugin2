@@ -58,19 +58,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
             try {
                 fTextFile.setText(repo.getLocalRepositoryFolder().getAbsolutePath());
                 fTextURL.setText(StringUtils.safeString(repo.getOnlineRepositoryURL()));
-
-                String branch = ""; //$NON-NLS-1$
-
-                // TODO
-//                    BranchStatus status = repo.getBranchStatus();
-//                    if(status != null) {
-//                        BranchInfo branchInfo = status.getCurrentLocalBranch();
-//                        if(branchInfo != null) {
-//                            fBranch = branchInfo.getShortName();
-//                        }
-//                    }
-
-                fTextCurrentBranch.setText(branch);
+                fTextCurrentBranch.setText(StringUtils.safeString(repo.getCurrentLocalBranchName()));
             }
             catch(IOException ex) {
                 ex.printStackTrace();

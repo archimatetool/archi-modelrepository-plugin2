@@ -110,6 +110,13 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
+    public String getCurrentLocalBranchName() throws IOException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            return git.getRepository().getBranch();
+        }
+    }
+    
+    @Override
     public File getLocalRepositoryFolder() {
         return fLocalRepoFolder;
     }
