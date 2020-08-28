@@ -82,7 +82,7 @@ public interface IArchiRepository extends IRepositoryConstants {
      * Copy the temp model file and any imnages to the working directory
      * @throws IOException
      */
-    void copyModelToWorkingDirectory() throws IOException, GitAPIException;
+    void copyModelToWorkingDirectory() throws IOException;
 
     /**
      * @return User name and email from config. This is either local or global

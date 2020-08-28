@@ -14,7 +14,6 @@ import java.net.URL;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -113,7 +112,7 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
                 try {
                     repo.copyModelToWorkingDirectory();
                 }
-                catch(IOException | GitAPIException ex) {
+                catch(IOException ex) {
                     ex.printStackTrace();
                     log(IStatus.ERROR, "Could not copy model to working directory", ex); //$NON-NLS-1$
                 }

@@ -7,19 +7,13 @@ package com.archimatetool.modelrepository.repository;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.Enumeration;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.InitCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -27,9 +21,8 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.editor.utils.FileUtils;
+import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 
@@ -83,8 +76,8 @@ public class ArchiRepository implements IArchiRepository {
                 return null;
             }
             
-            // Add modified files to index
-            stageAllFiles(git);
+            // Add all modified files to index
+            git.add().addFilepattern(".").call(); //$NON-NLS-1$
             
             // Add missing files to index
             for(String s : status.getMissing()) {
@@ -186,52 +179,13 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
-    public void copyModelToWorkingDirectory() throws IOException, GitAPIException {
-        // Delete the images folder
-        File imagesFolder = new File(getLocalRepositoryFolder(), IMAGES_FOLDER);
-        FileUtils.deleteFolder(imagesFolder);
+    public void copyModelToWorkingDirectory() throws IOException {
+        FileHandler.copyModelFileToWorkingDirectory(getLocalRepositoryFolder(), getModelFile());
         
-        File modelFile = getModelFile();
-        
-        // Model is in archive format and contains images
-        if(IArchiveManager.FACTORY.isArchiveFile(modelFile)) {
-            imagesFolder.mkdirs();
-            
-            ZipFile zipFile = new ZipFile(modelFile);
-            
-            // Open model zip file and extract and copy all entries
-            for(Enumeration<? extends ZipEntry> enm = zipFile.entries(); enm.hasMoreElements();) {
-                ZipEntry zipEntry = enm.nextElement();
-                String entryName = zipEntry.getName();
-                InputStream in = zipFile.getInputStream(zipEntry);
-                File outFile = null;
-                
-                if(entryName.startsWith("images/")) { //$NON-NLS-1$
-                    outFile = new File(getLocalRepositoryFolder(), entryName);
-                }
-                if(entryName.equalsIgnoreCase("model.xml")) { //$NON-NLS-1$
-                    outFile = new File(getLocalRepositoryFolder(), WORKING_MODEL_FILENAME);
-                }
-                
-                if(outFile != null) {
-                    Files.copy(in, outFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                }
-                
-                in.close();
-            }
-            
-            zipFile.close();
-        }
-        // A normal file so copy it
-        else {
-            File outFile = new File(getLocalRepositoryFolder(), WORKING_MODEL_FILENAME);
-            Files.copy(getModelFile().toPath(), outFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        }
-        
-        // This will clear different line endings
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            stageAllFiles(git);
-        }
+        // Staging the model.xml file will clear different line endings but can be slow on a large model file
+//        try(Git git = Git.open(workingDir)) {
+//            git.add().addFilepattern(WORKING_MODEL_FILENAME).call();
+//        }
     }
     
     @Override
@@ -250,11 +204,8 @@ public class ArchiRepository implements IArchiRepository {
     private void setDefaultConfigSettings(Repository repository) throws IOException {
         StoredConfig config = repository.getConfig();
         
-        /*
-         * Set Line endings in the config file to autocrlf=input
-         * This ensures that files are not seen as different
-         */
-        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "input"); //$NON-NLS-1$
+        // Set line endings depending on platform
+        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, PlatformUtils.isWindows() ? "true" : "input"); //$NON-NLS-1$ //$NON-NLS-2$
         
         config.save();
     }
@@ -274,13 +225,5 @@ public class ArchiRepository implements IArchiRepository {
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
             config.save();
         }
-    }
-
-    /**
-     * Stage modified files to index
-     * This will clear different line endings
-     */
-    private DirCache stageAllFiles(Git git) throws GitAPIException {
-        return git.add().addFilepattern(".").call(); //$NON-NLS-1$
     }
 }
