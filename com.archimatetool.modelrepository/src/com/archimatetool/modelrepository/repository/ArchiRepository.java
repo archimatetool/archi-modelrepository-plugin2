@@ -190,8 +190,8 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public boolean equals(Object obj) {
-        if((obj != null) && (obj instanceof ArchiRepository)) {
-            return fLocalRepoFolder != null && fLocalRepoFolder.equals(((IArchiRepository)obj).getLocalRepositoryFolder());
+        if(obj instanceof ArchiRepository) {
+            return fLocalRepoFolder != null && fLocalRepoFolder.equals(((ArchiRepository)obj).getLocalRepositoryFolder());
         }
         return false;
     }

@@ -52,7 +52,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
 
     @Override
     protected void handleSelection(IStructuredSelection selection) {
-        if(selection.getFirstElement() instanceof RepositoryRef) {
+        if(selection != getSelection() && selection.getFirstElement() instanceof RepositoryRef) {
             IArchiRepository repo = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
             
             try {
