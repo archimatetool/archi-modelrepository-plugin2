@@ -10,6 +10,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
+import com.archimatetool.editor.utils.PlatformUtils;
+
 /**
  * New Repo from Model Dialog
  * 
@@ -25,13 +27,20 @@ public class NewRepoDialog extends CloneDialog {
     
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
+        // If there is more than one bespoke button we have to manually set the position of the Cancel button
+        if(!PlatformUtils.isWindows()) {
+            createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+        }
+        
         Button addButton = createButton(parent, IDialogConstants.OK_ID, Messages.NewRepoDialog_0, true);
         addButton.setEnabled(false);
         
         Button addPublishButton = createButton(parent, ADD_AND_PUBLISH_ID, Messages.NewRepoDialog_1, false);
         addPublishButton.setEnabled(false);
         
-        createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+        if(PlatformUtils.isWindows()) {
+            createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+        }
     }
     
     @Override
