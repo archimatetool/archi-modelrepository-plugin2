@@ -26,7 +26,7 @@ public interface IModelRepositoryImages {
     String ICON_ABORT = IMGPATH + "abort.png"; //$NON-NLS-1$
     String ICON_BRANCH = IMGPATH + "branch_obj.png"; //$NON-NLS-1$
     String ICON_BRANCHES = IMGPATH + "branches_obj.png"; //$NON-NLS-1$
-    String ICON_CLONE = IMGPATH + "add_obj.png"; //$NON-NLS-1$
+    String ICON_CLONE = IMGPATH + "cloneGit.png"; //$NON-NLS-1$
     String ICON_COMMIT = IMGPATH + "commit.png"; //$NON-NLS-1$
     String ICON_CREATE_REPOSITORY = IMGPATH + "createRepository.png"; //$NON-NLS-1$
     String ICON_DELETE = IMGPATH + "delete.png"; //$NON-NLS-1$

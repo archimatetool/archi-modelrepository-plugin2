@@ -51,6 +51,8 @@ import com.archimatetool.editor.ui.services.ViewManager;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.actions.CloneModelAction;
+import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -80,6 +82,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     /*
      * Actions
      */
+    private IModelRepositoryAction fActionClone;
     
     private IAction fActionOpen;
     private IAction fActionAddGroup;
@@ -143,7 +146,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
      * Make local actions
      */
     private void makeActions() {
-        // TODO More actions here...
+        fActionClone = new CloneModelAction(getViewSite().getWorkbenchWindow());
         
         // Open Model
         fActionOpen = new Action(Messages.ModelRepositoryView_13) {
@@ -388,9 +391,10 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         IToolBarManager manager = bars.getToolBarManager();
 
         manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
-        
-        // TODO
-        //manager.add(fActionClone);
+        manager.add(fActionClone);
+        manager.add(new Separator());
+        manager.add(fActionAddRepository);
+        manager.add(fActionAddGroup);
     }
     
     /**
@@ -429,12 +433,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private void fillContextMenu(IMenuManager manager) {
         Object obj = ((IStructuredSelection)getViewer().getSelection()).getFirstElement();
         
-        // TODO
         if(getViewer().getSelection().isEmpty()) {
-            //manager.add(fActionClone);
+            manager.add(fActionClone);
             manager.add(new Separator());
-            manager.add(fActionAddGroup);
             manager.add(fActionAddRepository);
+            manager.add(fActionAddGroup);
         }
         else {
             if(obj instanceof RepositoryRef) {
@@ -442,14 +445,14 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 //manager.add(fActionShowInHistory);
                 //manager.add(fActionShowInBranches);
                 manager.add(new Separator());
-                manager.add(fActionAddGroup);
                 manager.add(fActionAddRepository);
+                manager.add(fActionAddGroup);
                 manager.add(new Separator());
                 manager.add(fActionRemoveEntry);
             }
             else if(obj instanceof Group) {
-                manager.add(fActionAddGroup);
                 manager.add(fActionAddRepository);
+                manager.add(fActionAddGroup);
                 manager.add(new Separator());
                 manager.add(fActionRenameEntry);
                 manager.add(fActionRemoveEntry);

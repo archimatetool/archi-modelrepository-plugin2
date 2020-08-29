@@ -7,24 +7,33 @@ package com.archimatetool.modelrepository.repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 
+import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.InitCommand;
+import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RemoteConfig;
+import org.eclipse.jgit.transport.URIish;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.authentication.CredentialsAuthenticator;
+import com.archimatetool.modelrepository.authentication.UsernamePassword;
 
 /**
  * Representation of a local repository
@@ -46,24 +55,10 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public void init() throws GitAPIException, IOException {
         // Init
-        InitCommand initCommand = Git.init().setDirectory(getLocalRepositoryFolder());
-        
-        // Call
-        try(Git git = initCommand.call()) {
-            // Default config
-            setDefaultConfigSettings(git.getRepository());
-            
-            // Set tracked "main" branch
-            setTrackedBranch(git.getRepository(), MAIN);
-            
-            // Kludge to set default branch to "main" not "master"
-            String ref = "ref: refs/heads/main"; //$NON-NLS-1$
-            File headFile = new File(getLocalGitFolder(), "HEAD"); //$NON-NLS-1$
-            Files.write(headFile.toPath(), ref.getBytes());
+        try(Git git = Git.init().setDirectory(getLocalRepositoryFolder()).call()) {
+            // Defaults
+            setDefaults(git.getRepository());
         }
-
-        // Set a default repo name. This will also create the "archi" marker file
-        setName(getLocalRepositoryFolder().getName());
     }
     
     @Override
@@ -95,10 +90,50 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
+    public void cloneModel(String repoURL, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException {
+        CloneCommand cloneCommand = Git.cloneRepository();
+        cloneCommand.setDirectory(getLocalRepositoryFolder());
+        cloneCommand.setURI(repoURL);
+        cloneCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(repoURL, npw));
+        cloneCommand.setProgressMonitor(monitor);
+        
+        try(Git git = cloneCommand.call()) {
+            // Defaults
+            setDefaults(git.getRepository());
+        }
+    }
+
+    @Override
     public boolean hasChangesToCommit() throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             Status status = git.status().call();
             return !status.isClean();
+        }
+    }
+    
+    @Override
+    public Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            PushCommand pushCommand = git.push();
+            pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
+            pushCommand.setProgressMonitor(monitor);
+            
+            Iterable<PushResult> result = pushCommand.call();
+            
+            // After a successful push, ensure we are tracking the current branch
+            setTrackedBranch(git.getRepository(), git.getRepository().getBranch());
+            
+            return result;
+        }
+    }
+    
+    @Override
+    public RemoteConfig addRemote(String URL) throws IOException, GitAPIException, URISyntaxException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            RemoteAddCommand remoteAddCommand = git.remoteAdd();
+            remoteAddCommand.setName(ORIGIN);
+            remoteAddCommand.setUri(new URIish(URL));
+            return remoteAddCommand.call();
         }
     }
 
@@ -179,13 +214,18 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
-    public void copyModelToWorkingDirectory() throws IOException {
-        FileHandler.copyModelFileToWorkingDirectory(getLocalRepositoryFolder(), getModelFile());
+    public void copyModelFileToWorkingDirectory() throws IOException {
+        FileHandler.copyModelFileToWorkingDirectory(getModelFile(), getLocalRepositoryFolder());
         
         // Staging the model.xml file will clear different line endings but can be slow on a large model file
 //        try(Git git = Git.open(workingDir)) {
 //            git.add().addFilepattern(WORKING_MODEL_FILENAME).call();
 //        }
+    }
+    
+    @Override
+    public void copyWorkingDirectoryToModelFile() throws IOException {
+        FileHandler.copyWorkingDirectoryToModelFile(getLocalRepositoryFolder(), getModelFile());
     }
     
     @Override
@@ -196,17 +236,23 @@ public class ArchiRepository implements IArchiRepository {
         return false;
     }
     
-    /**
-     * Set default settings in the config file 
-     * @param repository
-     * @throws IOException
-     */
+    private void setDefaults(Repository repository) throws IOException {
+        // Set default tracked branch to "main" not "master"
+        setMainBranch(repository);
+
+        // Set default config settings
+        setDefaultConfigSettings(repository);
+
+        // Set a default repo name. This will also create the "archi" marker file
+        setName(getLocalRepositoryFolder().getName());
+    }
+    
     private void setDefaultConfigSettings(Repository repository) throws IOException {
         StoredConfig config = repository.getConfig();
-        
+
         // Set line endings depending on platform
         config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, PlatformUtils.isWindows() ? "true" : "input"); //$NON-NLS-1$ //$NON-NLS-2$
-        
+
         config.save();
     }
     
@@ -225,5 +271,19 @@ public class ArchiRepository implements IArchiRepository {
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
             config.save();
         }
+    }
+    
+    /**
+     * Set Main Branch to "main" and track it
+     * @throws IOException
+     */
+    private void setMainBranch(Repository repository) throws IOException {
+        // Set tracked "main" branch
+        setTrackedBranch(repository, MAIN);
+        
+        // Kludge to set default branch to "main" not "master"
+        String ref = "ref: refs/heads/main"; //$NON-NLS-1$
+        File headFile = new File(getLocalGitFolder(), "HEAD"); //$NON-NLS-1$
+        Files.write(headFile.toPath(), ref.getBytes());
     }
 }

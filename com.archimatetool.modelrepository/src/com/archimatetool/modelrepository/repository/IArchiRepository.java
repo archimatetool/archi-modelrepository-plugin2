@@ -2,13 +2,23 @@ package com.archimatetool.modelrepository.repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RemoteConfig;
 
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.authentication.UsernamePassword;
 
+/**
+ * IArchiRepository interface
+ * 
+ * @author Phillip Beauvoir
+ */
 public interface IArchiRepository extends IRepositoryConstants {
     
     /**
@@ -26,12 +36,43 @@ public interface IArchiRepository extends IRepositoryConstants {
      */
     RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException;
 
+
+    /**
+     * Clone a model
+     * @param repoURL
+     * @param npw
+     * @param monitor
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    void cloneModel(String repoURL, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException;
+
     /**
      * @return true if there are changes to commit in the working tree
      * @throws IOException
      * @throws GitAPIException
      */
     boolean hasChangesToCommit() throws IOException, GitAPIException;
+
+    /**
+     * Push to Remote
+     * @param npw
+     * @param monitor
+     * @return
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException;
+
+    /**
+     * Add a Remote
+     * @param URL
+     * @return
+     * @throws IOException
+     * @throws GitAPIException
+     * @throws URISyntaxException
+     */
+    RemoteConfig addRemote(String URL) throws IOException, GitAPIException, URISyntaxException;
 
     /**
      * @return The short name of the current local branch
@@ -79,10 +120,16 @@ public interface IArchiRepository extends IRepositoryConstants {
     IArchimateModel getModel();
     
     /**
-     * Copy the temp model file and any imnages to the working directory
+     * Copy the temp model file and any images to the working directory
      * @throws IOException
      */
-    void copyModelToWorkingDirectory() throws IOException;
+    void copyModelFileToWorkingDirectory() throws IOException;
+
+    /**
+     * Copy the working directory files to the temp model file
+     * @throws IOException
+     */
+    void copyWorkingDirectoryToModelFile() throws IOException;
 
     /**
      * @return User name and email from config. This is either local or global

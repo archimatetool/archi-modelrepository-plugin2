@@ -18,9 +18,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -50,17 +48,27 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
     @Override
     public void start(BundleContext context) throws Exception {
         super.start(context);
+        
         IEditorModelManager.INSTANCE.addPropertyChangeListener(this);
         
-        // TODO Proxy
-        // Set this first
-        // ProxyAuthenticator.init();
+        // Set these first
+        setSystemProperties();
     }
     
     @Override
     public void stop(BundleContext context) throws Exception {
         IEditorModelManager.INSTANCE.removePropertyChangeListener(this);
         super.stop(context);
+    }
+    
+    private void setSystemProperties() {
+        // This needs to be set in order to avoid this exception when using a Proxy:
+        // "Unable to tunnel through proxy. Proxy returns "HTTP/1.1 407 Proxy Authentication Required""
+        // It needs to be set before any JGit operations, because it can't be set again
+        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        
+        // Added this one too for Proxy. I think it's for HTTP
+        System.setProperty("jdk.http.auth.proxying.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
     }
     
     /**
@@ -78,25 +86,6 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
         return new File(url.getPath());
     }
     
-    /**
-     * @return The folder where we store repositories
-     */
-    public File getUserModelRepositoryFolder() {
-        // Get from preferences
-        String path = getPreferenceStore().getString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER);
-        
-        if(StringUtils.isSet(path)) {
-            File file = new File(path);
-            if(file.canWrite()) {
-                return file;
-            }
-        }
-        
-        // Default
-        path = getPreferenceStore().getDefaultString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER);
-        return new File(path);
-    }
-    
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         // Notify on Save
@@ -110,7 +99,7 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
                 
                 // Copy the model file
                 try {
-                    repo.copyModelToWorkingDirectory();
+                    repo.copyModelFileToWorkingDirectory();
                 }
                 catch(IOException ex) {
                     ex.printStackTrace();

@@ -328,7 +328,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 IArchiRepository repo = ((RepositoryRef)cell.getElement()).getArchiRepository();
                 
                 // Local repo was perhaps deleted
-                if(!repo.getLocalRepositoryFolder().exists()) {
+                if(!repo.getModelFile().exists()) {
+                    cell.setImage(IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL));
+                    cell.setText(Messages.ModelRepositoryTreeViewer_4);
                     return;
                 }
                 
@@ -356,11 +358,11 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     cell.setForeground(ColorFactory.get(255, 64, 0));
                 }
                 
-                // Repository name and current branch
-                cell.setText(repo.getName() + " [" + currentLocalBranch + "]"); //$NON-NLS-1$ //$NON-NLS-2$
-                
                 // Image
                 cell.setImage(getImage(repo));
+
+                // Repository name and current branch
+                cell.setText(repo.getName() + " [" + currentLocalBranch + "]"); //$NON-NLS-1$ //$NON-NLS-2$
             }
             
             if(cell.getElement() instanceof Group) {

@@ -15,18 +15,20 @@ import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.utils.FileUtils;
+import com.archimatetool.editor.utils.ZipUtils;
 
 /**
  * Manages exporting model file to working dir files and back again
  * 
  * @author Phillip Beauvoir
  */
-final class FileHandler implements IRepositoryConstants {
+public final class FileHandler implements IRepositoryConstants {
     
-    static void copyModelFileToWorkingDirectory(File workingDir, File modelFile) throws IOException {
+    static void copyModelFileToWorkingDirectory(File modelFile, File workingDir) throws IOException {
         // Delete the images folder
         File imagesFolder = new File(workingDir, IMAGES_FOLDER);
         FileUtils.deleteFolder(imagesFolder);
@@ -62,6 +64,45 @@ final class FileHandler implements IRepositoryConstants {
         else {
             File outFile = new File(workingDir, WORKING_MODEL_FILENAME);
             copyFile(modelFile, outFile);
+        }
+    }
+    
+    static void copyWorkingDirectoryToModelFile(File workingDir, File modelFile) throws IOException {
+        File xmlFile = new File(workingDir, WORKING_MODEL_FILENAME);
+        File imagesFolder = new File(workingDir, IMAGES_FOLDER);
+        
+        // If there are no image files just copy over
+        if(isFolderEmpty(imagesFolder)) {
+            copyFile(xmlFile, modelFile);
+        }
+        // Else create an archive format file
+        else {
+            copyToArchiveFile(xmlFile, imagesFolder, modelFile);
+        }
+    }
+    
+    /**
+     * @return True if folder is empty (ignoring special files)
+     */
+    public static boolean isFolderEmpty(File folder) {
+        if(folder.isDirectory()) {
+            File[] files = folder.listFiles((dir, name) -> !name.equals(".DS_Store")); //$NON-NLS-1$
+            return files != null && files.length == 0;
+        }
+
+        // Might not exist yet
+        return true;
+    }
+    
+    private static void copyToArchiveFile(File xmlFile, File imagesFolder, File modelFile) throws IOException {
+        try(ZipOutputStream zOut = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(modelFile)))) {
+            // Add the model xml file
+            ZipUtils.addFileToZip(xmlFile, WORKING_MODEL_FILENAME, zOut);
+            
+            // Add the images
+            for(File imageFile : imagesFolder.listFiles()) {
+                ZipUtils.addFileToZip(imageFile, IMAGES_FOLDER + "/" + imageFile.getName(), zOut); //$NON-NLS-1$
+            }
         }
     }
     

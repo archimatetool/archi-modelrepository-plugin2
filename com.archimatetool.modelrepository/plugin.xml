@@ -16,7 +16,12 @@
       <command
             defaultHandler="com.archimatetool.modelrepository.actions.CreateRepoFromModelHandler"
             id="com.archimatetool.modelrepository.command.createRepoFromModel"
-            name="Add Local Model to Workspace">
+            name="Add Model to Workspace">
+      </command>
+      <command
+            defaultHandler="com.archimatetool.modelrepository.actions.CloneModelHandler"
+            id="com.archimatetool.modelrepository.command.cloneModel"
+            name="Import Remote Model to Workspace">
       </command>
    </extension>
    <extension
@@ -60,6 +65,11 @@
             <command
                   commandId="com.archimatetool.modelrepository.command.createRepoFromModel"
                   icon="img/createRepository.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.cloneModel"
+                  icon="img/cloneGit.png"
                   style="push">
             </command>
             <separator
