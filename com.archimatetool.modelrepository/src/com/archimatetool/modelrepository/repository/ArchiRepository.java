@@ -15,6 +15,7 @@ import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
+import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -56,8 +57,14 @@ public class ArchiRepository implements IArchiRepository {
     public void init() throws GitAPIException, IOException {
         // Init
         try(Git git = Git.init().setDirectory(getLocalRepositoryFolder()).call()) {
-            // Defaults
-            setDefaults(git.getRepository());
+            // Config Defaults
+            setDefaultConfigSettings(git.getRepository());
+            
+            // Set head to "main"
+            setHeadToMainBranch(git.getRepository());
+            
+            // Set a default name. This will also create the "archi" marker file
+            setName(getLocalRepositoryFolder().getName());
         }
     }
     
@@ -98,8 +105,11 @@ public class ArchiRepository implements IArchiRepository {
         cloneCommand.setProgressMonitor(monitor);
         
         try(Git git = cloneCommand.call()) {
-            // Defaults
-            setDefaults(git.getRepository());
+            // Config Defaults
+            setDefaultConfigSettings(git.getRepository());
+            
+            // Set a default name. This will also create the "archi" marker file
+            setName(getLocalRepositoryFolder().getName());
         }
     }
 
@@ -134,6 +144,15 @@ public class ArchiRepository implements IArchiRepository {
             remoteAddCommand.setName(ORIGIN);
             remoteAddCommand.setUri(new URIish(URL));
             return remoteAddCommand.call();
+        }
+    }
+    
+    @Override
+    public RemoteConfig removeRemote() throws IOException, GitAPIException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
+            remoteRemoveCommand.setRemoteName(ORIGIN);
+            return remoteRemoveCommand.call();
         }
     }
 
@@ -236,17 +255,6 @@ public class ArchiRepository implements IArchiRepository {
         return false;
     }
     
-    private void setDefaults(Repository repository) throws IOException {
-        // Set default tracked branch to "main" not "master"
-        setMainBranch(repository);
-
-        // Set default config settings
-        setDefaultConfigSettings(repository);
-
-        // Set a default repo name. This will also create the "archi" marker file
-        setName(getLocalRepositoryFolder().getName());
-    }
-    
     private void setDefaultConfigSettings(Repository repository) throws IOException {
         StoredConfig config = repository.getConfig();
 
@@ -274,14 +282,9 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     /**
-     * Set Main Branch to "main" and track it
-     * @throws IOException
+     * Kludge to set default branch to "main" not "master"
      */
-    private void setMainBranch(Repository repository) throws IOException {
-        // Set tracked "main" branch
-        setTrackedBranch(repository, MAIN);
-        
-        // Kludge to set default branch to "main" not "master"
+    private void setHeadToMainBranch(Repository repository) throws IOException {
         String ref = "ref: refs/heads/main"; //$NON-NLS-1$
         File headFile = new File(getLocalGitFolder(), "HEAD"); //$NON-NLS-1$
         Files.write(headFile.toPath(), ref.getBytes());

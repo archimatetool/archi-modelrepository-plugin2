@@ -65,7 +65,7 @@ public interface IArchiRepository extends IRepositoryConstants {
     Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException;
 
     /**
-     * Add a Remote
+     * Add the default "origin" Remote
      * @param URL
      * @return
      * @throws IOException
@@ -73,6 +73,14 @@ public interface IArchiRepository extends IRepositoryConstants {
      * @throws URISyntaxException
      */
     RemoteConfig addRemote(String URL) throws IOException, GitAPIException, URISyntaxException;
+    
+    /**
+     * Remove the the default "origin" Remote
+     * @return
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public RemoteConfig removeRemote() throws IOException, GitAPIException;
 
     /**
      * @return The short name of the current local branch
