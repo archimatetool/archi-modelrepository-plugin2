@@ -111,26 +111,30 @@ public class RepoUtils implements IRepositoryConstants {
     
     /**
      * Get the enclosing local repo folder for a model
-     * It is assumed that the model is located at localRepoFolder/.git/model.archimate
+     * It is assumed that the model is located at localRepoFolder/model.archimate
      * @param model
-     * @return The folder or null
+     * @return The folder or null if not in a Archi repo
      */
     public static File getLocalRepositoryFolderForModel(IArchimateModel model) {
         if(model == null) {
             return null;
         }
         
+        // File has to be named correctly
         File file = model.getFile();
         if(file == null || !file.getName().equals(MODEL_FILENAME)) {
             return null;
         }
         
+        // Parent folder
         File parent = file.getParentFile();
-        if(parent == null || !parent.getName().equals(".git")) { //$NON-NLS-1$
+        
+        // Must have a .git folder
+        if(parent != null && !new File(parent, ".git").isDirectory()) { //$NON-NLS-1$
             return null;
         }
         
-        return parent.getParentFile();
+        return parent;
     }
     
     /**

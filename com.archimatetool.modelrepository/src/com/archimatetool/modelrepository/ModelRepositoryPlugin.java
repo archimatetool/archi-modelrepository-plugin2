@@ -97,15 +97,6 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
                 // Update the model's name in the archi file
                 repo.setName(model.getName());
                 
-                // Copy the model file
-                try {
-                    repo.copyModelFileToWorkingDirectory();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                    log(IStatus.ERROR, "Could not copy model to working directory", ex); //$NON-NLS-1$
-                }
-                
                 // Notify listeners that the repo changed
                 RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);
             }

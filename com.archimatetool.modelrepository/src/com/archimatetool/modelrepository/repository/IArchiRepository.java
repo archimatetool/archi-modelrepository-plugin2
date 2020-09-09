@@ -109,7 +109,7 @@ public interface IArchiRepository extends IRepositoryConstants {
     void setName(String name);
 
     /**
-     * @return The .git/model.archimate file in the repository
+     * @return The model.archimate file in the repository
      */
     File getModelFile();
 
@@ -127,18 +127,6 @@ public interface IArchiRepository extends IRepositoryConstants {
      */
     IArchimateModel getModel();
     
-    /**
-     * Copy the temp model file and any images to the working directory
-     * @throws IOException
-     */
-    void copyModelFileToWorkingDirectory() throws IOException;
-
-    /**
-     * Copy the working directory files to the temp model file
-     * @throws IOException
-     */
-    void copyWorkingDirectoryToModelFile() throws IOException;
-
     /**
      * @return User name and email from config. This is either local or global
      * @throws IOException

@@ -60,8 +60,11 @@ public class ArchiRepository implements IArchiRepository {
             // Config Defaults
             setDefaultConfigSettings(git.getRepository());
             
+            // Exclude file
+            createExcludeFile();
+            
             // Set head to "main"
-            setHeadToMainBranch(git.getRepository());
+            setHeadToMainBranch();
             
             // Set a default name. This will also create the "archi" marker file
             setName(getLocalRepositoryFolder().getName());
@@ -78,8 +81,9 @@ public class ArchiRepository implements IArchiRepository {
                 return null;
             }
             
-            // Add all modified files to index
-            git.add().addFilepattern(".").call(); //$NON-NLS-1$
+            // Add modified files to index
+            //git.add().addFilepattern(".").call(); //$NON-NLS-1$
+            git.add().addFilepattern(MODEL_FILENAME).call();
             
             // Add missing files to index
             for(String s : status.getMissing()) {
@@ -108,6 +112,9 @@ public class ArchiRepository implements IArchiRepository {
             // Config Defaults
             setDefaultConfigSettings(git.getRepository());
             
+            // Exclude file
+            createExcludeFile();
+            
             // Set a default name. This will also create the "archi" marker file
             setName(getLocalRepositoryFolder().getName());
         }
@@ -116,7 +123,8 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public boolean hasChangesToCommit() throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
-            Status status = git.status().call();
+            //Status status = git.status().call();
+            Status status = git.status().addPath(MODEL_FILENAME).call();
             return !status.isClean();
         }
     }
@@ -199,7 +207,7 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public File getModelFile() {
-        return new File(getLocalGitFolder(), MODEL_FILENAME);
+        return new File(getLocalRepositoryFolder(), MODEL_FILENAME);
     }
     
     @Override
@@ -232,21 +240,6 @@ public class ArchiRepository implements IArchiRepository {
         }
     }
 
-    @Override
-    public void copyModelFileToWorkingDirectory() throws IOException {
-        FileHandler.copyModelFileToWorkingDirectory(getModelFile(), getLocalRepositoryFolder());
-        
-        // Staging the model.xml file will clear different line endings but can be slow on a large model file
-//        try(Git git = Git.open(workingDir)) {
-//            git.add().addFilepattern(WORKING_MODEL_FILENAME).call();
-//        }
-    }
-    
-    @Override
-    public void copyWorkingDirectoryToModelFile() throws IOException {
-        FileHandler.copyWorkingDirectoryToModelFile(getLocalRepositoryFolder(), getModelFile());
-    }
-    
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof ArchiRepository) {
@@ -282,9 +275,19 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     /**
+     * Create exclude file for ignored files
+     */
+    private void createExcludeFile() throws IOException {
+        String excludes = "*.bak\n.DS_Store"; //$NON-NLS-1$
+        File excludeFile = new File(getLocalGitFolder(), "/info/exclude"); //$NON-NLS-1$
+        excludeFile.getParentFile().mkdirs();
+        Files.write(excludeFile.toPath(), excludes.getBytes());
+    }
+    
+    /**
      * Kludge to set default branch to "main" not "master"
      */
-    private void setHeadToMainBranch(Repository repository) throws IOException {
+    private void setHeadToMainBranch() throws IOException {
         String ref = "ref: refs/heads/main"; //$NON-NLS-1$
         File headFile = new File(getLocalGitFolder(), "HEAD"); //$NON-NLS-1$
         Files.write(headFile.toPath(), ref.getBytes());

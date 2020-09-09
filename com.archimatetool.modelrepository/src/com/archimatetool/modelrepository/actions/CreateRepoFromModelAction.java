@@ -77,7 +77,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             // Set new file location
             fModel.setFile(getRepository().getModelFile());
             
-            // Save the model (this will trigger copying the xml file and set the name in the "archi" file)
+            // Save the model (this will trigger setting the name in the "archi" file)
             IEditorModelManager.INSTANCE.saveModel(fModel);
             
             // Commit changes

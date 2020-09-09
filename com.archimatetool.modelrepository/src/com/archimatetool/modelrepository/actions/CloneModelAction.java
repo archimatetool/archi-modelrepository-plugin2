@@ -84,14 +84,13 @@ public class CloneModelAction extends AbstractModelAction {
                 throw exception[0];
             }
             
-            // Copy the working directory file(s) if they exist
-            File workingModelFile = new File(getRepository().getLocalRepositoryFolder(), WORKING_MODEL_FILENAME);
-            if(workingModelFile.exists()) {
-                // Copy the files
-                getRepository().copyWorkingDirectoryToModelFile();
-
+            // Model file
+            File modelFile = getRepository().getModelFile();
+            
+            // If we have one...
+            if(modelFile.exists()) {
                 // Open the model
-                IArchimateModel model = IEditorModelManager.INSTANCE.openModel(getRepository().getModelFile());
+                IArchimateModel model = IEditorModelManager.INSTANCE.openModel(modelFile);
 
                 // Set the name
                 if(model != null) {
@@ -104,7 +103,7 @@ public class CloneModelAction extends AbstractModelAction {
                 IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
                 model.setFile(getRepository().getModelFile());
                 
-                // And Save it (this will trigger copying the xml file and set the name in the "archi" file)
+                // And Save it (this will trigger setting the name in the "archi" file)
                 IEditorModelManager.INSTANCE.saveModel(model);
                 
                 // Commit changes
