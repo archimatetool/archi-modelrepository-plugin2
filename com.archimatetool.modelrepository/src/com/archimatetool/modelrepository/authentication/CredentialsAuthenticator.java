@@ -18,7 +18,6 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 import org.eclipse.osgi.util.NLS;
 
-import com.archimatetool.editor.ArchiPlugin;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.IRepositoryConstants;
@@ -61,7 +60,7 @@ public final class CredentialsAuthenticator {
             
             if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
                 SimpleCredentialsStorage scs = new SimpleCredentialsStorage(
-                        new File(ArchiPlugin.INSTANCE.getUserDataFolder(), IRepositoryConstants.SSH_CREDENTIALS_FILE));
+                        new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), IRepositoryConstants.SSH_CREDENTIALS_FILE));
 
                 if(scs.hasCredentialsFile()) {
                     password = scs.getUsernamePassword().getPassword();

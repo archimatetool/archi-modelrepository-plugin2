@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -21,6 +22,7 @@ import org.eclipse.jgit.util.SystemReader;
 
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 
 /**
  * Repo Utils
@@ -66,24 +68,18 @@ public class RepoUtils implements IRepositoryConstants {
     }
 
     /**
-     * Get a local git folder name based on the repo's URL
-     * @param repoURL
-     * @return
+     * Generate a new random folder name for a new repo
      */
-    public static String getLocalGitFolderName(String repoURL) {
-        repoURL = repoURL.trim();
+    public static File generateNewRepoFolder() {
+        File rootFolder = ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder();
+        File newFolder;
         
-        int index = repoURL.lastIndexOf("/"); //$NON-NLS-1$
-        if(index > 0 && index < repoURL.length() - 2) {
-            repoURL = repoURL.substring(index + 1).toLowerCase();
+        do {
+            newFolder = new File(rootFolder, UUID.randomUUID().toString().split("-")[0]); //$NON-NLS-1$
         }
+        while(newFolder.exists()); // just in case
         
-        index = repoURL.lastIndexOf(".git"); //$NON-NLS-1$
-        if(index > 0 && index < repoURL.length() - 1) {
-            repoURL = repoURL.substring(0, index);
-        }
-        
-        return repoURL.replaceAll("[^a-zA-Z0-9-]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
+        return newFolder;
     }
     
     /**

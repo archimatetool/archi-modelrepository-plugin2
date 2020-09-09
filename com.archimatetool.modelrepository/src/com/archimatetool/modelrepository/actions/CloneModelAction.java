@@ -53,7 +53,7 @@ public class CloneModelAction extends AbstractModelAction {
         final String repoURL = dialog.getURL();
         final boolean storeCredentials = dialog.doStoreCredentials();
         final UsernamePassword npw = dialog.getUsernamePassword();
-        final File folder = dialog.getFolder();
+        final File folder = RepoUtils.generateNewRepoFolder();
         
         // Ensure folder exists
         folder.mkdirs();

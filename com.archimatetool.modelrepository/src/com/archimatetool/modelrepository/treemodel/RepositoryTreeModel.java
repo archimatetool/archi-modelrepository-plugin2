@@ -14,9 +14,9 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 
-import com.archimatetool.editor.ArchiPlugin;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.jdom.JDOMUtils;
+import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 
@@ -30,7 +30,7 @@ public class RepositoryTreeModel extends Group {
     /**
      * Backing File
      */
-    private File backingFile = new File(ArchiPlugin.INSTANCE.getUserDataFolder(), "repositories.xml"); //$NON-NLS-1$
+    private File backingFile = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), "repositories.xml"); //$NON-NLS-1$
     
     /**
      * Listeners
@@ -126,6 +126,7 @@ public class RepositoryTreeModel extends Group {
         String location = refElement.getAttributeValue("location"); //$NON-NLS-1$
         if(location != null) {
             File file = new File(location);
+            //File file = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), location);
             if(RepoUtils.isArchiGitRepository(file)) {
                 RepositoryRef ref = new RepositoryRef(new ArchiRepository(file));
                 parentGroup.add(ref);
@@ -164,6 +165,7 @@ public class RepositoryTreeModel extends Group {
     private void saveRepositoryRef(Element parentElement, RepositoryRef ref) {
         Element repoElement = new Element("repository"); //$NON-NLS-1$
         repoElement.setAttribute("location", ref.getArchiRepository().getLocalRepositoryFolder().getPath()); //$NON-NLS-1$
+        //repoElement.setAttribute("location", ref.getArchiRepository().getLocalRepositoryFolder().getName()); //$NON-NLS-1$
         parentElement.addContent(repoElement);
     }
     

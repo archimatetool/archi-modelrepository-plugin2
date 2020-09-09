@@ -10,6 +10,7 @@ import java.io.File;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
 
+import com.archimatetool.editor.ArchiPlugin;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 
 
@@ -30,6 +31,7 @@ implements IPreferenceConstants {
 		store.setDefault(PREFS_COMMIT_USER_EMAIL, ""); //$NON-NLS-1$
 		store.setDefault(PREFS_SSH_IDENTITY_FILE, new File(System.getProperty("user.home"), ".ssh/id_rsa").getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$
 		store.setDefault(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD, true);
+		store.setDefault(PREFS_REPOSITORY_FOLDER, new File(ArchiPlugin.INSTANCE.getUserDataFolder(), "model-repository").getAbsolutePath()); //$NON-NLS-1$
 		store.setDefault(PREFS_STORE_REPO_CREDENTIALS, true);
 		
 		store.setDefault(PREFS_PROXY_USE, false);

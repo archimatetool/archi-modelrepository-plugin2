@@ -8,17 +8,9 @@ public class Messages extends NLS {
 
     public static String CloneDialog_0;
 
-    public static String CloneDialog_1;
-
-    public static String CloneDialog_10;
-
-    public static String CloneDialog_11;
-
     public static String CloneDialog_12;
 
     public static String CloneDialog_13;
-
-    public static String CloneDialog_2;
 
     public static String CloneDialog_3;
 
@@ -27,12 +19,6 @@ public class Messages extends NLS {
     public static String CloneDialog_5;
 
     public static String CloneDialog_6;
-
-    public static String CloneDialog_7;
-
-    public static String CloneDialog_8;
-
-    public static String CloneDialog_9;
 
     public static String NewRepoDialog_0;
 

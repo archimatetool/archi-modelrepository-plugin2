@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IStatus;
 
-import com.archimatetool.editor.ArchiPlugin;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
@@ -60,7 +59,7 @@ public class ProxyAuthenticator {
         boolean useAuthentication = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
 
         if(useAuthentication) {
-            final SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ArchiPlugin.INSTANCE.getUserDataFolder(),
+            final SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IRepositoryConstants.PROXY_CREDENTIALS_FILE));
             
             final UsernamePassword npw = sc.getUsernamePassword();

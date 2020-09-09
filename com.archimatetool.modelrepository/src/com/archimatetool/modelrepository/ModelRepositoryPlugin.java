@@ -18,7 +18,9 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -86,6 +88,25 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
         return new File(url.getPath());
     }
     
+    /**
+     * @return The folder where we store repositories
+     */
+    public File getUserModelRepositoryFolder() {
+        // Get from preferences
+        String path = getPreferenceStore().getString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER);
+        
+        if(StringUtils.isSet(path)) {
+            File file = new File(path);
+            if(file.canWrite()) {
+                return file;
+            }
+        }
+        
+        // Default
+        path = getPreferenceStore().getDefaultString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER);
+        return new File(path);
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         // Notify on Save

@@ -32,8 +32,7 @@ public class NewRepoDialog extends CloneDialog {
             createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
         }
         
-        Button addButton = createButton(parent, IDialogConstants.OK_ID, Messages.NewRepoDialog_0, true);
-        addButton.setEnabled(false);
+        createButton(parent, IDialogConstants.OK_ID, Messages.NewRepoDialog_0, true);
         
         Button addPublishButton = createButton(parent, ADD_AND_PUBLISH_ID, Messages.NewRepoDialog_1, false);
         addPublishButton.setEnabled(false);

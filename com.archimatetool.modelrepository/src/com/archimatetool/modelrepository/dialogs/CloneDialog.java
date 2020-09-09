@@ -5,23 +5,17 @@
  */
 package com.archimatetool.modelrepository.dialogs;
 
-import java.io.File;
-
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -32,7 +26,6 @@ import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
-import com.archimatetool.modelrepository.repository.FileHandler;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 
 /**
@@ -45,14 +38,12 @@ public class CloneDialog extends TitleAreaDialog {
     private String title;
 
     protected Text txtURL;
-    protected Text txtFolder;
     protected Text txtUsername;
     protected Text txtPassword;
 
     protected Button storeCredentialsButton;
     
     private String URL;
-    private String folder;
     private String username;
     private String password;
     private boolean doStoreCredentials;
@@ -78,7 +69,7 @@ public class CloneDialog extends TitleAreaDialog {
         
         Composite container = new Composite(area, SWT.NONE);
         container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        GridLayout layout = new GridLayout(3, false);
+        GridLayout layout = new GridLayout(2, false);
         container.setLayout(layout);
         
         addControls(container);
@@ -87,27 +78,7 @@ public class CloneDialog extends TitleAreaDialog {
     }
     
     protected void addControls(Composite parent) {
-        txtFolder = createTextField(parent, Messages.CloneDialog_1, 1, SWT.NONE);
-        txtFolder.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                validateFields();
-            }
-        });
-        
-        Button folderButton = new Button(parent, SWT.PUSH);
-        folderButton.setText(Messages.CloneDialog_2);
-        folderButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                String folderPath = chooseFolderPath();
-                if(folderPath != null) {
-                    txtFolder.setText(folderPath);
-                }
-            }
-        });
-
-        txtURL = createTextField(parent, Messages.CloneDialog_3, 2, SWT.NONE);
+        txtURL = createTextField(parent, Messages.CloneDialog_3, 1, SWT.NONE);
         txtURL.addModifyListener(new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {
@@ -119,13 +90,13 @@ public class CloneDialog extends TitleAreaDialog {
             }
         });
         
-        txtUsername = createTextField(parent, Messages.CloneDialog_4, 2, SWT.NONE);
-        txtPassword = createTextField(parent, Messages.CloneDialog_5, 2, SWT.PASSWORD);
+        txtUsername = createTextField(parent, Messages.CloneDialog_4, 1, SWT.NONE);
+        txtPassword = createTextField(parent, Messages.CloneDialog_5, 1, SWT.PASSWORD);
         
         storeCredentialsButton = new Button(parent, SWT.CHECK);
         storeCredentialsButton.setText(Messages.CloneDialog_6);
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-        gd.horizontalSpan = 3;
+        gd.horizontalSpan = 2;
         storeCredentialsButton.setLayoutData(gd);
         storeCredentialsButton.setSelection(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS));
     }
@@ -142,21 +113,7 @@ public class CloneDialog extends TitleAreaDialog {
         return txt;
     }
     
-    private String chooseFolderPath() {
-        DirectoryDialog dialog = new DirectoryDialog(Display.getCurrent().getActiveShell());
-        dialog.setText(Messages.CloneDialog_7);
-        dialog.setMessage(Messages.CloneDialog_8);
-        dialog.setFilterPath(txtFolder.getText());
-        return dialog.open();
-    }
-
     protected void validateFields() {
-        String folderError = validateFolderField();
-        if(folderError != null) {
-            setErrorMessage(folderError);
-            return;
-        }
-        
         String urlError = validateURLField();
         if(urlError != null) {
             setErrorMessage(urlError);
@@ -164,26 +121,6 @@ public class CloneDialog extends TitleAreaDialog {
         }
         
         setErrorMessage(null);
-    }
-    
-    protected String validateFolderField() {
-        // Folder path
-        String folderPath = txtFolder.getText();
-        if(!StringUtils.isSetAfterTrim(folderPath)) {
-            return Messages.CloneDialog_9;
-        }
-        
-        File file = new File(folderPath);
-        
-        if(file.isFile()) {
-            return Messages.CloneDialog_10;
-        }
-        
-        if(!FileHandler.isFolderEmpty(file)) {
-            return Messages.CloneDialog_11;
-        }
-        
-        return null;
     }
     
     protected String validateURLField() {
@@ -206,7 +143,6 @@ public class CloneDialog extends TitleAreaDialog {
         username = txtUsername.getText().trim();
         password = txtPassword.getText().trim();
         URL = txtURL.getText().trim();
-        folder = txtFolder.getText().trim();
         doStoreCredentials = storeCredentialsButton.getSelection();
     }
 
@@ -238,10 +174,6 @@ public class CloneDialog extends TitleAreaDialog {
     
     public String getURL() {
         return URL;
-    }
-    
-    public File getFolder() {
-        return new File(folder);
     }
     
     public boolean doStoreCredentials() {

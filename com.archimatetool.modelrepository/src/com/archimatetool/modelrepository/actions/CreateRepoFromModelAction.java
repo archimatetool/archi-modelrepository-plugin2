@@ -55,7 +55,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             return;
         }
         
-        final File folder = dialog.getFolder();
+        final File folder = RepoUtils.generateNewRepoFolder();
         final String repoURL = dialog.getURL();
         final boolean storeCredentials = dialog.doStoreCredentials();
         final UsernamePassword npw = dialog.getUsernamePassword();
