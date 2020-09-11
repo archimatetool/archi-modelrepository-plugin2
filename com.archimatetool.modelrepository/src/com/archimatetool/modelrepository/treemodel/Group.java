@@ -133,6 +133,31 @@ public class Group implements IModelRepositoryTreeEntry {
         return new ArrayList<Group>(groups);
     }
     
+    /**
+     * @return All Repository Refs in this Group and all Repository Refs in sub-groups
+     */
+    public List<RepositoryRef> getAllChildRepositoryRefs() {
+        List<RepositoryRef> list = getRepositoryRefs();
+        for(Group childGroup : getGroups()) {
+            list.addAll(childGroup.getAllChildRepositoryRefs());
+        }
+        return list;
+    }
+    
+    /**
+     * @return All child Groups in this Group and any sub-groups
+     */
+    public List<Group> getAllChildGroups() {
+        List<Group> list = getGroups();
+        for(Group childGroup : getGroups()) {
+            list.addAll(childGroup.getAllChildGroups());
+        }
+        return list;
+    }
+
+    /**
+     * @return All immediate Repository Refs and immediate child-groups
+     */
     public List<IModelRepositoryTreeEntry> getAll() {
         List<IModelRepositoryTreeEntry> list = new ArrayList<IModelRepositoryTreeEntry>();
         list.addAll(groups);

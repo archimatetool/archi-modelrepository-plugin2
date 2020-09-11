@@ -53,21 +53,6 @@ public class RepositoryTreeModel extends Group {
     }
 
     /**
-     * @return All Repository Refs in this tree model
-     */
-    public List<RepositoryRef> getAllRepositoryRefs() {
-        return getChildRepositoryRefs(this);
-    }
-    
-    private List<RepositoryRef> getChildRepositoryRefs(Group group) {
-        List<RepositoryRef> list = group.getRepositoryRefs();
-        for(Group child : group.getGroups()) {
-            list.addAll(getChildRepositoryRefs(child));
-        }
-        return list;
-    }
-    
-    /**
      * @param repoLocation
      * @return True if repoLocation is present as a RepositoryRef in this tree model
      */
@@ -84,7 +69,7 @@ public class RepositoryTreeModel extends Group {
             return null;
         }
         
-        for(RepositoryRef ref : getAllRepositoryRefs()) {
+        for(RepositoryRef ref : getAllChildRepositoryRefs()) {
             if(repoLocation.equals(ref.getArchiRepository().getLocalRepositoryFolder())) {
                 return ref;
             }
