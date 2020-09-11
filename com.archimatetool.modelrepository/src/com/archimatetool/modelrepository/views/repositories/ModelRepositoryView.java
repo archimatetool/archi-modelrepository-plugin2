@@ -7,6 +7,8 @@ package com.archimatetool.modelrepository.views.repositories;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
@@ -48,6 +50,7 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.services.ViewManager;
+import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
@@ -56,9 +59,10 @@ import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
+import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 import com.archimatetool.modelrepository.treemodel.Group;
-import com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
 import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 import com.archimatetool.modelrepository.views.repositories.ModelRepositoryTreeViewer.ModelRepoTreeLabelProvider;
@@ -87,7 +91,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private IAction fActionOpen;
     private IAction fActionAddGroup;
     private IAction fActionAddRepository;
-    private IAction fActionRemoveEntry;
+    private IAction fActionDelete;
     private IAction fActionRenameEntry;
     private IAction fActionSelectAll;
     private IAction fActionProperties;
@@ -180,11 +184,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             }
         };
         
-        // Remove Entry
-        fActionRemoveEntry = new Action(Messages.ModelRepositoryView_4) {
+        // Delete
+        fActionDelete = new Action(Messages.ModelRepositoryView_4, IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE)) {
             @Override
             public void run() {
-                removeSelected();
+                deleteSelected();
             }
         };
         
@@ -281,23 +285,76 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         }
     }
     
-    private void removeSelected() {
+    private void deleteSelected() {
         if(MessageDialog.openQuestion(getViewSite().getShell(),
                 Messages.ModelRepositoryView_11,
                 Messages.ModelRepositoryView_12)) {
+            
+            Set<RepositoryRef> refs = new HashSet<RepositoryRef>();
+            Set<Group> groups = new HashSet<Group>();
+            
+            // Get all selected Repository Refs and Groups
             for(Object object : ((IStructuredSelection)getViewer().getSelection()).toArray()) {
-                if(object instanceof IModelRepositoryTreeEntry) {
-                    ((IModelRepositoryTreeEntry)object).delete();
+                // Selected RepositoryRef
+                if(object instanceof RepositoryRef) {
+                    refs.add((RepositoryRef)object);
+                }
+                // Selected Group and its sub-groups and sub-RepositoryRefs
+                if(object instanceof Group) {
+                    Group group = (Group)object;
+                    groups.add(group);
+                    groups.addAll(group.getAllChildGroups());
+                    refs.addAll(group.getAllChildRepositoryRefs());
                 }
             }
             
+            // Check if a repository model is open, if it is warn and cancel
+            for(RepositoryRef ref : refs) {
+                boolean isModelOpen = ref.getArchiRepository().getModel() != null;
+                if(isModelOpen) {
+                    MessageDialog.openError(getViewSite().getShell(),
+                            Messages.ModelRepositoryView_11,
+                            "Please close any selected models that are open first.");
+                    return;
+                }
+            }
+            
+            // Delete repositories
+            try {
+                for(RepositoryRef ref : refs) {
+                    // Delete repository folder
+                    FileUtils.deleteFolder(ref.getArchiRepository().getLocalRepositoryFolder());
+                    
+                    // Delete from tree model
+                    ref.delete();
+                    
+                    // Notify
+                    RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, ref.getArchiRepository());
+                }
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+                MessageDialog.openError(getViewSite().getShell(),
+                        Messages.ModelRepositoryView_11, "There was an error: " + "\n" + ex.getMessage());
+            }
+
+            // Now delete Groups
+            for(Group group : groups) {
+                // Safety measure in case a repository was not deleted in a Group
+                boolean isSafeToDelete = group.getAllChildRepositoryRefs().isEmpty();
+                if(isSafeToDelete) {
+                    group.delete();
+                }
+            }
+            
+            // Save manifest
             try {
                 RepositoryTreeModel.getInstance().saveManifest();
             }
             catch(IOException ex) {
                 ex.printStackTrace();
             }
-            
+
             getViewer().refresh();
         }
     }
@@ -448,14 +505,14 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 manager.add(fActionAddRepository);
                 manager.add(fActionAddGroup);
                 manager.add(new Separator());
-                manager.add(fActionRemoveEntry);
+                manager.add(fActionDelete);
             }
             else if(obj instanceof Group) {
                 manager.add(fActionAddRepository);
                 manager.add(fActionAddGroup);
                 manager.add(new Separator());
                 manager.add(fActionRenameEntry);
-                manager.add(fActionRemoveEntry);
+                manager.add(fActionDelete);
             }
             
             manager.add(new Separator());

@@ -11,11 +11,13 @@ package com.archimatetool.modelrepository.repository;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public interface IRepositoryListener {
     
-    String REPOSITORY_CHANGED = "repository_changed"; //$NON-NLS-1$
-    String HISTORY_CHANGED = "history_changed"; //$NON-NLS-1$
-    String BRANCHES_CHANGED = "branches_changed"; //$NON-NLS-1$
+    String REPOSITORY_CHANGED = "repository_changed";
+    String REPOSITORY_DELETED = "repository_deleted";
+    String HISTORY_CHANGED = "history_changed";
+    String BRANCHES_CHANGED = "branches_changed";
     
     void repositoryChanged(String eventName, IArchiRepository repository);
     
