@@ -67,6 +67,7 @@ public class CloneModelAction extends AbstractModelAction {
             // Clone
             Exception[] exception = new Exception[1];
 
+            // If using this be careful that no UI operations are included as this could lead to an SWT Invalid thread access exception
             PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
                 @Override
                 public void run(IProgressMonitor pm) {
