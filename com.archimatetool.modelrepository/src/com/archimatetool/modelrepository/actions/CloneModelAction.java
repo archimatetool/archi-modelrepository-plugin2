@@ -55,9 +55,6 @@ public class CloneModelAction extends AbstractModelAction {
         final UsernamePassword npw = dialog.getUsernamePassword();
         final File folder = RepoUtils.generateNewRepoFolder();
         
-        // Ensure folder exists
-        folder.mkdirs();
-
         setRepository(new ArchiRepository(folder));
         
         try {
@@ -66,6 +63,9 @@ public class CloneModelAction extends AbstractModelAction {
 
             // Clone
             Exception[] exception = new Exception[1];
+
+            // Ensure folder exists
+            folder.mkdirs();
 
             // If using this be careful that no UI operations are included as this could lead to an SWT Invalid thread access exception
             PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
@@ -122,6 +122,12 @@ public class CloneModelAction extends AbstractModelAction {
         }
         catch(Exception ex) { // Catch all exceptions
             displayErrorDialog(Messages.CloneModelAction_0, ex);
+        }
+        finally {
+            // If the folder is empty because of an error, delete it
+            if(folder.exists() && folder.list().length == 0) {
+                folder.delete();
+            }
         }
     }
     

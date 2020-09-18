@@ -60,12 +60,12 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         final boolean storeCredentials = dialog.doStoreCredentials();
         final UsernamePassword npw = dialog.getUsernamePassword();
         
-        // Ensure folder exists
-        folder.mkdirs();
-        
         setRepository(new ArchiRepository(folder));
         
         try {
+            // Ensure folder exists
+            folder.mkdirs();
+            
             // Init
             getRepository().init();
             
@@ -99,6 +99,12 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         }
         catch(Exception ex) {
             displayErrorDialog(Messages.CreateRepoFromModelAction_0, ex);
+        }
+        finally {
+            // If the folder is empty because of an error, delete it
+            if(folder.exists() && folder.list().length == 0) {
+                folder.delete();
+            }
         }
     }
     
