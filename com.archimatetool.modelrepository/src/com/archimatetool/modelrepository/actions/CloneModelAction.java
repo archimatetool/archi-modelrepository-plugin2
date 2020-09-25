@@ -6,6 +6,7 @@
 package com.archimatetool.modelrepository.actions;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -14,6 +15,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.authentication.ProxyAuthenticator;
@@ -124,9 +126,14 @@ public class CloneModelAction extends AbstractModelAction {
             displayErrorDialog(Messages.CloneModelAction_0, ex);
         }
         finally {
-            // If the folder is empty because of an error, delete it
-            if(folder.exists() && folder.list().length == 0) {
-                folder.delete();
+            // If this operation is not completed properly delete the repo folder
+            if(!RepoUtils.isArchiGitRepository(folder)) {
+                try {
+                    FileUtils.deleteFolder(folder);
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
     }
