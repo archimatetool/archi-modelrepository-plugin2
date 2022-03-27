@@ -6,6 +6,8 @@
 package com.archimatetool.modelrepository.actions;
 
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -34,6 +36,8 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
  * @author Phillip Beauvoir
  */
 public class CreateRepoFromModelAction extends AbstractModelAction {
+    
+    private static Logger logger = Logger.getLogger(CreateRepoFromModelAction.class.getName());
     
     private IArchimateModel fModel;
 	
@@ -67,10 +71,12 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             folder.mkdirs();
             
             // Init
+            logger.info("Initialising New Repo at: " + folder.getPath()); //$NON-NLS-1$
             getRepository().init();
             
             // Add the remote if it's set
             if(StringUtils.isSet(repoURL)) {
+                logger.info("Adding Remote: " + repoURL); //$NON-NLS-1$
                 getRepository().addRemote(repoURL);
             }
             
@@ -78,9 +84,11 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             fModel.setFile(getRepository().getModelFile());
             
             // Save the model (this will trigger setting the name in the "archi" file)
+            logger.info("Saving the model to: " + fModel.getFile()); //$NON-NLS-1$
             IEditorModelManager.INSTANCE.saveModel(fModel);
             
             // Commit changes
+            logger.info("Doing a first commit"); //$NON-NLS-1$
             getRepository().commitChanges(Messages.CreateRepoFromModelAction_1, false);
             
             // Add to the Tree Model
@@ -96,8 +104,11 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                 SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), REPO_CREDENTIALS_FILE));
                 scs.store(npw);
             }
+            
+            logger.info("Finished Creating Repo from Model"); //$NON-NLS-1$
         }
         catch(Exception ex) {
+            logger.log(Level.SEVERE, "Create Repo From Model Exception", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.CreateRepoFromModelAction_0, ex);
         }
         finally {
@@ -112,6 +123,8 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
      * Push to remote
      */
     private void push(final String repoURL, final UsernamePassword npw) throws Exception {
+        logger.info("Pushing to remote: " + repoURL); //$NON-NLS-1$
+        
         // Proxy check
         ProxyAuthenticator.update(repoURL);
         

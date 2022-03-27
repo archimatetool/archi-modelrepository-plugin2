@@ -55,10 +55,16 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
         
         // Set these first
         setSystemProperties();
+        
+        // Logging
+        LoggingSupport.init(context.getBundle());
     }
     
     @Override
     public void stop(BundleContext context) throws Exception {
+        // Logging
+        LoggingSupport.close();
+        
         IEditorModelManager.INSTANCE.removePropertyChangeListener(this);
         super.stop(context);
     }

@@ -19,8 +19,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
-
-import org.eclipse.core.runtime.IStatus;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
@@ -34,6 +34,8 @@ import com.archimatetool.modelrepository.repository.RepoUtils;
  * @author Phillip Beauvoir
  */
 public class ProxyAuthenticator {
+    
+    private static Logger logger = Logger.getLogger(ProxyAuthenticator.class.getName());
     
     // Store the default before we set ours
     static final ProxySelector DEFAULT_PROXY_SELECTOR = ProxySelector.getDefault();
@@ -67,6 +69,7 @@ public class ProxyAuthenticator {
             Authenticator.setDefault(new Authenticator() {
                 @Override
                 public PasswordAuthentication getPasswordAuthentication() {
+                    logger.info("Getting PasswordAuthentication for Proxy"); //$NON-NLS-1$
                     return new PasswordAuthentication(npw.getUsername(), npw.getPassword().toCharArray());
                 }
             });
@@ -100,7 +103,7 @@ public class ProxyAuthenticator {
 
             @Override
             public void connectFailed(URI uri, SocketAddress sa, IOException ex) {
-                ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Connect failed in ProxySelector", ex); //$NON-NLS-1$
+                logger.log(Level.SEVERE, "Connect failed in ProxySelector", ex); //$NON-NLS-1$
                 ex.printStackTrace();
             }
         });      
@@ -120,6 +123,8 @@ public class ProxyAuthenticator {
         if(RepoUtils.isSSH(repositoryURL)) {
             return;
         }
+        
+        logger.info("Testing the connection: " + repositoryURL); //$NON-NLS-1$
         
         URL testURL = new URL(repositoryURL);
         

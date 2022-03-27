@@ -7,6 +7,8 @@ package com.archimatetool.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -37,6 +39,8 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
  * 6. Store user credentials if prefs agree
  */
 public class CloneModelAction extends AbstractModelAction {
+    
+    private static Logger logger = Logger.getLogger(CloneModelAction.class.getName());
 	
     public CloneModelAction(IWorkbenchWindow window) {
         super(window);
@@ -60,12 +64,15 @@ public class CloneModelAction extends AbstractModelAction {
         setRepository(new ArchiRepository(folder));
         
         try {
+            logger.info("Cloning model at: " + repoURL); //$NON-NLS-1$
+            logger.info("Cloning into folder: " + folder.getPath()); //$NON-NLS-1$
+
             // Proxy check
             ProxyAuthenticator.update(repoURL);
 
             // Clone
             Exception[] exception = new Exception[1];
-
+            
             // Ensure folder exists
             folder.mkdirs();
 
@@ -92,6 +99,8 @@ public class CloneModelAction extends AbstractModelAction {
             
             // If we have one...
             if(modelFile.exists()) {
+                logger.info("Opening model: " + modelFile); //$NON-NLS-1$
+                
                 // Open the model
                 IArchimateModel model = IEditorModelManager.INSTANCE.openModel(modelFile);
 
@@ -102,14 +111,18 @@ public class CloneModelAction extends AbstractModelAction {
             }
             // Else there were no files so create a new blank model
             else {
+                logger.info("Creating a new model"); //$NON-NLS-1$
+                
                 // New model. This will open in the tree
                 IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
                 model.setFile(getRepository().getModelFile());
                 
                 // And Save it (this will trigger setting the name in the "archi" file)
+                logger.info("Saving the model"); //$NON-NLS-1$
                 IEditorModelManager.INSTANCE.saveModel(model);
                 
                 // Commit changes
+                logger.info("Initial commit on new model"); //$NON-NLS-1$
                 getRepository().commitChanges(Messages.CloneModelAction_2, false);
             }
             
@@ -121,17 +134,22 @@ public class CloneModelAction extends AbstractModelAction {
                 SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), REPO_CREDENTIALS_FILE));
                 scs.store(npw);
             }
+            
+            logger.info("Finished Cloning Model"); //$NON-NLS-1$
         }
         catch(Exception ex) { // Catch all exceptions
+            logger.log(Level.SEVERE, "Clone Model Exception", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.CloneModelAction_0, ex);
         }
         finally {
             // If this operation is not completed properly delete the repo folder
             if(!RepoUtils.isArchiGitRepository(folder)) {
                 try {
+                    logger.info("Cleaning up failed Clone. Deleting folder " + folder.getPath()); //$NON-NLS-1$
                     FileUtils.deleteFolder(folder);
                 }
                 catch(IOException ex) {
+                    logger.log(Level.SEVERE, "Could not delete folder", ex); //$NON-NLS-1$
                     ex.printStackTrace();
                 }
             }
