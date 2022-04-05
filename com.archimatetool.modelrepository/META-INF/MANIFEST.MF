@@ -1,15 +1,15 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Archi Model Repository
+Bundle-Name: Archi Collaboration (coArchi)
 Bundle-SymbolicName: com.archimatetool.modelrepository;singleton:=true
 Bundle-Localization: plugin
 Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
- com.archimatetool.editor;bundle-version="4.7.1",
+ com.archimatetool.editor;bundle-version="4.9.3",
  com.archimatetool.jdom
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-Activator: com.archimatetool.modelrepository.ModelRepositoryPlugin
 Export-Package: com.archimatetool.modelrepository,
  com.archimatetool.modelrepository.actions,
@@ -20,7 +20,7 @@ Export-Package: com.archimatetool.modelrepository,
  com.archimatetool.modelrepository.repository,
  com.archimatetool.modelrepository.treemodel,
  com.archimatetool.modelrepository.views.repositories
-Bundle-ClassPath: com.archimatetool.modelrepository.jar,
+Bundle-ClassPath: .,
  lib/com.jcraft.jsch_0.1.55.v20190404-1902.jar,
  lib/com.jcraft.jzlib_1.1.1.v201205102305.jar,
  lib/javaewah_1.1.7.v20200107-0831.jar,
