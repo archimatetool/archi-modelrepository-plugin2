@@ -8,9 +8,7 @@ package com.archimatetool.modelrepository.actions;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
-import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
 import com.archimatetool.editor.ui.services.ViewManager;
-import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.views.repositories.ModelRepositoryView;
 
 
@@ -19,27 +17,15 @@ import com.archimatetool.modelrepository.views.repositories.ModelRepositoryView;
  * 
  * @author Phillip Beauvoir
  */
-public class ShowInRepositoryViewHandler extends AbstractModelSelectionHandler {
+public class ShowInRepositoryViewHandler extends AbstractModelHandler {
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ModelRepositoryView part = (ModelRepositoryView)ViewManager.showViewPart(ModelRepositoryView.ID, false);
-        
         if(part != null && getActiveArchimateModel() != null) {
             part.selectObject(getActiveArchimateModel());
         }
         
         return null;
     }
-
-    @Override
-    public void updateState() {
-        // Do nothing
-    }
-    
-    @Override
-    public boolean isEnabled() {
-        return RepoUtils.isModelInArchiRepository(getActiveArchimateModel());
-    }
-
 }
