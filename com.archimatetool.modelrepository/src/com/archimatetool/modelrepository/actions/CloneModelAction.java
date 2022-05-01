@@ -20,8 +20,6 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
-import com.archimatetool.modelrepository.authentication.ProxyAuthenticator;
-import com.archimatetool.modelrepository.authentication.SimpleCredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CloneDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
@@ -67,9 +65,6 @@ public class CloneModelAction extends AbstractModelAction {
             logger.info("Cloning model at: " + repoURL); //$NON-NLS-1$
             logger.info("Cloning into folder: " + folder.getPath()); //$NON-NLS-1$
 
-            // Proxy check
-            ProxyAuthenticator.update(repoURL);
-
             // Clone
             Exception[] exception = new Exception[1];
             
@@ -99,7 +94,7 @@ public class CloneModelAction extends AbstractModelAction {
             
             // If we have one...
             if(modelFile.exists()) {
-                logger.info("Opening model: " + modelFile); //$NON-NLS-1$
+                logger.info("Model exists, opening model: " + modelFile); //$NON-NLS-1$
                 
                 // Open the model
                 IArchimateModel model = IEditorModelManager.INSTANCE.openModel(modelFile);
@@ -111,7 +106,7 @@ public class CloneModelAction extends AbstractModelAction {
             }
             // Else there were no files so create a new blank model
             else {
-                logger.info("Creating a new model"); //$NON-NLS-1$
+                logger.info("Model does not exist, creating a new model"); //$NON-NLS-1$
                 
                 // New model. This will open in the tree
                 IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
@@ -131,8 +126,7 @@ public class CloneModelAction extends AbstractModelAction {
 
             // Store repo credentials if HTTP and option is set
             if(RepoUtils.isHTTP(repoURL) && storeCredentials) {
-                SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), REPO_CREDENTIALS_FILE));
-                scs.store(npw);
+                // TODO: Store repo credentials if HTTP and option is set
             }
             
             logger.info("Finished Cloning Model"); //$NON-NLS-1$

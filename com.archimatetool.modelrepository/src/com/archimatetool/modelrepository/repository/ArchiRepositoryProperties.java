@@ -16,6 +16,7 @@ import java.util.Properties;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class ArchiRepositoryProperties extends Properties {
     
     private File folder;
@@ -29,7 +30,7 @@ public class ArchiRepositoryProperties extends Properties {
     }
     
     public File getPropertiesFile() {
-        return new File(folder, "archi"); //$NON-NLS-1$
+        return new File(folder, "archi");
     }
     
     private ArchiRepositoryProperties load() throws IOException {
@@ -45,7 +46,7 @@ public class ArchiRepositoryProperties extends Properties {
     
     public void save() throws IOException {
         try(FileOutputStream out = new FileOutputStream(getPropertiesFile())) {
-            store(out, "Archi Repository"); //$NON-NLS-1$
+            store(out, "Archi Repository");
         }
     }
 }

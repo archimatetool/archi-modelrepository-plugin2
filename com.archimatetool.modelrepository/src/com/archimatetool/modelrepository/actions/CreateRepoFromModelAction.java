@@ -22,8 +22,6 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
-import com.archimatetool.modelrepository.authentication.ProxyAuthenticator;
-import com.archimatetool.modelrepository.authentication.SimpleCredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.NewRepoDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
@@ -101,8 +99,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             
             // Store repo credentials if HTTP and option is set
             if(RepoUtils.isHTTP(repoURL) && storeCredentials) {
-                SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), REPO_CREDENTIALS_FILE));
-                scs.store(npw);
+                // TODO: Store repo credentials if HTTP and option is set 
             }
             
             logger.info("Finished Creating Repo from Model"); //$NON-NLS-1$
@@ -124,9 +121,6 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
      */
     private void push(final String repoURL, final UsernamePassword npw) throws Exception {
         logger.info("Pushing to remote: " + repoURL); //$NON-NLS-1$
-        
-        // Proxy check
-        ProxyAuthenticator.update(repoURL);
         
         // Store exception
         Exception[] exception = new Exception[1];
