@@ -99,15 +99,10 @@ public interface IArchiRepository extends IRepositoryConstants {
     File getLocalGitFolder();
 
     /**
-     * @return The repository name - the file name
+     * @return The repository name - the model's name
      */
     String getName();
     
-    /**
-     * Update the git config file with the model's name
-     */
-    void setName(String name);
-
     /**
      * @return The model.archimate file in the repository
      */

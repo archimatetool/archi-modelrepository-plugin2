@@ -18,6 +18,11 @@ public interface IRepositoryConstants {
      * Filename for model.archimate file in working folder
      */
     String MODEL_FILENAME = "model.archimate";
+    
+    /**
+     * Folder for storing images
+     */
+    String IMAGES_FOLDER = "images";
 
     /**
      * File name of user name/password for each git repo

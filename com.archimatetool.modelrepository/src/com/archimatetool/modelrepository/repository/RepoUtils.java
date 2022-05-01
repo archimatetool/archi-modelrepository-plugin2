@@ -84,17 +84,15 @@ public class RepoUtils implements IRepositoryConstants {
     
     /**
      * Check if a folder is an Archi Git Repo
-     * @param folder
-     * @return
      */
     public static boolean isArchiGitRepository(File folder) {
         if(folder == null || !folder.exists() || !folder.isDirectory()) {
             return false;
         }
         
-        // If the "archi" properties file exists
-        File archiFile = new File(folder, "/.git/archi"); //$NON-NLS-1$
-        return archiFile.exists() && archiFile.isFile();
+        File gitFolder = new File(folder, ".git"); //$NON-NLS-1$
+        File modelFile = new File(folder, MODEL_FILENAME);
+        return gitFolder.exists() && gitFolder.isDirectory() && modelFile.exists();
     }
     
     /**

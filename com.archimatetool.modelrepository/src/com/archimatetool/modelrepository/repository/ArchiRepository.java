@@ -9,6 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
@@ -65,9 +68,6 @@ public class ArchiRepository implements IArchiRepository {
             
             // Set head to "main"
             setHeadToMainBranch();
-            
-            // Set a default name. This will also create the "archi" marker file
-            setName(getLocalRepositoryFolder().getName());
         }
     }
     
@@ -82,8 +82,8 @@ public class ArchiRepository implements IArchiRepository {
             }
             
             // Add modified files to index
-            //git.add().addFilepattern(".").call(); //$NON-NLS-1$
-            git.add().addFilepattern(MODEL_FILENAME).call();
+            git.add().addFilepattern(".").call(); //$NON-NLS-1$
+            //git.add().addFilepattern(MODEL_FILENAME).addFilepattern(IMAGES_FOLDER).call();
             
             // Add missing files to index
             for(String s : status.getMissing()) {
@@ -114,17 +114,14 @@ public class ArchiRepository implements IArchiRepository {
             
             // Exclude file
             createExcludeFile();
-            
-            // Set a default name. This will also create the "archi" marker file
-            setName(getLocalRepositoryFolder().getName());
         }
     }
 
     @Override
     public boolean hasChangesToCommit() throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
-            //Status status = git.status().call();
-            Status status = git.status().addPath(MODEL_FILENAME).call();
+            Status status = git.status().call();
+            //Status status = git.status().addPath(MODEL_FILENAME).call();
             return !status.isClean();
         }
     }
@@ -183,28 +180,26 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public String getName() {
-        try {
-            return ArchiRepositoryProperties.open(this).getProperty("name", Messages.ArchiRepository_0); //$NON-NLS-1$
+        // Open the "model.archimate" file and read it from the XML
+        try(Stream<String> stream = Files.lines(Paths.get(getLocalRepositoryFolder().getAbsolutePath(), MODEL_FILENAME))
+                .filter(line -> line.indexOf("<archimate:model") != -1)) { //$NON-NLS-1$
+            Optional<String> result = stream.findFirst();
+            if(result.isPresent()) {
+                String segments[] = result.get().split("\""); //$NON-NLS-1$
+                for(int i = 0; i < segments.length; i++) {
+                    if(segments[i].contains("name=")) { //$NON-NLS-1$
+                        return segments[i + 1];
+                    }
+                }
+            }
         }
         catch(IOException ex) {
             ex.printStackTrace();
         }
-
+        
         return Messages.ArchiRepository_0;
     }
     
-    @Override
-    public void setName(String name) {
-        try {
-            ArchiRepositoryProperties properties = ArchiRepositoryProperties.open(this);
-            properties.setProperty("name", name); //$NON-NLS-1$
-            properties.save();
-        }
-        catch(IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
     @Override
     public File getModelFile() {
         return new File(getLocalRepositoryFolder(), MODEL_FILENAME);

@@ -97,12 +97,7 @@ public class CloneModelAction extends AbstractModelAction {
                 logger.info("Model exists, opening model: " + modelFile); //$NON-NLS-1$
                 
                 // Open the model
-                IArchimateModel model = IEditorModelManager.INSTANCE.openModel(modelFile);
-
-                // Set the name
-                if(model != null) {
-                    getRepository().setName(model.getName());
-                }
+                IEditorModelManager.INSTANCE.openModel(modelFile);
             }
             // Else there were no files so create a new blank model
             else {
@@ -112,7 +107,7 @@ public class CloneModelAction extends AbstractModelAction {
                 IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
                 model.setFile(getRepository().getModelFile());
                 
-                // And Save it (this will trigger setting the name in the "archi" file)
+                // And save it
                 logger.info("Saving the model"); //$NON-NLS-1$
                 IEditorModelManager.INSTANCE.saveModel(model);
                 

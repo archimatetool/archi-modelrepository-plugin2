@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -120,18 +118,8 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
             IArchimateModel model = (IArchimateModel)evt.getNewValue();
             if(RepoUtils.isModelInArchiRepository(model)) {
                 IArchiRepository repo = new ArchiRepository(RepoUtils.getLocalRepositoryFolderForModel(model));
-                
-                // Update the model's name in the archi file
-                repo.setName(model.getName());
-                
-                // Notify listeners that the repo changed
                 RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);
             }
         }
-    }
-    
-    public void log(int severity, String message, Throwable ex) {
-        getLog().log(
-                new Status(severity, INSTANCE.getBundle().getSymbolicName(), IStatus.OK, message, ex));
     }
 }

@@ -12,7 +12,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * Properties file stored as "archi" file that denotes that this is a coArchi 2 repository and holds other information
+ * Properties file stored as "archi" file 
+ * Not used at the moment
  * 
  * @author Phillip Beauvoir
  */
