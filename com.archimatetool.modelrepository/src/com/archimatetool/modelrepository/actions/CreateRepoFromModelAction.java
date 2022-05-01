@@ -18,7 +18,6 @@ import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
-import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
@@ -82,11 +81,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             // Set new file location
             fModel.setFile(getRepository().getModelFile());
             
-            // Don't save images in archive format
-            IArchiveManager archiveManager = (IArchiveManager)fModel.getAdapter(IArchiveManager.class);
-            archiveManager.setUseArchiveFormat(false);
-            
-            // Save the model (this will trigger setting the name in the "archi" file)
+            // Save the model
             logger.info("Saving the model to: " + fModel.getFile()); //$NON-NLS-1$
             IEditorModelManager.INSTANCE.saveModel(fModel);
             
