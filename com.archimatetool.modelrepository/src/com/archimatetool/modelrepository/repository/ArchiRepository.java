@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import org.eclipse.jgit.api.CloneCommand;
@@ -50,6 +51,8 @@ import com.archimatetool.modelrepository.authentication.UsernamePassword;
  */
 @SuppressWarnings("nls")
 public class ArchiRepository implements IArchiRepository {
+    
+    private static Logger logger = Logger.getLogger(ArchiRepository.class.getName());
     
     /**
      * The folder location of the local repository
@@ -218,8 +221,8 @@ public class ArchiRepository implements IArchiRepository {
                 }
             }
         }
-        catch(IOException ex) {
-            ex.printStackTrace();
+        catch(Exception ex) { // Catch all exceptions to stop exception dialog
+            logger.severe("Could not get repository name (wrong file type) for: " + getModelFile());
         }
         
         return Messages.ArchiRepository_0;
@@ -269,6 +272,7 @@ public class ArchiRepository implements IArchiRepository {
             global = RepoUtils.getGitConfigUserDetails();
         }
         catch(ConfigInvalidException ex) {
+            logger.warning("Could not get user details!");
             ex.printStackTrace();
         }
         
@@ -311,8 +315,8 @@ public class ArchiRepository implements IArchiRepository {
         // Set line endings depending on platform
         config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, PlatformUtils.isWindows() ? "true" : "input");
 
-        // Set ignore case on Windows
-        if(PlatformUtils.isWindows()) {
+        // Set ignore case on Mac/Windows
+        if(!PlatformUtils.isLinux()) {
             config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, "ignorecase", "true");
         }
         
