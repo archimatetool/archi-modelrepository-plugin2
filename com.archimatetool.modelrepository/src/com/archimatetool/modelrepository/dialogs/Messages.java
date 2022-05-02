@@ -20,6 +20,20 @@ public class Messages extends NLS {
 
     public static String CloneDialog_6;
 
+    public static String CommitDialog_0;
+
+    public static String CommitDialog_1;
+
+    public static String CommitDialog_2;
+
+    public static String CommitDialog_3;
+
+    public static String CommitDialog_4;
+
+    public static String CommitDialog_5;
+
+    public static String CommitDialog_6;
+
     public static String NewRepoDialog_0;
 
     public static String NewRepoDialog_1;

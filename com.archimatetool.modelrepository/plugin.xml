@@ -23,6 +23,11 @@
             id="com.archimatetool.modelrepository.command.cloneModel"
             name="Import Remote Model to Workspace">
       </command>
+      <command
+            defaultHandler="com.archimatetool.modelrepository.actions.CommitModelHandler"
+            id="com.archimatetool.modelrepository.command.commitModel"
+            name="Commit Changes">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -43,6 +48,15 @@
             </command>
             <separator
                   name="com.archimatetool.modelrepository.popup.separator1"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.commitModel"
+                  icon="img/commit.png"
+                  style="push">
+            </command>
+            <separator
+                  name="com.archimatetool.modelrepository.popup.separator2"
                   visible="true">
             </separator>
             <command
@@ -76,6 +90,11 @@
                   name="com.archimatetool.modelrepository.menu.separator1"
                   visible="true">
             </separator>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.commitModel"
+                  icon="img/commit.png"
+                  style="push">
+            </command>
             <separator
                   name="com.archimatetool.modelrepository.menu.separator2"
                   visible="true">
@@ -102,6 +121,11 @@
                   name="com.archimatetool.modelrepository.separator1"
                   visible="true">
             </separator>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.commitModel"
+                  icon="img/commit.png"
+                  style="push">
+            </command>
             <separator
                   name="com.archimatetool.modelrepository.separator2"
                   visible="true">

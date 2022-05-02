@@ -7,14 +7,18 @@ package com.archimatetool.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.dialogs.CommitDialog;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 
@@ -24,6 +28,8 @@ import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
  * @author Phillip Beauvoir
  */
 public abstract class AbstractModelAction extends Action implements IModelRepositoryAction {
+    
+    private static Logger logger = Logger.getLogger(AbstractModelAction.class.getName());
 	
 	private IArchiRepository fRepository;
 	
@@ -117,6 +123,34 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
         return doSave;
     }
     
+    /**
+     * Commit changes. Show user dialog.
+     * @return true if successful, false otherwise
+     */
+    protected boolean commitChanges() {
+        CommitDialog commitDialog = new CommitDialog(fWindow.getShell(), getRepository());
+        int response = commitDialog.open();
+        
+        if(response == Window.OK) {
+            String commitMessage = commitDialog.getCommitMessage();
+            boolean amend = commitDialog.getAmend();
+            
+            try {
+                logger.info("Commiting changes for: " + getRepository().getModelFile()); //$NON-NLS-1$
+                getRepository().commitChanges(commitMessage, amend);
+            }
+            catch(Exception ex) {
+                logger.log(Level.SEVERE, "Commit Exception", ex); //$NON-NLS-1$
+                displayErrorDialog(Messages.AbstractModelAction_3, ex);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }
+
     /**
      * Notify that the repo changed
      */

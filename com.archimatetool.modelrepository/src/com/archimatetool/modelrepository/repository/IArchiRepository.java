@@ -83,6 +83,13 @@ public interface IArchiRepository extends IRepositoryConstants {
     public RemoteConfig removeRemote() throws IOException, GitAPIException;
 
     /**
+     * @return if the latest local HEAD commit and the remote commit are the same
+     * @throws IOException
+     * @throws GitAPIException 
+     */
+    boolean isHeadAndRemoteSame() throws IOException, GitAPIException;
+
+    /**
      * @return The short name of the current local branch
      * @throws IOException
      */
@@ -127,4 +134,13 @@ public interface IArchiRepository extends IRepositoryConstants {
      * @throws IOException
      */
     PersonIdent getUserDetails() throws IOException;
+    
+    /**
+     * Save user name and email
+     * @param name
+     * @param email
+     * @throws IOException
+     */
+    void saveUserDetails(String name, String email) throws IOException;
+
 }

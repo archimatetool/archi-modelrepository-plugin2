@@ -21,13 +21,16 @@ import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
@@ -163,6 +166,27 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
+    public boolean isHeadAndRemoteSame() throws IOException {
+        // TODO: Possibly replace this with the version from coArchi 1 using BranchStatus and BranchInfo
+        try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
+            Ref onlineRef = repository.findRef(ORIGIN + "/" + repository.getBranch());
+            Ref localRef = repository.findRef(HEAD);
+            
+            // In case of missing ref return false
+            if(onlineRef == null || localRef == null) {
+                return false;
+            }
+            
+            try(RevWalk revWalk = new RevWalk(repository)) {
+                RevCommit onlineCommit = revWalk.parseCommit(onlineRef.getObjectId());
+                RevCommit localLatestCommit = revWalk.parseCommit(localRef.getObjectId());
+                revWalk.dispose();
+                return onlineCommit.equals(localLatestCommit);
+            }
+        }
+    }
+
+    @Override
     public String getCurrentLocalBranchName() throws IOException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             return git.getRepository().getBranch();
@@ -233,6 +257,43 @@ public class ArchiRepository implements IArchiRepository {
             String name = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME));
             String email = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL));
             return new PersonIdent(name, email);
+        }
+    }
+
+    @Override
+    public void saveUserDetails(String name, String email) throws IOException {
+        // Get global user details from .gitconfig for comparison
+        PersonIdent global = new PersonIdent("", "");
+        
+        try {
+            global = RepoUtils.getGitConfigUserDetails();
+        }
+        catch(ConfigInvalidException ex) {
+            ex.printStackTrace();
+        }
+        
+        // Save to local config
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            StoredConfig config = git.getRepository().getConfig();
+            
+            // If global name == local name or blank then unset
+            if(!StringUtils.isSet(name) || global.getName().equals(name)) {
+                config.unset(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME);
+            }
+            // Set
+            else {
+                config.setString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME, name);
+            }
+            
+            // If global email == local email or blank then unset
+            if(!StringUtils.isSet(email) || global.getEmailAddress().equals(email)) {
+                config.unset(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL);
+            }
+            else {
+                config.setString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL, email);
+            }
+
+            config.save();
         }
     }
 
