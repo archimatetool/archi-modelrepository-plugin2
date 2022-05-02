@@ -176,7 +176,7 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public File getLocalGitFolder() {
-        return new File(getLocalRepositoryFolder(), ".git"); //$NON-NLS-1$
+        return new File(getLocalRepositoryFolder(), ".git");
     }
 
     @Override
