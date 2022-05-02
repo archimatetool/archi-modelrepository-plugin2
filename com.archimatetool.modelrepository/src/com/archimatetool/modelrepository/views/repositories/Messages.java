@@ -30,6 +30,10 @@ public class Messages extends NLS {
 
     public static String ModelRepositoryView_14;
 
+    public static String ModelRepositoryView_15;
+
+    public static String ModelRepositoryView_16;
+
     public static String ModelRepositoryView_2;
 
     public static String ModelRepositoryView_3;

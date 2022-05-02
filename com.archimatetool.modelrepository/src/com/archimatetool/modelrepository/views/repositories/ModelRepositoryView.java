@@ -314,7 +314,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 if(isModelOpen) {
                     MessageDialog.openError(getViewSite().getShell(),
                             Messages.ModelRepositoryView_11,
-                            "Please close any selected models that are open first.");
+                            Messages.ModelRepositoryView_15);
                     return;
                 }
             }
@@ -335,7 +335,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             catch(IOException ex) {
                 ex.printStackTrace();
                 MessageDialog.openError(getViewSite().getShell(),
-                        Messages.ModelRepositoryView_11, "There was an error: " + "\n" + ex.getMessage());
+                        Messages.ModelRepositoryView_11, Messages.ModelRepositoryView_16 + "\n" + ex.getMessage()); //$NON-NLS-1$
             }
 
             // Now delete Groups

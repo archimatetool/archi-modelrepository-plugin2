@@ -42,7 +42,7 @@
                   style="push">
             </command>
             <separator
-                  name="com.archimatetool.modelrepository.popup.separator2"
+                  name="com.archimatetool.modelrepository.popup.separator1"
                   visible="true">
             </separator>
             <command
