@@ -35,7 +35,6 @@ public interface IModelRepositoryImages {
     String ICON_MERGE = IMGPATH + "merge.png"; //$NON-NLS-1$
     String ICON_MODEL = IMGPATH + "elements_obj.png"; //$NON-NLS-1$
     String ICON_NEW_BRANCH = IMGPATH + "new_branch_obj.png"; //$NON-NLS-1$
-    String ICON_OPEN = IMGPATH + "open.png"; //$NON-NLS-1$
     String ICON_PUSH = IMGPATH + "push.png"; //$NON-NLS-1$
     String ICON_REFRESH = IMGPATH + "pull.png"; //$NON-NLS-1$
     String ICON_RESET = IMGPATH + "reset.png"; //$NON-NLS-1$
