@@ -45,6 +45,7 @@ import com.archimatetool.modelrepository.authentication.UsernamePassword;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class ArchiRepository implements IArchiRepository {
     
     /**
@@ -82,7 +83,7 @@ public class ArchiRepository implements IArchiRepository {
             }
             
             // Add modified files to index
-            git.add().addFilepattern(".").call(); //$NON-NLS-1$
+            git.add().addFilepattern(".").call();
             //git.add().addFilepattern(MODEL_FILENAME).addFilepattern(IMAGES_FOLDER).call();
             
             // Add missing files to index
@@ -182,12 +183,12 @@ public class ArchiRepository implements IArchiRepository {
     public String getName() {
         // Open the "model.archimate" file and read it from the XML
         try(Stream<String> stream = Files.lines(Paths.get(getLocalRepositoryFolder().getAbsolutePath(), MODEL_FILENAME))
-                .filter(line -> line.indexOf("<archimate:model") != -1)) { //$NON-NLS-1$
+                .filter(line -> line.indexOf("<archimate:model") != -1)) {
             Optional<String> result = stream.findFirst();
             if(result.isPresent()) {
-                String segments[] = result.get().split("\""); //$NON-NLS-1$
+                String segments[] = result.get().split("\"");
                 for(int i = 0; i < segments.length; i++) {
-                    if(segments[i].contains("name=")) { //$NON-NLS-1$
+                    if(segments[i].contains("name=")) {
                         return segments[i + 1];
                     }
                 }
@@ -247,8 +248,13 @@ public class ArchiRepository implements IArchiRepository {
         StoredConfig config = repository.getConfig();
 
         // Set line endings depending on platform
-        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, PlatformUtils.isWindows() ? "true" : "input"); //$NON-NLS-1$ //$NON-NLS-2$
+        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, PlatformUtils.isWindows() ? "true" : "input");
 
+        // Set ignore case on Windows
+        if(PlatformUtils.isWindows()) {
+            config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, "ignorecase", "true");
+        }
+        
         config.save();
     }
     
@@ -273,8 +279,8 @@ public class ArchiRepository implements IArchiRepository {
      * Create exclude file for ignored files
      */
     private void createExcludeFile() throws IOException {
-        String excludes = "*.bak\n.DS_Store"; //$NON-NLS-1$
-        File excludeFile = new File(getLocalGitFolder(), "/info/exclude"); //$NON-NLS-1$
+        String excludes = "*.bak\n.DS_Store";
+        File excludeFile = new File(getLocalGitFolder(), "/info/exclude");
         excludeFile.getParentFile().mkdirs();
         Files.write(excludeFile.toPath(), excludes.getBytes());
     }
@@ -283,8 +289,8 @@ public class ArchiRepository implements IArchiRepository {
      * Kludge to set default branch to "main" not "master"
      */
     private void setHeadToMainBranch() throws IOException {
-        String ref = "ref: refs/heads/main"; //$NON-NLS-1$
-        File headFile = new File(getLocalGitFolder(), "HEAD"); //$NON-NLS-1$
+        String ref = "ref: refs/heads/main";
+        File headFile = new File(getLocalGitFolder(), "HEAD");
         Files.write(headFile.toPath(), ref.getBytes());
     }
 }
