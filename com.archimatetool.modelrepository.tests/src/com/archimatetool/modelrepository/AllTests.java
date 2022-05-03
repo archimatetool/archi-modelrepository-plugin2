@@ -5,6 +5,8 @@
  */
 package com.archimatetool.modelrepository;
 
+import com.archimatetool.modelrepository.repository.ArchiRepositoryTests;
+import com.archimatetool.modelrepository.repository.RepoUtilsTests;
 
 import junit.framework.TestSuite;
 
@@ -12,9 +14,10 @@ import junit.framework.TestSuite;
 public class AllTests {
 
     public static junit.framework.Test suite() {
-		TestSuite suite = new TestSuite("org.archicontribs.modelrepository");
+		TestSuite suite = new TestSuite("com.archimatetool.modelrepository");
 
-		//suite.addTest(ArchiRepositoryTests.suite());
+        suite.addTest(ArchiRepositoryTests.suite());
+        suite.addTest(RepoUtilsTests.suite());
 		
         return suite;
 	}

@@ -8,8 +8,7 @@ package com.archimatetool.modelrepository.repository;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -29,9 +28,10 @@ import com.archimatetool.modelrepository.ModelRepositoryPlugin;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class RepoUtils implements IRepositoryConstants {
     
-    private static List<String> sshSchemeNames = Arrays.asList(new String[] {"ssh", "ssh+git", "git+ssh"}); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    private static Set<String> sshSchemeNames = Set.of("ssh", "ssh+git", "git+ssh");
 
     /**
      * Adapted from org.eclipse.jgit.transport.TransportGitSsh
@@ -75,7 +75,7 @@ public class RepoUtils implements IRepositoryConstants {
         File newFolder;
         
         do {
-            newFolder = new File(rootFolder, UUID.randomUUID().toString().split("-")[0]); //$NON-NLS-1$
+            newFolder = new File(rootFolder, UUID.randomUUID().toString().split("-")[0]);
         }
         while(newFolder.exists()); // just in case
         
@@ -90,7 +90,7 @@ public class RepoUtils implements IRepositoryConstants {
             return false;
         }
         
-        File gitFolder = new File(folder, ".git"); //$NON-NLS-1$
+        File gitFolder = new File(folder, ".git");
         File modelFile = new File(folder, MODEL_FILENAME);
         return gitFolder.exists() && gitFolder.isDirectory() && modelFile.exists();
     }
@@ -105,7 +105,7 @@ public class RepoUtils implements IRepositoryConstants {
     
     /**
      * Get the enclosing local repo folder for a model
-     * It is assumed that the model is located at localRepoFolder/model.archimate
+     * It is assumed that the model is located at localRepoFolder/model.archimate and has a .git folder
      * @param model
      * @return The folder or null if not in a Archi repo
      */
@@ -124,7 +124,7 @@ public class RepoUtils implements IRepositoryConstants {
         File parent = file.getParentFile();
         
         // Must have a .git folder
-        if(parent != null && !new File(parent, ".git").isDirectory()) { //$NON-NLS-1$
+        if(parent != null && !new File(parent, ".git").isDirectory()) {
             return null;
         }
         

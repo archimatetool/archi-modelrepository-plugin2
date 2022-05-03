@@ -20,13 +20,11 @@ public class GitHelper {
         return repository;
     }
     
-    public static File getTempTestsFolder() {
-        File file = new File(System.getProperty("java.io.tmpdir"), "com.archimatetool.modelrepository.tests.tmp");
-        file.deleteOnExit();
-        file.mkdirs();
-        return file;
+    public static File getTempTestsFolder() throws IOException {
+        // Need canonical file because on Windows the temp folder path includes short name like C:\Users\PHILLI~1\AppData\Local\Temp\
+        File folder = new File(System.getProperty("java.io.tmpdir"), "com.archimatetool.modelrepository.tests.tmp").getCanonicalFile();
+        folder.deleteOnExit();
+        folder.mkdirs();
+        return folder;
     }
-    
-
 }
-
