@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -208,9 +207,15 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public String getName() {
-        // Open the "model.archimate" file and read it from the XML
-        try(Stream<String> stream = Files.lines(Paths.get(getLocalRepositoryFolder().getAbsolutePath(), MODEL_FILENAME))
-                .filter(line -> line.indexOf("<archimate:model") != -1)) {
+        // If the model is open, return its name
+        IArchimateModel model = getModel();
+        if(model != null) {
+            return model.getName();
+        }
+
+        // If model not open, open the "model.archimate" file and read it from there
+        try(Stream<String> stream = Files.lines(getModelFile().toPath())
+                                         .filter(line -> line.indexOf("<archimate:model") != -1)) {
             Optional<String> result = stream.findFirst();
             if(result.isPresent()) {
                 String segments[] = result.get().split("\"");
