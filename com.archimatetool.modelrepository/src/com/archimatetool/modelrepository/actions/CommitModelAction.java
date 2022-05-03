@@ -14,20 +14,17 @@ import org.eclipse.ui.IWorkbenchWindow;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
-import com.archimatetool.modelrepository.repository.ArchiRepository;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
-import com.archimatetool.modelrepository.repository.RepoUtils;
 
 /**
  * Commit Model Action
  * 
  * 1. Offer to save the model
- * 2. Create Grafico files from the model
- * 3. Check if there is anything to Commit
- * 4. Show Commit dialog
- * 5. Commit
+ * 2. Check if there is anything to Commit
+ * 3. Show Commit dialog
+ * 4. Commit
  * 
- * @author Jean-Baptiste Sarrodie
  * @author Phillip Beauvoir
  */
 public class CommitModelAction extends AbstractModelAction {
@@ -41,12 +38,9 @@ public class CommitModelAction extends AbstractModelAction {
         setToolTipText(Messages.CommitModelAction_0);
     }
 
-    public CommitModelAction(IWorkbenchWindow window, IArchimateModel model) {
+    public CommitModelAction(IWorkbenchWindow window, IArchiRepository repository) {
         this(window);
-        
-        if(model != null) {
-            setRepository(new ArchiRepository(RepoUtils.getLocalRepositoryFolderForModel(model)));
-        }
+        setRepository(repository);
     }
 
     @Override

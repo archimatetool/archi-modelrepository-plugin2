@@ -5,6 +5,8 @@
  */
 package com.archimatetool.modelrepository.actions;
 
+import java.io.File;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
@@ -28,10 +30,13 @@ public abstract class AbstractModelHandler extends AbstractHandler {
     }
 
     protected IArchiRepository getActiveArchiRepository() {
-        if(RepoUtils.isModelInArchiRepository(getActiveArchimateModel())) {
-            return new ArchiRepository(RepoUtils.getLocalRepositoryFolderForModel(getActiveArchimateModel()));
+        // Check active model first if in a repo folder
+        File folder = RepoUtils.getLocalRepositoryFolderForModel(getActiveArchimateModel());
+        if(folder != null) {
+            return new ArchiRepository(folder);
         }
         
+        // Part contains IArchiRepository objects (ModelRepositoryView)
         IWorkbenchPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().getActivePart();
         return part != null ? part.getAdapter(IArchiRepository.class) : null;
     }

@@ -9,7 +9,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 
 /**
@@ -21,10 +21,9 @@ public class CommitModelHandler extends AbstractModelHandler {
     
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        IArchimateModel model = getActiveArchimateModel();
-        
-        if(model != null) {
-            CommitModelAction action = new CommitModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
+        IArchiRepository repository = getActiveArchiRepository();
+        if(repository != null) {
+            CommitModelAction action = new CommitModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), repository);
             action.run();
         }
         

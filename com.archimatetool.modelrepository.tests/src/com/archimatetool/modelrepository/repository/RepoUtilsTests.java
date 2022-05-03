@@ -127,6 +127,7 @@ public class RepoUtilsTests {
         
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
         File modelFile = new File(tmpFolder, IRepositoryConstants.MODEL_FILENAME);
+        modelFile.createNewFile();
         model.setFile(modelFile);
         assertEquals(tmpFolder, RepoUtils.getLocalRepositoryFolderForModel(model));
     }

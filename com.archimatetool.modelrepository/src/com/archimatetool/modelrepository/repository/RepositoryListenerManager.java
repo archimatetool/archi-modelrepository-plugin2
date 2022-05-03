@@ -6,6 +6,7 @@
 package com.archimatetool.modelrepository.repository;
 
 import java.beans.PropertyChangeEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,8 +80,9 @@ public class RepositoryListenerManager {
      * If model changed and is in a repo, send notification
      */
     private void notifyModelChanged(IArchimateModel model) {
-        if(RepoUtils.isModelInArchiRepository(model)) {
-            IArchiRepository repo = new ArchiRepository(RepoUtils.getLocalRepositoryFolderForModel(model));
+        File repoFolder = RepoUtils.getLocalRepositoryFolderForModel(model);
+        if(repoFolder != null) {
+            IArchiRepository repo = new ArchiRepository(repoFolder);
             fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);
         }
     }

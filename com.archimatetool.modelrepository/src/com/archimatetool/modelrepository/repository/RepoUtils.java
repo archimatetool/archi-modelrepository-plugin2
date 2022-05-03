@@ -84,6 +84,7 @@ public class RepoUtils implements IRepositoryConstants {
     
     /**
      * Check if a folder is an Archi Git Repo
+     * Return true if there is a model file named "model.archimate" in the folder and it has a .git sub-folder
      */
     public static boolean isArchiGitRepository(File folder) {
         if(folder == null || !folder.exists() || !folder.isDirectory()) {
@@ -92,7 +93,7 @@ public class RepoUtils implements IRepositoryConstants {
         
         File gitFolder = new File(folder, ".git");
         File modelFile = new File(folder, MODEL_FILENAME);
-        return gitFolder.exists() && gitFolder.isDirectory() && modelFile.exists();
+        return gitFolder.isDirectory() && modelFile.exists();
     }
     
     /**
@@ -100,35 +101,17 @@ public class RepoUtils implements IRepositoryConstants {
      * @return true if a model is in an Archi repo folder
      */
     public static boolean isModelInArchiRepository(IArchimateModel model) {
-        return isArchiGitRepository(getLocalRepositoryFolderForModel(model));
+        return getLocalRepositoryFolderForModel(model) != null;
     }
     
     /**
      * Get the enclosing local repo folder for a model
-     * It is assumed that the model is located at localRepoFolder/model.archimate and has a .git folder
-     * @param model
-     * @return The folder or null if not in a Archi repo
+     * It is assumed that the model file is named "model.archimate", exists, and has a .git folder
+     * @return The folder or null if the model is not in a Archi repo
      */
     public static File getLocalRepositoryFolderForModel(IArchimateModel model) {
-        if(model == null) {
-            return null;
-        }
-        
-        // File has to be named correctly
-        File file = model.getFile();
-        if(file == null || !file.getName().equals(MODEL_FILENAME)) {
-            return null;
-        }
-        
-        // Parent folder
-        File parent = file.getParentFile();
-        
-        // Must have a .git folder
-        if(parent != null && !new File(parent, ".git").isDirectory()) {
-            return null;
-        }
-        
-        return parent;
+        File parentFolder = (model != null && model.getFile() != null) ? model.getFile().getParentFile() : null;
+        return isArchiGitRepository(parentFolder) ? parentFolder : null;
     }
     
     /**
