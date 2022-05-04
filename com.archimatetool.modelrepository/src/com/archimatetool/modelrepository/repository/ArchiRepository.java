@@ -231,22 +231,25 @@ public class ArchiRepository implements IArchiRepository {
         if(model != null) {
             return model.getName();
         }
-
+        
         // If model not open, open the "model.archimate" file and read it from there
-        try(Stream<String> stream = Files.lines(getModelFile().toPath())
-                                         .filter(line -> line.indexOf("<archimate:model") != -1)) {
-            Optional<String> result = stream.findFirst();
-            if(result.isPresent()) {
-                String segments[] = result.get().split("\"");
-                for(int i = 0; i < segments.length; i++) {
-                    if(segments[i].contains("name=")) {
-                        return segments[i + 1];
+        File modelFile = getModelFile();
+        if(modelFile.exists()) {
+            try(Stream<String> stream = Files.lines(modelFile.toPath())
+                                             .filter(line -> line.indexOf("<archimate:model") != -1)) {
+                Optional<String> result = stream.findFirst();
+                if(result.isPresent()) {
+                    String segments[] = result.get().split("\"");
+                    for(int i = 0; i < segments.length; i++) {
+                        if(segments[i].contains("name=")) {
+                            return segments[i + 1];
+                        }
                     }
                 }
             }
-        }
-        catch(Exception ex) { // Catch all exceptions to stop exception dialog
-            logger.severe("Could not get repository name (wrong file type) for: " + getModelFile());
+            catch(Exception ex) { // Catch all exceptions to stop exception dialog
+                logger.severe("Could not get repository name (wrong file type) for: " + getModelFile());
+            }
         }
         
         return Messages.ArchiRepository_0;

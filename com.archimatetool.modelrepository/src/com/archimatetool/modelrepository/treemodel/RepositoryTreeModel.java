@@ -26,6 +26,9 @@ import com.archimatetool.modelrepository.repository.RepoUtils;
  */
 public class RepositoryTreeModel extends Group {
     
+    // Can be set to false for testing
+    static boolean saveToManifest = true;
+    
     /**
      * Backing File
      */
@@ -78,8 +81,8 @@ public class RepositoryTreeModel extends Group {
     }
     
     public void loadManifest() throws IOException, JDOMException {
-        groups = new ArrayList<Group>();
-        repos = new ArrayList<RepositoryRef>();
+        groups = new ArrayList<>();
+        repos = new ArrayList<>();
         
         if(backingFile.exists()) {
             Document doc = JDOMUtils.readXMLFile(backingFile);
@@ -119,6 +122,10 @@ public class RepositoryTreeModel extends Group {
     }
     
     public void saveManifest() throws IOException {
+        if(!saveToManifest) {
+            return;
+        }
+        
         Document doc = new Document();
         Element rootElement = new Element("repositories"); //$NON-NLS-1$
         doc.setRootElement(rootElement);

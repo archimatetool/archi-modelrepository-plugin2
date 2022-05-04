@@ -14,6 +14,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.Bundle;
 
 /**
@@ -39,6 +40,13 @@ class LoggingSupport {
     private static FileHandler fileHandler;
     
     static void init(Bundle bundle) throws SecurityException, IOException {
+        // Don't use logging if running unit tests
+        // Note - we might want to use logging if running from the command line
+        if(!PlatformUI.isWorkbenchRunning()) {
+            LogManager.getLogManager().reset(); // Stop logging to console
+            return;
+        }
+        
         // Root logger - should be "com.archimatetool.modelrepository"
         Logger rootLogger = Logger.getLogger(bundle.getSymbolicName());
         

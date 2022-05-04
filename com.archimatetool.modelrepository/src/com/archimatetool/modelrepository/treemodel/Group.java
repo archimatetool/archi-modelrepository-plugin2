@@ -21,6 +21,7 @@ import com.archimatetool.modelrepository.repository.IArchiRepository;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class Group implements IModelRepositoryTreeEntry {
     
     private String name;
@@ -31,8 +32,8 @@ public class Group implements IModelRepositoryTreeEntry {
     
     public Group(String name) {
         this.name = name;
-        groups = new ArrayList<Group>();
-        repos = new ArrayList<RepositoryRef>();
+        groups = new ArrayList<>();
+        repos = new ArrayList<>();
     }
     
     @Override
@@ -103,6 +104,10 @@ public class Group implements IModelRepositoryTreeEntry {
     }
 
     public void add(IModelRepositoryTreeEntry entry) {
+        if(entry == this || entry instanceof RepositoryTreeModel) {
+            throw new IllegalArgumentException("Cannot add to self!");
+        }
+        
         // Remove from old parent
         entry.delete();
         
@@ -130,15 +135,18 @@ public class Group implements IModelRepositoryTreeEntry {
     }
 
     void setParent(Group parent) {
+        if(parent == this) {
+            throw new IllegalArgumentException("Cannot add to self!");
+        }
         this.parent = parent;
     }
     
     public List<RepositoryRef> getRepositoryRefs() {
-        return new ArrayList<RepositoryRef>(repos);
+        return new ArrayList<>(repos);
     }
     
     public List<Group> getGroups() {
-        return new ArrayList<Group>(groups);
+        return new ArrayList<>(groups);
     }
     
     /**
