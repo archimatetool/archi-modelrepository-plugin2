@@ -6,6 +6,8 @@
 package com.archimatetool.modelrepository.views.repositories;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -31,7 +33,10 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class ModelRepositoryTreeViewerDragDropHandler {
+
+    private static Logger logger = Logger.getLogger(ModelRepositoryTreeViewerDragDropHandler.class.getName());
 
     private StructuredViewer fViewer;
     
@@ -119,7 +124,6 @@ public class ModelRepositoryTreeViewerDragDropHandler {
             private int getEventDetail(DropTargetEvent event) {
                 return isValidSelection(event) && isValidDropTarget(event) ? DND.DROP_MOVE : DND.DROP_NONE;
             }
-            
         });
     }
     
@@ -159,6 +163,7 @@ public class ModelRepositoryTreeViewerDragDropHandler {
         }
         catch(IOException ex) {
             ex.printStackTrace();
+            logger.log(Level.SEVERE, "Saving Manifest", ex);
         }
         
         fViewer.refresh();

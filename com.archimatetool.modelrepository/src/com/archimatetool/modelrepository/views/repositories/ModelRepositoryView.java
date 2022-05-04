@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
@@ -73,6 +75,8 @@ import com.archimatetool.modelrepository.views.repositories.ModelRepositoryTreeV
 public class ModelRepositoryView
 extends ViewPart
 implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContributor {
+    
+    private static Logger logger = Logger.getLogger(ModelRepositoryView.class.getName());
 
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryView"; //$NON-NLS-1$
     public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryViewHelp"; //$NON-NLS-1$
@@ -289,26 +293,26 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 Messages.ModelRepositoryView_11,
                 Messages.ModelRepositoryView_12)) {
             
-            Set<RepositoryRef> refs = new HashSet<RepositoryRef>();
-            Set<Group> groups = new HashSet<Group>();
+            Set<RepositoryRef> refsToDelete = new HashSet<RepositoryRef>();
+            Set<Group> groupsToDelete = new HashSet<Group>();
             
             // Get all selected Repository Refs and Groups
             for(Object object : ((IStructuredSelection)getViewer().getSelection()).toArray()) {
                 // Selected RepositoryRef
                 if(object instanceof RepositoryRef) {
-                    refs.add((RepositoryRef)object);
+                    refsToDelete.add((RepositoryRef)object);
                 }
                 // Selected Group and its sub-groups and sub-RepositoryRefs
                 if(object instanceof Group) {
                     Group group = (Group)object;
-                    groups.add(group);
-                    groups.addAll(group.getAllChildGroups());
-                    refs.addAll(group.getAllChildRepositoryRefs());
+                    groupsToDelete.add(group);
+                    groupsToDelete.addAll(group.getAllChildGroups());
+                    refsToDelete.addAll(group.getAllChildRepositoryRefs());
                 }
             }
             
             // Check if a repository model is open, if it is warn and cancel
-            for(RepositoryRef ref : refs) {
+            for(RepositoryRef ref : refsToDelete) {
                 boolean isModelOpen = ref.getArchiRepository().getModel() != null;
                 if(isModelOpen) {
                     MessageDialog.openError(getViewSite().getShell(),
@@ -320,7 +324,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             
             // Delete repositories
             try {
-                for(RepositoryRef ref : refs) {
+                for(RepositoryRef ref : refsToDelete) {
                     // Delete repository folder
                     FileUtils.deleteFolder(ref.getArchiRepository().getLocalRepositoryFolder());
                     
@@ -333,12 +337,13 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             }
             catch(IOException ex) {
                 ex.printStackTrace();
+                logger.log(Level.SEVERE, "Deleting Tree Models", ex); //$NON-NLS-1$
                 MessageDialog.openError(getViewSite().getShell(),
                         Messages.ModelRepositoryView_11, Messages.ModelRepositoryView_16 + "\n" + ex.getMessage()); //$NON-NLS-1$
             }
 
             // Now delete Groups
-            for(Group group : groups) {
+            for(Group group : groupsToDelete) {
                 // Safety measure in case a repository was not deleted in a Group
                 boolean isSafeToDelete = group.getAllChildRepositoryRefs().isEmpty();
                 if(isSafeToDelete) {
@@ -352,6 +357,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             }
             catch(IOException ex) {
                 ex.printStackTrace();
+                logger.log(Level.SEVERE, "Saving Manifest", ex); //$NON-NLS-1$
             }
 
             getViewer().refresh();
@@ -429,12 +435,12 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         manager.add(fetchAction);
         fetchAction.setChecked(store.getBoolean(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND));
         
-        IPropertyChangeListener listener = (e) -> {
+        IPropertyChangeListener listener = e -> {
             fetchAction.setChecked(store.getBoolean(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND));
         };
         store.addPropertyChangeListener(listener);
         
-        getViewer().getControl().addDisposeListener((e) -> {
+        getViewer().getControl().addDisposeListener(e -> {
             store.removePropertyChangeListener(listener);
         });
     }

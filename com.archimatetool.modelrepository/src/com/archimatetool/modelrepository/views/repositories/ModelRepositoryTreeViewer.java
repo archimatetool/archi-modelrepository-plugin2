@@ -8,6 +8,8 @@ package com.archimatetool.modelrepository.views.repositories;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
@@ -48,7 +50,10 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 /**
  * Repository Tree Viewer
  */
+@SuppressWarnings("nls")
 public class ModelRepositoryTreeViewer extends TreeViewer implements IRepositoryListener, IRepositoryTreeModelListener {
+    
+    private static Logger logger = Logger.getLogger(ModelRepositoryTreeViewer.class.getName());
 
     /**
      * Constructor
@@ -104,7 +109,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         // Cell Editor
         TreeTextCellEditor cellEditor = new TreeTextCellEditor(getTree());
-        setColumnProperties(new String[]{ "col1" }); //$NON-NLS-1$
+        setColumnProperties(new String[]{ "col1" });
         setCellEditors(new CellEditor[]{ cellEditor });
 
         // Edit cell programmatically, not on mouse click
@@ -151,6 +156,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         }
         catch(IOException | JDOMException ex) {
             ex.printStackTrace();
+            logger.log(Level.SEVERE, "Loading Manifest", ex);
         }
         
         RepositoryTreeModel.getInstance().addListener(this);
@@ -292,7 +298,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         }
         
         String getStatusText(IArchiRepository repo) {
-            String s = ""; //$NON-NLS-1$
+            String s = "";
             
             StatusCache sc = cache.get(repo);
             if(sc != null) {
@@ -301,13 +307,13 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 }
                 if(sc.hasUnpushedCommits) {
                     if(StringUtils.isSet(s)) {
-                        s += " | "; //$NON-NLS-1$
+                        s += " | "; 
                     }
                     s += Messages.ModelRepositoryTreeViewer_1;
                 }
                 if(sc.hasRemoteCommits) {
                     if(StringUtils.isSet(s)) {
-                        s += " | "; //$NON-NLS-1$
+                        s += " | ";
                     }
                     s += Messages.ModelRepositoryTreeViewer_2;
                 }
@@ -335,9 +341,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 }
                 
                 // Check status of current branch
-                String currentLocalBranch = ""; //$NON-NLS-1$
+                String currentLocalBranch = "";
                 
-                // TODO Get status, current branch etc...
+                // TODO: Get status, current branch etc...
                 boolean hasUnpushedCommits = false;
                 boolean hasRemoteCommits = false;
                 boolean hasLocalChanges = false;
@@ -362,7 +368,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 cell.setImage(getImage(repo));
 
                 // Repository name and current branch
-                cell.setText(repo.getName() + " [" + currentLocalBranch + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+                cell.setText(repo.getName() + " [" + currentLocalBranch + "]");
             }
             
             if(cell.getElement() instanceof Group) {
@@ -381,7 +387,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 
                 String status = getStatusText(repo);
                 if(StringUtils.isSet(status)) {
-                    s += "\n" + status.replaceAll(" \\| ", "\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                    s += "\n" + status.replaceAll(" \\| ", "\n");
                 }
                 
                 return s;
