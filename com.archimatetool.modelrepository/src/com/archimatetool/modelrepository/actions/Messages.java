@@ -32,6 +32,12 @@ public class Messages extends NLS {
 
     public static String CreateRepoFromModelAction_2;
 
+    public static String DiscardChangesAction_0;
+
+    public static String DiscardChangesAction_1;
+
+    public static String DiscardChangesAction_2;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

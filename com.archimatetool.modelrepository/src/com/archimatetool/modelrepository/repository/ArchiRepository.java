@@ -13,13 +13,16 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import org.eclipse.jgit.api.CleanCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -164,6 +167,22 @@ public class ArchiRepository implements IArchiRepository {
             RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
             remoteRemoveCommand.setRemoteName(ORIGIN);
             return remoteRemoveCommand.call();
+        }
+    }
+
+    @Override
+    public void resetToRef(String ref) throws IOException, GitAPIException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            // Reset
+            ResetCommand resetCommand = git.reset();
+            resetCommand.setRef(ref);
+            resetCommand.setMode(ResetType.HARD);
+            resetCommand.call();
+            
+            // Clean extra files
+            CleanCommand cleanCommand = git.clean();
+            cleanCommand.setCleanDirectories(true);
+            cleanCommand.call();
         }
     }
 

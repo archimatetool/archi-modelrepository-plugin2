@@ -80,7 +80,15 @@ public interface IArchiRepository extends IRepositoryConstants {
      * @throws IOException
      * @throws GitAPIException
      */
-    public RemoteConfig removeRemote() throws IOException, GitAPIException;
+    RemoteConfig removeRemote() throws IOException, GitAPIException;
+    
+    /**
+     * Do a HARD reset to the given ref
+     * @param ref can be "refs/heads/main" for local, or "origin/main" for remote ref
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    void resetToRef(String ref) throws IOException, GitAPIException;
 
     /**
      * @return if the latest local HEAD commit and the remote commit are the same

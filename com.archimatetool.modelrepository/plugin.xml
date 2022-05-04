@@ -28,6 +28,11 @@
             id="com.archimatetool.modelrepository.command.commitModel"
             name="Commit Changes">
       </command>
+      <command
+            defaultHandler="com.archimatetool.modelrepository.actions.DiscardChangesHandler"
+            id="com.archimatetool.modelrepository.command.discardChanges"
+            name="Discard Uncommited Changes">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -53,6 +58,11 @@
             <command
                   commandId="com.archimatetool.modelrepository.command.commitModel"
                   icon="img/commit.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.discardChanges"
+                  icon="img/abort.png"
                   style="push">
             </command>
             <separator
@@ -95,6 +105,11 @@
                   icon="img/commit.png"
                   style="push">
             </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.discardChanges"
+                  icon="img/abort.png"
+                  style="push">
+            </command>
             <separator
                   name="com.archimatetool.modelrepository.menu.separator2"
                   visible="true">
@@ -124,6 +139,11 @@
             <command
                   commandId="com.archimatetool.modelrepository.command.commitModel"
                   icon="img/commit.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.discardChanges"
+                  icon="img/abort.png"
                   style="push">
             </command>
             <separator
