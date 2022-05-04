@@ -53,6 +53,8 @@ public class CommitModelAction extends AbstractModelAction {
             }
         }
 
+        logger.info("Committing changes..."); //$NON-NLS-1$
+        
         // Then Commit
         try {
             if(getRepository().hasChangesToCommit()) {

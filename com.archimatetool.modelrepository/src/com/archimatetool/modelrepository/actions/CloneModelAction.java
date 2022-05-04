@@ -59,16 +59,16 @@ public class CloneModelAction extends AbstractModelAction {
         final UsernamePassword npw = dialog.getUsernamePassword();
         final File folder = RepoUtils.generateNewRepoFolder();
         
+        logger.info("Cloning model at: " + repoURL); //$NON-NLS-1$
+
         setRepository(new ArchiRepository(folder));
         
         try {
-            logger.info("Cloning model at: " + repoURL); //$NON-NLS-1$
-            logger.info("Cloning into folder: " + folder.getPath()); //$NON-NLS-1$
-
-            // Clone
             Exception[] exception = new Exception[1];
             
-            // Ensure folder exists
+            logger.info("Cloning into folder: " + folder.getPath()); //$NON-NLS-1$
+
+           // Ensure folder exists
             folder.mkdirs();
 
             // If using this be careful that no UI operations are included as this could lead to an SWT Invalid thread access exception
@@ -94,7 +94,7 @@ public class CloneModelAction extends AbstractModelAction {
             
             // If we have one...
             if(modelFile.exists()) {
-                logger.info("Model exists, opening model: " + modelFile); //$NON-NLS-1$
+                logger.info("Model cloned, opening model: " + modelFile); //$NON-NLS-1$
                 
                 // Open the model
                 IEditorModelManager.INSTANCE.openModel(modelFile);
@@ -108,7 +108,7 @@ public class CloneModelAction extends AbstractModelAction {
                 model.setFile(getRepository().getModelFile());
                 
                 // And save it
-                logger.info("Saving the model"); //$NON-NLS-1$
+                logger.info("Saving the new model"); //$NON-NLS-1$
                 IEditorModelManager.INSTANCE.saveModel(model);
                 
                 // Commit changes
@@ -124,17 +124,17 @@ public class CloneModelAction extends AbstractModelAction {
                 // TODO: Store repo credentials if HTTP and option is set
             }
             
-            logger.info("Finished Cloning Model"); //$NON-NLS-1$
+            logger.info("Finished cloning model"); //$NON-NLS-1$
         }
         catch(Exception ex) { // Catch all exceptions
-            logger.log(Level.SEVERE, "Clone Model Exception", ex); //$NON-NLS-1$
+            logger.log(Level.SEVERE, "Clone model", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.CloneModelAction_0, ex);
         }
         finally {
             // If this operation is not completed properly delete the repo folder
             if(!RepoUtils.isArchiGitRepository(folder)) {
                 try {
-                    logger.info("Cleaning up failed Clone. Deleting folder " + folder.getPath()); //$NON-NLS-1$
+                    logger.info("Cleaning up failed clone. Deleting folder " + folder.getPath()); //$NON-NLS-1$
                     FileUtils.deleteFolder(folder);
                 }
                 catch(IOException ex) {

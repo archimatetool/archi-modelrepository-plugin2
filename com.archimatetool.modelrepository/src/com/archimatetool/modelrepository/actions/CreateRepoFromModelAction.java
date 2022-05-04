@@ -57,6 +57,8 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             return;
         }
         
+        logger.info("Adding model to workspace..."); //$NON-NLS-1$
+        
         final File folder = RepoUtils.generateNewRepoFolder();
         final String repoURL = dialog.getURL();
         final boolean storeCredentials = dialog.doStoreCredentials();
@@ -69,12 +71,12 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             folder.mkdirs();
             
             // Init
-            logger.info("Initialising New Repo at: " + folder.getPath()); //$NON-NLS-1$
+            logger.info("Initialising new repository at: " + folder.getPath()); //$NON-NLS-1$
             getRepository().init();
             
             // Add the remote if it's set
             if(StringUtils.isSet(repoURL)) {
-                logger.info("Adding Remote: " + repoURL); //$NON-NLS-1$
+                logger.info("Adding remote: " + repoURL); //$NON-NLS-1$
                 getRepository().addRemote(repoURL);
             }
             
@@ -102,10 +104,10 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                 // TODO: Store repo credentials if HTTP and option is set 
             }
             
-            logger.info("Finished Creating Repo from Model"); //$NON-NLS-1$
+            logger.info("Finished creating repository from model"); //$NON-NLS-1$
         }
         catch(Exception ex) {
-            logger.log(Level.SEVERE, "Create Repo From Model Exception", ex); //$NON-NLS-1$
+            logger.log(Level.SEVERE, "Creating repository from model", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.CreateRepoFromModelAction_0, ex);
         }
         finally {
