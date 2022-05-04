@@ -17,7 +17,6 @@ import org.jdom2.JDOMException;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.jdom.JDOMUtils;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
-import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 
 /**
@@ -113,7 +112,7 @@ public class RepositoryTreeModel extends Group {
             File file = new File(location);
             //File file = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), location);
             if(RepoUtils.isArchiGitRepository(file)) {
-                RepositoryRef ref = new RepositoryRef(new ArchiRepository(file));
+                RepositoryRef ref = new RepositoryRef(file);
                 parentGroup.add(ref);
             }
         }

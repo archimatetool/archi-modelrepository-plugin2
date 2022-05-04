@@ -5,6 +5,7 @@
  */
 package com.archimatetool.modelrepository.treemodel;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 import org.eclipse.swt.graphics.Image;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 /**
@@ -55,8 +57,7 @@ public class Group implements IModelRepositoryTreeEntry {
     }
     
     /**
-     * Add a new Repository Ref
-     * @param repository
+     * Add a new Repository Ref with repository
      */
     public RepositoryRef addNewRepositoryRef(IArchiRepository repository) {
         RepositoryRef ref = new RepositoryRef(repository);
@@ -72,6 +73,13 @@ public class Group implements IModelRepositoryTreeEntry {
         }
         
         return ref;
+    }
+    
+    /**
+     * Add a new Repository Ref with folder
+     */
+    public RepositoryRef addNewRepositoryRef(File repositoryFolder) {
+        return addNewRepositoryRef(new ArchiRepository(repositoryFolder));
     }
     
     /**

@@ -57,7 +57,6 @@ import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.CloneModelAction;
 import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
-import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
@@ -272,7 +271,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 }
                 
                 Group parentGroup = getSelectedParentGroup();
-                RepositoryRef ref = parentGroup.addNewRepositoryRef(new ArchiRepository(folder));
+                RepositoryRef ref = parentGroup.addNewRepositoryRef(folder);
                 
                 getViewer().expandToLevel(parentGroup, 1);
                 getViewer().setSelection(new StructuredSelection(ref));

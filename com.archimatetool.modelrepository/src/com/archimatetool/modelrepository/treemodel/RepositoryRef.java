@@ -5,9 +5,12 @@
  */
 package com.archimatetool.modelrepository.treemodel;
 
+import java.io.File;
+
 import org.eclipse.swt.graphics.Image;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 /**
@@ -20,8 +23,12 @@ public class RepositoryRef implements IModelRepositoryTreeEntry {
     private IArchiRepository repo;
     private Group parent;
     
-    public RepositoryRef(IArchiRepository repo) {
-        this.repo = repo;
+    public RepositoryRef(IArchiRepository repository) {
+        repo = repository;
+    }
+
+    public RepositoryRef(File repositoryFolder) {
+        repo = new ArchiRepository(repositoryFolder);
     }
     
     public IArchiRepository getArchiRepository() {
