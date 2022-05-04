@@ -12,7 +12,9 @@ import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -25,7 +27,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
@@ -33,6 +37,8 @@ import org.eclipse.ui.part.ViewPart;
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
+import com.archimatetool.modelrepository.actions.UndoLastCommitAction;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -54,9 +60,12 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private Label fRepoLabel;
 
     private HistoryTableViewer fHistoryTableViewer;
-    
     private RevisionCommentViewer fCommentViewer;
     
+    /*
+     * Actions
+     */
+    private IModelRepositoryAction fActionUndoLastCommit;
     
     /*
      * Selected repository
@@ -146,6 +155,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
      * Make local actions
      */
     private void makeActions() {
+        fActionUndoLastCommit = new UndoLastCommitAction(getViewSite().getWorkbenchWindow());
+        fActionUndoLastCommit.setEnabled(false);
+
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
 //        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
@@ -191,7 +203,12 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     /**
      * Make Local Toolbar items
      */
-    protected void makeLocalToolBarActions() {
+    private void makeLocalToolBarActions() {
+        IActionBars bars = getViewSite().getActionBars();
+        IToolBarManager manager = bars.getToolBarManager();
+
+        manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
+        manager.add(fActionUndoLastCommit);
     }
     
     /**
@@ -203,9 +220,17 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         
         // Set the commit in the Comment Viewer
         fCommentViewer.setCommit(commit);
+        
+        // Update these actions
+        fActionUndoLastCommit.update();
+
+        // Disable actions if our selected branch is not actually the current branch
+        // TODO:
+        // fActionUndoLastCommit.setEnabled(isCurrentBranch && fActionUndoLastCommit.isEnabled());
     }
     
     private void fillContextMenu(IMenuManager manager) {
+        manager.add(fActionUndoLastCommit);
     }
 
     HistoryTableViewer getHistoryViewer() {
@@ -252,6 +277,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             
             // Set History first
             getHistoryViewer().doSetInput(selectedRepository);
+            
+            // Update actions
+            fActionUndoLastCommit.setRepository(selectedRepository);
         }
     }
     

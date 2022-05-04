@@ -27,12 +27,13 @@ import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
- * Manages restoring open editors when a model is closed and re-opened
+ * Saves and restores the state of a model if it's open in the Models tree
+ * and restores any open editors when the model is closed and re-opened
  */
 @SuppressWarnings("nls")
-public class OpenEditorManager {
+public class OpenModelState {
     
-    private static Logger logger = Logger.getLogger(OpenEditorManager.class.getName());
+    private static Logger logger = Logger.getLogger(OpenModelState.class.getName());
     
     private String activeDiagramModelID;
     private List<String> openDiagramModelIDs;
@@ -74,11 +75,11 @@ public class OpenEditorManager {
      * Re-open any diagram editors in the re-opened model
      */
     void restoreEditors(IArchimateModel model) {
-        logger.info(NLS.bind("Restoring open editors for ''{0}''", model.getName()));
-        
         IDiagramModelEditor activeEditor = null;
         
         if(openDiagramModelIDs != null) {
+            logger.info(NLS.bind("Restoring open editors for ''{0}''", model.getName()));
+            
             for(String id : openDiagramModelIDs) {
                 EObject eObject = ArchimateModelUtils.getObjectByID(model, id);
                 if(eObject instanceof IDiagramModel) {

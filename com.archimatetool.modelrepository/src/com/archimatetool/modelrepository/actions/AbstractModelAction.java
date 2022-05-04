@@ -158,6 +158,49 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
         RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(eventName, getRepository());
     }
     
+    
+    /**
+     * If the model is open in the models tree, close it, asking to save if needed.
+     * If the model was open then a new OpenModelState is returned, else null is returned. or if user cancels saving model.
+     */
+    protected OpenModelState closeModel() {
+        OpenModelState modelState = null;
+        
+        // Close the model if it's open
+        IArchimateModel model = getRepository().getModel();
+        if(model != null) {
+            try {
+                modelState = new OpenModelState();
+                
+                // Store any open diagrams
+                modelState.saveEditors(model);
+                
+                // Close it
+                logger.info("Closing model"); //$NON-NLS-1$
+                if(!IEditorModelManager.INSTANCE.closeModel(model)) {
+                    return null;
+                }
+            }
+            catch(IOException ex) {
+                logger.log(Level.SEVERE, "Closing model", ex); //$NON-NLS-1$
+                return null;
+            }
+        }
+        
+        return modelState;
+    }
+    
+    /**
+     * If modelState is not null then re-open this repo's model in the models tree and any previously opened editors
+     */
+    protected void restoreModel(OpenModelState modelState) {
+        if(modelState != null) {
+            logger.info("Opening model"); //$NON-NLS-1$
+            IArchimateModel model = IEditorModelManager.INSTANCE.openModel(getRepository().getModelFile());
+            modelState.restoreEditors(model);
+        }
+    }
+
     @Override
     public void dispose() {
     }

@@ -13,8 +13,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryConstants;
@@ -64,25 +62,10 @@ public class DiscardChangesAction extends AbstractModelAction {
             return;
         }
         
-        OpenEditorManager openEditorManager = new OpenEditorManager();
-        
-        // Close the model if it's open
-        IArchimateModel model = getRepository().getModel();
-        if(model != null) {
-            try {
-                // Store any open diagrams
-                openEditorManager.saveEditors(model);
-                
-                // Close it
-                logger.info("Closing model"); //$NON-NLS-1$
-                if(!IEditorModelManager.INSTANCE.closeModel(model)) {
-                    return;
-                }
-            }
-            catch(IOException ex) {
-                logger.log(Level.SEVERE, "Closing model", ex); //$NON-NLS-1$
-                return;
-            }
+        // Close the model if it's open in the tree
+        OpenModelState modelState = closeModel();
+        if(modelState == null) {
+            return;
         }
         
         // Reset to HEAD
@@ -91,15 +74,12 @@ public class DiscardChangesAction extends AbstractModelAction {
             getRepository().resetToRef(IRepositoryConstants.HEAD);
         }
         catch(IOException | GitAPIException ex) {
+            ex.printStackTrace();
             logger.log(Level.SEVERE, "Reset to HEAD", ex); //$NON-NLS-1$
         }
         
-        // Open the model if it was open and any open editors
-        if(model != null) {
-            logger.info("Opening model"); //$NON-NLS-1$
-            model = IEditorModelManager.INSTANCE.openModel(getRepository().getModelFile());
-            openEditorManager.restoreEditors(model);
-        }
+        // Open the model if it was open before and any open editors
+        restoreModel(modelState);
         
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }
