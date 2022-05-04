@@ -9,9 +9,19 @@
             name="Toggle Collaboration Workspace">
       </command>
       <command
+            defaultHandler="com.archimatetool.modelrepository.actions.ShowHistoryViewHandler"
+            id="com.archimatetool.modelrepository.command.showHistoryView"
+            name="Toggle Change History">
+      </command>
+      <command
             defaultHandler="com.archimatetool.modelrepository.actions.ShowInRepositoryViewHandler"
             id="com.archimatetool.modelrepository.command.showInRepositoryView"
             name="Show in Collaboration Workspace">
+      </command>
+      <command
+            defaultHandler="com.archimatetool.modelrepository.actions.ShowInHistoryViewHandler"
+            id="com.archimatetool.modelrepository.command.showInHistoryView"
+            name="Show Change History">
       </command>
       <command
             defaultHandler="com.archimatetool.modelrepository.actions.CreateRepoFromModelHandler"
@@ -74,6 +84,11 @@
                   icon="img/plugin.png"
                   style="push">
             </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.showInHistoryView"
+                  icon="img/history_view.png"
+                  style="push">
+            </command>
             <separator
                   name="com.archimatetool.modelrepository.popup.end"
                   visible="true">
@@ -120,6 +135,11 @@
                   id="com.archimatetool.modelrepository.toolbaritem.showRepositoryView"
                   style="push">
             </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.showHistoryView"
+                  icon="img/history_view.png"
+                  style="push">
+            </command>
          </menu>
       </menuContribution>
       <menuContribution
@@ -155,6 +175,11 @@
                   icon="img/plugin.png"
                   style="push">
             </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.showHistoryView"
+                  icon="img/history_view.png"
+                  style="push">
+            </command>
          </toolbar>
       </menuContribution>
    </extension>
@@ -167,6 +192,13 @@
             name="Collaboration Workspace"
             restorable="true">
       </view>
+      <view
+            class="com.archimatetool.modelrepository.views.history.HistoryView"
+            icon="img/history_view.png"
+            id="com.archimatetool.modelrepository.historyView"
+            name="Change History"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
@@ -177,6 +209,12 @@
                minimized="false"
                relationship="stack"
                relative="com.archimatetool.editor.navigatorView">
+         </view>
+         <view
+               id="com.archimatetool.modelrepository.historyView"
+               minimized="false"
+               relationship="stack"
+               relative="com.archimatetool.editor.propertiesView">
          </view>
       </perspectiveExtension>
    </extension>

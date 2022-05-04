@@ -58,6 +58,7 @@ import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.CloneModelAction;
 import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
+import com.archimatetool.modelrepository.actions.ShowInHistoryAction;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -90,6 +91,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
      * Actions
      */
     private IModelRepositoryAction fActionClone;
+    private IModelRepositoryAction fActionShowInHistory;
     
     private IAction fActionOpen;
     private IAction fActionAddGroup;
@@ -236,6 +238,10 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 return IWorkbenchCommandConstants.FILE_PROPERTIES; // Ensures key binding is displayed
             }
         };
+        
+        // Show in History
+        fActionShowInHistory = new ShowInHistoryAction(getViewSite().getWorkbenchWindow());
+        fActionShowInHistory.setEnabled(false);
         
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
@@ -466,10 +472,10 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private void updateActions(ISelection selection) {
         Object obj = ((IStructuredSelection)selection).getFirstElement();
         
-        // TODO
+        // TODO: more actions
         if(obj instanceof RepositoryRef) {
-            //IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
-            //fActionShowInHistory.setRepository(repo);
+            IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
+            fActionShowInHistory.setRepository(repo);
             //fActionShowInBranches.setRepository(repo);
         }
     }
@@ -504,11 +510,12 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         else {
             if(obj instanceof RepositoryRef) {
                 manager.add(fActionOpen);
-                //manager.add(fActionShowInHistory);
-                //manager.add(fActionShowInBranches);
                 manager.add(new Separator());
                 manager.add(fActionAddRepository);
                 manager.add(fActionAddGroup);
+                manager.add(new Separator());
+                manager.add(fActionShowInHistory);
+                //manager.add(fActionShowInBranches);
                 manager.add(new Separator());
                 manager.add(fActionDelete);
             }
