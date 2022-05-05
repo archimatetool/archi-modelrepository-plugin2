@@ -38,6 +38,7 @@ import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
+import com.archimatetool.modelrepository.actions.RestoreCommitAction;
 import com.archimatetool.modelrepository.actions.UndoLastCommitAction;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -66,6 +67,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
      * Actions
      */
     private IModelRepositoryAction fActionUndoLastCommit;
+    private RestoreCommitAction    fActionRestoreCommit;
     
     /*
      * Selected repository
@@ -157,6 +159,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private void makeActions() {
         fActionUndoLastCommit = new UndoLastCommitAction(getViewSite().getWorkbenchWindow());
         fActionUndoLastCommit.setEnabled(false);
+        
+        fActionRestoreCommit = new RestoreCommitAction(getViewSite().getWorkbenchWindow());
+        fActionRestoreCommit.setEnabled(false);
 
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
@@ -208,7 +213,14 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         IToolBarManager manager = bars.getToolBarManager();
 
         manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
+        
+        //manager.add(fActionExtractCommit);
+        manager.add(fActionRestoreCommit);
+        manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
+        //manager.add(fActionResetToRemoteCommit);
+        
+        manager.add(new Separator());
     }
     
     /**
@@ -218,6 +230,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private void updateActions() {
         RevCommit commit = (RevCommit)getHistoryViewer().getStructuredSelection().getFirstElement();
         
+        // Set commit in these actions
+        fActionRestoreCommit.setCommit(commit);
+
         // Set the commit in the Comment Viewer
         fCommentViewer.setCommit(commit);
         
@@ -227,10 +242,15 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         // Disable actions if our selected branch is not actually the current branch
         // TODO:
         // fActionUndoLastCommit.setEnabled(isCurrentBranch && fActionUndoLastCommit.isEnabled());
+        // fActionRestoreCommit.setEnabled(isCurrentBranch && fActionRestoreCommit.isEnabled());
     }
     
     private void fillContextMenu(IMenuManager manager) {
+        //manager.add(fActionExtractCommit);
+        manager.add(fActionRestoreCommit);
+        manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
+        //manager.add(fActionResetToRemoteCommit);
     }
 
     HistoryTableViewer getHistoryViewer() {
@@ -280,6 +300,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             
             // Update actions
             fActionUndoLastCommit.setRepository(selectedRepository);
+            fActionRestoreCommit.setRepository(selectedRepository);
         }
     }
     

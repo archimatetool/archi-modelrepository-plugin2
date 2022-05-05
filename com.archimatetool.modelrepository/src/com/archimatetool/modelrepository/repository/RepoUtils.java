@@ -8,6 +8,9 @@ package com.archimatetool.modelrepository.repository;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.UUID;
 
@@ -112,6 +115,20 @@ public class RepoUtils implements IRepositoryConstants {
     public static File getLocalRepositoryFolderForModel(IArchimateModel model) {
         File parentFolder = (model != null && model.getFile() != null) ? model.getFile().getParentFile() : null;
         return isArchiGitRepository(parentFolder) ? parentFolder : null;
+    }
+    
+    /**
+     * Delete the contents of the local repository folder *except* the .git folder
+     * @param folder The local repository folder
+     */
+    public static void deleteContentsOfGitRepository(File folder) throws IOException {
+        Path gitFolder = new File(folder, ".git").toPath();
+        
+        Files.walk(folder.toPath())
+             .filter(path -> !path.startsWith(gitFolder)) // Not the .git folder
+             .sorted(Comparator.reverseOrder())           // Has to be sorted in reverse order to prevent removal of a non-empty directory
+             .map(Path::toFile)
+             .forEach(File::delete);
     }
     
     /**

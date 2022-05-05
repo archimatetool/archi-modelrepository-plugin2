@@ -5,10 +5,12 @@
  */
 package com.archimatetool.modelrepository.actions;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -53,9 +55,9 @@ public class CommitModelAction extends AbstractModelAction {
             }
         }
 
+        // Then Commit
         logger.info("Committing changes..."); //$NON-NLS-1$
         
-        // Then Commit
         try {
             if(getRepository().hasChangesToCommit()) {
                 if(commitChanges()) {
@@ -68,8 +70,8 @@ public class CommitModelAction extends AbstractModelAction {
                         Messages.CommitModelAction_1);
             }
         }
-        catch(Exception ex) {
-            logger.log(Level.SEVERE, "Commit Exception", ex); //$NON-NLS-1$
+        catch(GitAPIException | IOException ex) {
+            logger.log(Level.SEVERE, "Commit", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.CommitModelAction_2, ex);
         }
     }

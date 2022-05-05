@@ -38,6 +38,16 @@ public class Messages extends NLS {
 
     public static String DiscardChangesAction_2;
 
+    public static String RestoreCommitAction_0;
+
+    public static String RestoreCommitAction_1;
+
+    public static String RestoreCommitAction_2;
+
+    public static String RestoreCommitAction_3;
+
+    public static String RestoreCommitAction_4;
+
     public static String ShowInHistoryAction_0;
 
     public static String UndoLastCommitAction_0;
