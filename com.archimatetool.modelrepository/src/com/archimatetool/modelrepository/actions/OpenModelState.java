@@ -5,6 +5,8 @@
  */
 package com.archimatetool.modelrepository.actions;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -21,6 +23,7 @@ import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.diagram.DiagramEditorInput;
 import com.archimatetool.editor.diagram.IDiagramModelEditor;
+import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.services.EditorManager;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModel;
@@ -38,10 +41,56 @@ public class OpenModelState {
     private String activeDiagramModelID;
     private List<String> openDiagramModelIDs;
     
+    private boolean result = true;
+    private boolean modelClosed = false;
+    
+    /**
+     * Ask to close the model if it's open
+     */
+    void closeModel(IArchimateModel model) {
+        if(model != null) {
+            try {
+                // Store any open diagrams
+                saveEditors(model);
+                
+                // Close it
+                logger.info("Closing model");
+                result = IEditorModelManager.INSTANCE.closeModel(model);
+                modelClosed = result;
+            }
+            catch(IOException ex) {
+                logger.log(Level.SEVERE, "Closing model", ex);
+            }
+        }
+    }
+    
+    IArchimateModel restoreModel(File modelFile) {
+        IArchimateModel model = null;
+        
+        if(modelClosed) {
+            logger.info("Restoring model");
+            model = IEditorModelManager.INSTANCE.openModel(modelFile);
+            if(model != null) {
+                restoreEditors(model);
+            }
+        }
+        
+        return model;
+    }
+    
+
+    /**
+     * @return The result of asking user if the model should be saved
+     *         true if user cancels
+     */
+    boolean cancelled() {
+        return result == false;
+    }
+    
     /**
      * Store the ids of any open diagram editors
      */
-    void saveEditors(IArchimateModel model) {
+    private void saveEditors(IArchimateModel model) {
         logger.info(NLS.bind("Saving open editors for ''{0}''", model.getName()));
         
         openDiagramModelIDs = new ArrayList<String>();
@@ -74,7 +123,7 @@ public class OpenModelState {
     /**
      * Re-open any diagram editors in the re-opened model
      */
-    void restoreEditors(IArchimateModel model) {
+    private void restoreEditors(IArchimateModel model) {
         IDiagramModelEditor activeEditor = null;
         
         if(openDiagramModelIDs != null) {

@@ -47,7 +47,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
         
         // Close the model if it's open in the tree
         OpenModelState modelState = closeModel();
-        if(modelState == null) {
+        if(modelState.cancelled()) {
             return;
         }
 
