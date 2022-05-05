@@ -151,4 +151,11 @@ public interface IArchiRepository extends IRepositoryConstants {
      */
     void saveUserDetails(String name, String email) throws IOException;
 
+    /**
+     * Extract the contents of a commit to a folder
+     * @param commit The commit to extract froms
+     * @param folder The folder to extract the commit's contents to
+     * @throws IOException
+     */
+    void extractCommit(RevCommit commit, File folder) throws IOException;
 }

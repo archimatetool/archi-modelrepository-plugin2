@@ -6,6 +6,7 @@
 package com.archimatetool.modelrepository.repository;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -27,6 +28,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
@@ -37,6 +40,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.treewalk.TreeWalk;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.PlatformUtils;
@@ -325,6 +329,29 @@ public class ArchiRepository implements IArchiRepository {
             }
 
             config.save();
+        }
+    }
+
+    @Override
+    public void extractCommit(RevCommit commit, File folder) throws IOException {
+        try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
+            // Walk the tree and extract the contents of the commit
+            try(TreeWalk treeWalk = new TreeWalk(repository)) {
+                treeWalk.addTree(commit.getTree());
+                treeWalk.setRecursive(true);
+
+                while(treeWalk.next()) {
+                    ObjectId objectId = treeWalk.getObjectId(0);
+                    ObjectLoader loader = repository.open(objectId);
+                    
+                    File file = new File(folder, treeWalk.getPathString());
+                    file.getParentFile().mkdirs();
+                    
+                    try(FileOutputStream out = new FileOutputStream(file)) {
+                        loader.copyTo(out);
+                    }
+                }
+            }
         }
     }
 

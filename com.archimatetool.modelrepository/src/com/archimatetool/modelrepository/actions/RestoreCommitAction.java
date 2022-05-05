@@ -5,8 +5,6 @@
  */
 package com.archimatetool.modelrepository.actions;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,10 +13,8 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
@@ -77,7 +73,8 @@ public class RestoreCommitAction extends AbstractModelAction {
         
         // Extract the contents of the commit
         try {
-            extractCommit();
+            logger.info("Extracting the oommit"); //$NON-NLS-1$
+            getRepository().extractCommit(fCommit, getRepository().getLocalRepositoryFolder());
         }
         catch(IOException ex) {
             logger.log(Level.SEVERE, "Extract commit", ex); //$NON-NLS-1$
@@ -129,30 +126,6 @@ public class RestoreCommitAction extends AbstractModelAction {
         }
         
         return false;
-    }
-    
-    /**
-     * Walk the tree and extract the contents of the commit
-     */
-    private void extractCommit() throws IOException {
-        try(Repository repository = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
-            try(TreeWalk treeWalk = new TreeWalk(repository)) {
-                treeWalk.addTree(fCommit.getTree());
-                treeWalk.setRecursive(true);
-
-                while(treeWalk.next()) {
-                    ObjectId objectId = treeWalk.getObjectId(0);
-                    ObjectLoader loader = repository.open(objectId);
-                    
-                    File file = new File(getRepository().getLocalRepositoryFolder(), treeWalk.getPathString());
-                    file.getParentFile().mkdirs();
-                    
-                    try(FileOutputStream out = new FileOutputStream(file)) {
-                        loader.copyTo(out);
-                    }
-                }
-            }
-        }
     }
     
     private boolean isCommitLocalHead() throws IOException {
