@@ -29,4 +29,9 @@ public class DiscardChangesHandler extends AbstractModelHandler {
         
         return null;
     }
+    
+    @Override
+    public boolean isEnabled() {
+        return getActiveArchiRepository() != null;
+    }
 }

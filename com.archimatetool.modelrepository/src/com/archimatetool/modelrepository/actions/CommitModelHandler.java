@@ -30,4 +30,9 @@ public class CommitModelHandler extends AbstractModelHandler {
         return null;
     }
     
+    @Override
+    public boolean isEnabled() {
+        return getActiveArchiRepository() != null;
+    }
+
 }

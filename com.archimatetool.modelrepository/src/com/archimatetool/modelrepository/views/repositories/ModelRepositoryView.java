@@ -57,6 +57,8 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.CloneModelAction;
+import com.archimatetool.modelrepository.actions.CommitModelAction;
+import com.archimatetool.modelrepository.actions.DiscardChangesAction;
 import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
 import com.archimatetool.modelrepository.actions.ShowInHistoryAction;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
@@ -91,6 +93,9 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
      * Actions
      */
     private IModelRepositoryAction fActionClone;
+    private IModelRepositoryAction fActionCommit;
+    private IModelRepositoryAction fActionDiscardChanges;
+
     private IModelRepositoryAction fActionShowInHistory;
     
     private IAction fActionOpen;
@@ -155,7 +160,16 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
      * Make local actions
      */
     private void makeActions() {
+        // Clone
         fActionClone = new CloneModelAction(getViewSite().getWorkbenchWindow());
+        
+        // Commit
+        fActionCommit = new CommitModelAction(getViewSite().getWorkbenchWindow());
+        fActionCommit.setEnabled(false);
+        
+        // Discard changes
+        fActionDiscardChanges = new DiscardChangesAction(getViewSite().getWorkbenchWindow());
+        fActionDiscardChanges.setEnabled(false);
         
         // Open Model
         fActionOpen = new Action(Messages.ModelRepositoryView_13) {
@@ -460,7 +474,6 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
 
         manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
         manager.add(fActionClone);
-        manager.add(new Separator());
         manager.add(fActionAddRepository);
         manager.add(fActionAddGroup);
     }
@@ -475,6 +488,9 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         // TODO: more actions
         if(obj instanceof RepositoryRef) {
             IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
+            
+            fActionCommit.setRepository(repo);
+            fActionDiscardChanges.setRepository(repo);
             fActionShowInHistory.setRepository(repo);
             //fActionShowInBranches.setRepository(repo);
         }
@@ -501,18 +517,24 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private void fillContextMenu(IMenuManager manager) {
         Object obj = ((IStructuredSelection)getViewer().getSelection()).getFirstElement();
         
-        if(getViewer().getSelection().isEmpty()) {
-            manager.add(fActionClone);
+        if(obj instanceof RepositoryRef) {
+            manager.add(fActionOpen);
             manager.add(new Separator());
-            manager.add(fActionAddRepository);
+        }
+        
+        manager.add(fActionClone);
+        manager.add(fActionAddRepository);
+        manager.add(new Separator());
+        
+        if(getViewer().getSelection().isEmpty()) {
             manager.add(fActionAddGroup);
         }
         else {
             if(obj instanceof RepositoryRef) {
-                manager.add(fActionOpen);
-                manager.add(new Separator());
-                manager.add(fActionAddRepository);
                 manager.add(fActionAddGroup);
+                manager.add(new Separator());
+                manager.add(fActionCommit);
+                manager.add(fActionDiscardChanges);
                 manager.add(new Separator());
                 manager.add(fActionShowInHistory);
                 //manager.add(fActionShowInBranches);
@@ -520,7 +542,6 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 manager.add(fActionDelete);
             }
             else if(obj instanceof Group) {
-                manager.add(fActionAddRepository);
                 manager.add(fActionAddGroup);
                 manager.add(new Separator());
                 manager.add(fActionRenameEntry);
