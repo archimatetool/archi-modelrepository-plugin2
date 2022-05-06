@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -60,7 +61,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
                 fTextURL.setText(StringUtils.safeString(repo.getOnlineRepositoryURL()));
                 fTextCurrentBranch.setText(StringUtils.safeString(repo.getCurrentLocalBranchName()));
             }
-            catch(IOException ex) {
+            catch(IOException | GitAPIException ex) {
                 ex.printStackTrace();
             }
         }

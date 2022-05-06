@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -18,12 +19,12 @@ import org.eclipse.jgit.api.CleanCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
-import org.eclipse.jgit.api.RemoteAddCommand;
-import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -72,15 +73,12 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public void init() throws GitAPIException, IOException {
         // Init
-        try(Git git = Git.init().setDirectory(getLocalRepositoryFolder()).call()) {
+        try(Git git = Git.init().setInitialBranch(MAIN).setDirectory(getLocalRepositoryFolder()).call()) {
             // Config Defaults
             setDefaultConfigSettings(git.getRepository());
             
             // Exclude file
             createExcludeFile();
-            
-            // Set head to "main"
-            setHeadToMainBranch();
         }
     }
     
@@ -142,38 +140,47 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
+            // Ensure we are tracking the current branch
+            setTrackedBranch(git.getRepository(), git.getRepository().getBranch());
+            
             PushCommand pushCommand = git.push();
             pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
             pushCommand.setProgressMonitor(monitor);
-            
-            Iterable<PushResult> result = pushCommand.call();
-            
-            // After a successful push, ensure we are tracking the current branch
+            return pushCommand.call();
+        }
+    }
+    
+    @Override
+    public PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            // Ensure we are tracking the current branch
             setTrackedBranch(git.getRepository(), git.getRepository().getBranch());
             
-            return result;
-        }
-    }
-    
-    @Override
-    public RemoteConfig addRemote(String URL) throws IOException, GitAPIException, URISyntaxException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            RemoteAddCommand remoteAddCommand = git.remoteAdd();
-            remoteAddCommand.setName(ORIGIN);
-            remoteAddCommand.setUri(new URIish(URL));
-            return remoteAddCommand.call();
-        }
-    }
-    
-    @Override
-    public RemoteConfig removeRemote() throws IOException, GitAPIException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
-            remoteRemoveCommand.setRemoteName(ORIGIN);
-            return remoteRemoveCommand.call();
+            PullCommand pullCommand = git.pull();
+            pullCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
+            pullCommand.setRebase(false); // Merge, not rebase
+            pullCommand.setProgressMonitor(monitor);
+            return pullCommand.call();
         }
     }
 
+    @Override
+    public RemoteConfig setRemote(String URL) throws IOException, GitAPIException, URISyntaxException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            RemoteConfig config;
+            
+            // Remove existing remote
+            config = git.remoteRemove().setRemoteName(IRepositoryConstants.ORIGIN).call();
+            
+            // Add new one
+            if(StringUtils.isSetAfterTrim(URL)) {
+                config = git.remoteAdd().setName(ORIGIN).setUri(new URIish(URL)).call();
+            }
+            
+            return config;
+        }
+    }
+    
     @Override
     public void resetToRef(String ref) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
@@ -265,9 +272,16 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public String getOnlineRepositoryURL() throws IOException {
+    public String getOnlineRepositoryURL() throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
-            return git.getRepository().getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION, ORIGIN, ConfigConstants.CONFIG_KEY_URL);
+            List<RemoteConfig> remotes = git.remoteList().call();
+            if(!remotes.isEmpty()) {
+                List<URIish> uris = remotes.get(0).getURIs();
+                if(!uris.isEmpty()) {
+                    return uris.get(0).toASCIIString();
+                }
+            }
+            return null;
         }
     }
     
@@ -402,14 +416,5 @@ public class ArchiRepository implements IArchiRepository {
         File excludeFile = new File(getLocalGitFolder(), "/info/exclude");
         excludeFile.getParentFile().mkdirs();
         Files.write(excludeFile.toPath(), excludes.getBytes());
-    }
-    
-    /**
-     * Kludge to set default branch to "main" not "master"
-     */
-    private void setHeadToMainBranch() throws IOException {
-        String ref = "ref: refs/heads/main";
-        File headFile = new File(getLocalGitFolder(), "HEAD");
-        Files.write(headFile.toPath(), ref.getBytes());
     }
 }

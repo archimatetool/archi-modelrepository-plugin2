@@ -60,13 +60,13 @@ public class ArchiRepositoryTests {
     }
     
     @Test
-    public void addRemote() throws Exception {
+    public void setRemote() throws Exception {
         File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
         IArchiRepository repository =  new ArchiRepository(localRepoFolder);
         repository.init();
         
         String url = "https://www.somewherethereish.net/myRepo.git";
-        repository.addRemote(url);
+        repository.setRemote(url);
         
         try(Git git = Git.open(localRepoFolder)) {
             List<RemoteConfig> remotes = git.remoteList().call();
@@ -85,9 +85,9 @@ public class ArchiRepositoryTests {
         repository.init();
         
         String url = "https://www.somewherethereish.net/myRepo.git";
-        repository.addRemote(url);
+        repository.setRemote(url);
         
-        RemoteConfig config = repository.removeRemote();
+        RemoteConfig config = repository.setRemote(null);
         assertEquals(IRepositoryConstants.ORIGIN, config.getName());
         assertEquals(1, config.getURIs().size());
         assertEquals(url, config.getURIs().get(0).toASCIIString());
@@ -155,7 +155,7 @@ public class ArchiRepositoryTests {
         String url = "https://www.somewherethereish.net/myRepo.git";
         
         repo.init();
-        repo.addRemote(url);
+        repo.setRemote(url);
         
         assertEquals(url, repo.getOnlineRepositoryURL());
     }

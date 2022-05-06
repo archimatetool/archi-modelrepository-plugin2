@@ -75,9 +75,9 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             getRepository().init();
             
             // Add the remote if it's set
-            if(StringUtils.isSet(repoURL)) {
+            if(StringUtils.isSetAfterTrim(repoURL)) {
                 logger.info("Adding remote: " + repoURL); //$NON-NLS-1$
-                getRepository().addRemote(repoURL);
+                getRepository().setRemote(repoURL);
             }
             
             // Set new file location
@@ -151,7 +151,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
 
         if(exception[0] != null) {
             // In case of an exception remove the remote
-            getRepository().removeRemote();
+            getRepository().setRemote(null);
             throw exception[0];
         }
     }
