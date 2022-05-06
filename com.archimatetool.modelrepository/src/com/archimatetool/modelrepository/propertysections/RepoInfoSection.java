@@ -6,6 +6,9 @@
 package com.archimatetool.modelrepository.propertysections;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -27,6 +30,8 @@ import com.archimatetool.modelrepository.treemodel.RepositoryRef;
  */
 public class RepoInfoSection extends AbstractArchiPropertySection {
     
+    private static Logger logger = Logger.getLogger(RepoInfoSection.class.getName());
+
     public static class Filter implements IFilter {
         @Override
         public boolean select(Object object) {
@@ -34,7 +39,10 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         }
     }
     
-    private Text fTextFile, fTextURL, fTextCurrentBranch;
+    private IArchiRepository fRepository;
+    
+    private Text textFile, textCurrentBranch;
+    private UpdatingTextControl textURL;
     
     public RepoInfoSection() {
     }
@@ -42,28 +50,49 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
     @Override
     protected void createControls(Composite parent) {
         createLabel(parent, Messages.RepoInfoSection_0, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        fTextFile = createSingleTextControl(parent, SWT.READ_ONLY);
+        textFile = createSingleTextControl(parent, SWT.READ_ONLY);
 
         createLabel(parent, Messages.RepoInfoSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        fTextURL = createSingleTextControl(parent, SWT.READ_ONLY);
+        textURL = new UpdatingTextControl(createSingleTextControl(parent, SWT.NONE)) {
+            @Override
+            protected void textChanged(String newText) {
+                if(fRepository != null) {
+                    try {
+                        logger.info("Setting remote URL to: " + newText); //$NON-NLS-1$
+                        fRepository.setRemote(newText);
+                    }
+                    catch(IOException | GitAPIException | URISyntaxException ex) {
+                        logger.log(Level.SEVERE, "Set Remote", ex); //$NON-NLS-1$
+                    }
+                }
+            }
+        };
         
         createLabel(parent, Messages.RepoInfoSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        fTextCurrentBranch = createSingleTextControl(parent, SWT.READ_ONLY);
+        textCurrentBranch = createSingleTextControl(parent, SWT.READ_ONLY);
     }
 
     @Override
     protected void handleSelection(IStructuredSelection selection) {
-        if(selection != getSelection() && selection.getFirstElement() instanceof RepositoryRef) {
-            IArchiRepository repo = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
+        if(selection == getSelection()) {
+            return;
+        }
+        
+        if(selection.getFirstElement() instanceof RepositoryRef) {
+            fRepository = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
             
+            textFile.setText(fRepository.getLocalRepositoryFolder().getAbsolutePath());
+
             try {
-                fTextFile.setText(repo.getLocalRepositoryFolder().getAbsolutePath());
-                fTextURL.setText(StringUtils.safeString(repo.getOnlineRepositoryURL()));
-                fTextCurrentBranch.setText(StringUtils.safeString(repo.getCurrentLocalBranchName()));
+                textURL.setText(StringUtils.safeString(fRepository.getOnlineRepositoryURL()));
+                textCurrentBranch.setText(StringUtils.safeString(fRepository.getCurrentLocalBranchName()));
             }
             catch(IOException | GitAPIException ex) {
-                ex.printStackTrace();
+                logger.log(Level.SEVERE, "Update info", ex); //$NON-NLS-1$
             }
+        }
+        else {
+            fRepository = null;
         }
     }
 }

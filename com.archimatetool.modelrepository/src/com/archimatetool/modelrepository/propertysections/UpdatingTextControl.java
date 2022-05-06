@@ -21,10 +21,17 @@ import org.eclipse.swt.widgets.Text;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public abstract class UpdatingTextControl {
     
     private Control fTextControl;
     private Listener eventListener = this::handleEvent;
+    
+    // Store previous text
+    private String previousText = "";
+    
+    // Whether or not to pass on text changed events
+    private boolean doNotify = true;
     
     /**
      * @param textControl The Text Control
@@ -38,9 +45,10 @@ public abstract class UpdatingTextControl {
         // Listen for Enter (or Ctrl+Enter) keypress
         textControl.addListener(SWT.DefaultSelection, eventListener);
         
-        textControl.addDisposeListener((event)-> {
+        textControl.addDisposeListener(event -> {
             textControl.removeListener(SWT.FocusOut, eventListener);
             textControl.removeListener(SWT.DefaultSelection, eventListener);
+            previousText = null;
         });
     }
     
@@ -57,8 +65,8 @@ public abstract class UpdatingTextControl {
         }
     }
     
-    private void handleEvent(Event event) {
-        textChanged(getText());
+    public void setEnabled(boolean enabled) {
+        getTextControl().setEnabled(enabled);
     }
     
     public String getText() {
@@ -76,6 +84,23 @@ public abstract class UpdatingTextControl {
         }
         else {
             ((Text)getTextControl()).setText(s);
+        }
+        
+        previousText = s;
+    }
+    
+    /**
+     * Whether or not to notify when the text changes
+     * Default is true
+     */
+    public void setNotifications(boolean enabled) {
+        doNotify = enabled;
+    }
+    
+    private void handleEvent(Event event) {
+        if(doNotify && !getText().equals(previousText)) {
+            textChanged(getText());
+            previousText = getText();
         }
     }
     
