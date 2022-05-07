@@ -202,7 +202,7 @@ public class ArchiRepository implements IArchiRepository {
         // TODO: Possibly replace this with the version from coArchi 1 using BranchStatus and BranchInfo
         try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
             Ref onlineRef = repository.findRef(ORIGIN + "/" + repository.getBranch());
-            Ref localRef = repository.findRef(HEAD);
+            Ref localRef = repository.findRef(Constants.HEAD);
             
             // In case of missing ref return false
             if(onlineRef == null || localRef == null) {

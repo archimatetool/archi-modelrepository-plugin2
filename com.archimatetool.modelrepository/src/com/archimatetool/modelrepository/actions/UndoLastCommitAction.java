@@ -12,13 +12,13 @@ import java.util.logging.Logger;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
-import com.archimatetool.modelrepository.repository.IRepositoryConstants;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 
 /**
@@ -99,7 +99,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
         try(Repository repository = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
             try(RevWalk revWalk = new RevWalk(repository)) {
                 // We are interested in the HEAD
-                ObjectId objectID = repository.resolve(IRepositoryConstants.HEAD);
+                ObjectId objectID = repository.resolve(Constants.HEAD);
                 if(objectID == null) { // can be null!
                     revWalk.dispose();
                     return false;

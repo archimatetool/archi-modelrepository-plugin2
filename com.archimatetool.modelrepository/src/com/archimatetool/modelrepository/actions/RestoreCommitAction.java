@@ -12,13 +12,13 @@ import java.util.logging.Logger;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
-import com.archimatetool.modelrepository.repository.IRepositoryConstants;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 
@@ -87,7 +87,7 @@ public class RestoreCommitAction extends AbstractModelAction {
             try {
                 displayErrorDialog(Messages.RestoreCommitAction_0, Messages.RestoreCommitAction_2);
                 // Reset to HEAD
-                getRepository().resetToRef(IRepositoryConstants.HEAD);
+                getRepository().resetToRef(Constants.HEAD);
             }
             catch(IOException | GitAPIException ex) {
                 logger.log(Level.SEVERE, "Reset to HEAD", ex); //$NON-NLS-1$
@@ -134,7 +134,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         }
         
         try(Repository repo = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
-            ObjectId headID = repo.resolve(IRepositoryConstants.HEAD);
+            ObjectId headID = repo.resolve(Constants.HEAD);
             ObjectId commitID = fCommit.getId();
             return commitID.equals(headID);
         }

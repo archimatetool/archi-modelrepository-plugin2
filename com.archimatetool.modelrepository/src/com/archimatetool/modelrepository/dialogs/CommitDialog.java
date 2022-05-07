@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
@@ -34,7 +35,6 @@ import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
-import com.archimatetool.modelrepository.repository.IRepositoryConstants;
 
 /**
  * Commit Dialog
@@ -211,7 +211,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     
     private int getLatestLocalCommitParentCount() throws IOException {
         try(Repository repository = Git.open(fRepository.getLocalRepositoryFolder()).getRepository()) {
-            Ref head = repository.exactRef(IRepositoryConstants.HEAD);
+            Ref head = repository.exactRef(Constants.HEAD);
             if(head == null) {
                 return 0;
             }
