@@ -377,6 +377,12 @@ public class ArchiRepository implements IArchiRepository {
         return false;
     }
     
+    @Override
+    public int hashCode() {
+        // Equality for Java sets
+        return fLocalRepoFolder != null ? fLocalRepoFolder.hashCode() : super.hashCode();
+    }
+
     private void setDefaultConfigSettings(Repository repository) throws IOException {
         StoredConfig config = repository.getConfig();
 

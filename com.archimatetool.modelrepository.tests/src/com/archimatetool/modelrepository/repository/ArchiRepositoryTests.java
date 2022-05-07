@@ -194,4 +194,14 @@ public class ArchiRepositoryTests {
         assertTrue(repo1.equals(repo2));
         assertFalse(repo1.equals(repo3));
     }
+    
+    @Test
+    public void hashCodeSame() {
+        IArchiRepository repo1 = new ArchiRepository(new File("path1"));
+        IArchiRepository repo2 = new ArchiRepository(new File("path1"));
+        IArchiRepository repo3 = new ArchiRepository(new File("path2"));
+        assertTrue(repo1.hashCode() == repo2.hashCode());
+        assertFalse(repo1.hashCode() == repo3.hashCode());
+    }
+
 }
