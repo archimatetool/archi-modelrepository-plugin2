@@ -10,6 +10,8 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.CellLabelProvider;
@@ -21,7 +23,7 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -32,8 +34,9 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.BranchStatus;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
-import com.archimatetool.modelrepository.repository.IRepositoryConstants;
 
 
 /**
@@ -41,11 +44,11 @@ import com.archimatetool.modelrepository.repository.IRepositoryConstants;
  */
 public class HistoryTableViewer extends TableViewer {
     
-    private RevCommit fLocalCommit, fOriginCommit;
+    private static Logger logger = Logger.getLogger(HistoryTableViewer.class.getName());
     
-    /**
-     * Constructor
-     */
+    private RevCommit fLocalCommit, fOriginCommit;
+    private BranchInfo fSelectedBranch;
+    
     public HistoryTableViewer(Composite parent) {
         super(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
         
@@ -59,10 +62,7 @@ public class HistoryTableViewer extends TableViewer {
         setUseHashlookup(true);
     }
 
-    /**
-     * Set things up.
-     */
-    protected void setup(Composite parent) {
+    private void setup(Composite parent) {
         getTable().setHeaderVisible(true);
         getTable().setLinesVisible(false);
         
@@ -85,7 +85,19 @@ public class HistoryTableViewer extends TableViewer {
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
     }
     
-    public void doSetInput(IArchiRepository archiRepo) {
+    void doSetInput(IArchiRepository archiRepo) {
+        // Get BranchStatus and currentLocalBranch
+        try {
+            BranchStatus branchStatus = new BranchStatus(archiRepo.getLocalRepositoryFolder());
+            if(branchStatus != null) {
+                fSelectedBranch = branchStatus.getCurrentLocalBranch();
+            }
+        }
+        catch(IOException | GitAPIException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Branch Status", ex); //$NON-NLS-1$
+        }
+
         setInput(archiRepo);
         
         // Do the Layout kludge
@@ -98,6 +110,18 @@ public class HistoryTableViewer extends TableViewer {
         //}
     }
     
+    void setSelectedBranch(BranchInfo branchInfo) {
+        if(branchInfo != null && branchInfo.equals(fSelectedBranch)) {
+            return;
+        }
+
+        fSelectedBranch = branchInfo;
+        
+        setInput(getInput());
+        
+        // Layout kludge
+        ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
+    }
     
     // ===============================================================================================
     // ===================================== Table Model ==============================================
@@ -124,7 +148,7 @@ public class HistoryTableViewer extends TableViewer {
             fLocalCommit = null;
             fOriginCommit = null;
             
-            if(!(parent instanceof IArchiRepository)) {
+            if(!(parent instanceof IArchiRepository) || fSelectedBranch == null) {
                 return commits;
             }
             
@@ -136,21 +160,17 @@ public class HistoryTableViewer extends TableViewer {
             }
 
             try(Repository repository = Git.open(repo.getLocalRepositoryFolder()).getRepository()) {
-                String branchName = repo.getCurrentLocalBranchName();
-                String currentLocalBranchName = Constants.R_HEADS + branchName;
-                String currentRemoteBranchName = Constants.R_REMOTES + IRepositoryConstants.ORIGIN + "/" + branchName; //$NON-NLS-1$
-                
                 // a RevWalk allows to walk over commits based on some filtering that is defined
                 try(RevWalk revWalk = new RevWalk(repository)) {
                     // Find the local branch
-                    ObjectId objectID = repository.resolve(currentLocalBranchName);
+                    ObjectId objectID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());
                     if(objectID != null) {
                         fLocalCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(fLocalCommit); 
                     }
                     
                     // Find the remote branch
-                    objectID = repository.resolve(currentRemoteBranchName);
+                    objectID = repository.resolve(fSelectedBranch.getRemoteBranchNameFor());
                     if(objectID != null) {
                         fOriginCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(fOriginCommit);

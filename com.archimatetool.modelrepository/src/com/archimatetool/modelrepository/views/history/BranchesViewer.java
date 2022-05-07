@@ -1,0 +1,108 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+package com.archimatetool.modelrepository.views.history;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+
+import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.BranchStatus;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
+
+/**
+ * Branches Viewer
+ * 
+ * @author Phillip Beauvoir
+ */
+public class BranchesViewer extends ComboViewer {
+    
+    private static Logger logger = Logger.getLogger(BranchesViewer.class.getName());
+
+    public BranchesViewer(Composite parent) {
+        super(parent, SWT.READ_ONLY);
+        
+        setContentProvider(new IStructuredContentProvider() {
+            @Override
+            public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+            }
+
+            @Override
+            public void dispose() {
+            }
+
+            @Override
+            public Object[] getElements(Object inputElement) {
+                if(!(inputElement instanceof BranchStatus)) {
+                    return new Object[0];
+                }
+                
+                BranchStatus branchStatus = (BranchStatus)inputElement;
+                return branchStatus.getLocalAndUntrackedRemoteBranches().toArray();
+            }
+        });
+        
+        
+        setLabelProvider(new LabelProvider() {
+            @Override
+            public String getText(Object element) {
+                BranchInfo branchInfo = (BranchInfo)element;
+                String branchName = branchInfo.getShortName();
+                
+                if(branchInfo.isCurrentBranch()) {
+                    branchName += " " + Messages.BranchesViewer_0; //$NON-NLS-1$
+                }
+                
+                return branchName;
+            }
+        });
+        
+        setComparator(new ViewerComparator() {
+            @Override
+            public int compare(Viewer viewer, Object e1, Object e2) {
+                BranchInfo b1 = (BranchInfo)e1;
+                BranchInfo b2 = (BranchInfo)e2;
+                return b1.getShortName().compareToIgnoreCase(b2.getShortName());
+            }
+        });
+    }
+
+    void doSetInput(IArchiRepository archiRepo) {
+        // Get BranchStatus
+        BranchStatus branchStatus = null;
+        
+        try {
+            branchStatus = new BranchStatus(archiRepo.getLocalRepositoryFolder());
+        }
+        catch(IOException | GitAPIException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Branch Status", ex); //$NON-NLS-1$
+        }
+        
+        setInput(branchStatus);
+        
+        // Set selection to current branch
+        if(branchStatus != null) {
+            BranchInfo branchInfo = branchStatus.getCurrentLocalBranch();
+            if(branchInfo != null) {
+                setSelection(new StructuredSelection(branchInfo));
+            }
+        }
+        
+        // And relayout
+        getControl().getParent().layout();
+    }
+}

@@ -42,6 +42,7 @@ import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
 import com.archimatetool.modelrepository.actions.RestoreCommitAction;
 import com.archimatetool.modelrepository.actions.UndoLastCommitAction;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
+import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
@@ -63,6 +64,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 
     private HistoryTableViewer fHistoryTableViewer;
     private RevisionCommentViewer fCommentViewer;
+    private BranchesViewer fBranchesViewer;
     
     /*
      * Actions
@@ -121,6 +123,26 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fRepoLabel = new Label(mainComp, SWT.NONE);
         fRepoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         fRepoLabel.setText(Messages.HistoryView_0);
+
+        // Branches
+        Label label = new Label(mainComp, SWT.NONE);
+        label.setText(Messages.HistoryView_2);
+
+        fBranchesViewer = new BranchesViewer(mainComp);
+        GridData gd = new GridData(SWT.END);
+        fBranchesViewer.getControl().setLayoutData(gd);
+        
+        /*
+         * Listen to Branch Selections and forward on to History Viewer
+         */
+        fBranchesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
+            public void selectionChanged(SelectionChangedEvent event) {
+                BranchInfo branchInfo = (BranchInfo)event.getStructuredSelection().getFirstElement();
+                getHistoryViewer().setSelectedBranch(branchInfo);
+                updateActions();
+            }
+        });
     }
     
     private void createHistorySection(Composite parent) {
@@ -245,11 +267,13 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         // Update these actions
         fActionUndoLastCommit.update();
 
-        // TODO:
-        // Disable actions if our selected branch is not actually the current branch
-        // fActionRestoreCommit.setEnabled(isCurrentBranch && fActionRestoreCommit.isEnabled());
-        // fActionUndoLastCommit.setEnabled(isCurrentBranch && fActionUndoLastCommit.isEnabled());
-        // fActionRestoreCommit.setEnabled(isCurrentBranch && fActionRestoreCommit.isEnabled());
+        // Disable actions if our selected branch in the combo is not actually the current branch
+        BranchInfo selectedBranch = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
+        boolean isCurrentBranch = selectedBranch != null && selectedBranch.isCurrentBranch();
+        
+        fActionRestoreCommit.setEnabled(isCurrentBranch && fActionRestoreCommit.isEnabled());
+        fActionUndoLastCommit.setEnabled(isCurrentBranch && fActionUndoLastCommit.isEnabled());
+        //fActionResetToRemoteCommit.setEnabled(isCurrentBranch && fActionResetToRemoteCommit.isEnabled());
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -264,6 +288,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         return fHistoryTableViewer;
     }
     
+    BranchesViewer getBranchesViewer() {
+        return fBranchesViewer;
+    }
+
     @Override
     public void setFocus() {
         if(getHistoryViewer() != null) {
@@ -305,6 +333,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             // Set History first
             getHistoryViewer().doSetInput(selectedRepository);
             
+            // Set Branches
+            getBranchesViewer().doSetInput(selectedRepository);
+
             // Update actions
             fActionExtractCommit.setRepository(selectedRepository);
             fActionUndoLastCommit.setRepository(selectedRepository);
@@ -332,6 +363,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     break;
 
                 case IRepositoryListener.BRANCHES_CHANGED:
+                    getBranchesViewer().doSetInput(fSelectedRepository);
                     break;
                     
                 default:
