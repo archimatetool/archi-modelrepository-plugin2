@@ -37,6 +37,8 @@ import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.components.TreeTextCellEditor;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.BranchStatus;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
@@ -54,6 +56,19 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 public class ModelRepositoryTreeViewer extends TreeViewer implements IRepositoryListener, IRepositoryTreeModelListener {
     
     private static Logger logger = Logger.getLogger(ModelRepositoryTreeViewer.class.getName());
+    
+    // Cache status for expensive branch info calls
+    private class StatusCache {
+        BranchInfo branchInfo;
+        boolean hasChangesToCommit;
+        
+        public StatusCache(BranchInfo branchInfo, boolean hasChangesToCommit) {
+            this.branchInfo = branchInfo;
+            this.hasChangesToCommit = hasChangesToCommit;
+        }
+    }
+    
+    private Map<IArchiRepository, StatusCache> statusCache = new Hashtable<>();
 
     /**
      * Constructor
@@ -164,10 +179,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         setInput(RepositoryTreeModel.getInstance());
         
         expandAll();
-        
-        // TODO
-        // Fetch Job
-        // new FetchJob(this);
     }
 
     protected void refreshInBackground() {
@@ -186,6 +197,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             case IRepositoryListener.REPOSITORY_CHANGED:
                 RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(repository.getLocalRepositoryFolder());
                 if(ref != null) {
+                    updateStatusCache(ref.getArchiRepository());
                     update(ref, null);
                 }
                 break;
@@ -198,14 +210,44 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
     
     @Override
     public void treeEntryChanged(IModelRepositoryTreeEntry entry) {
+        resetStatusCache();
         TreePath[] expanded = getExpandedTreePaths(); // save these to restore expanded state
         refresh(entry.getParent());
         setExpandedTreePaths(expanded);
     }
+
+    /**
+     * Reset the status cache for all repositories
+     */
+    private void resetStatusCache() {
+        statusCache = new Hashtable<>();
+        
+        for(RepositoryRef ref : RepositoryTreeModel.getInstance().getAllChildRepositoryRefs()) {
+            updateStatusCache(ref.getArchiRepository());
+        }
+    }
+    
+    /**
+     * Update the status cache for one repository
+     */
+    private void updateStatusCache(IArchiRepository repo) {
+        try {
+            BranchStatus status = new BranchStatus(repo.getLocalRepositoryFolder());
+            BranchInfo branchInfo = status.getCurrentLocalBranch();
+            if(branchInfo != null) { // This can be null!!
+                StatusCache sc = new StatusCache(branchInfo, repo.hasChangesToCommit());
+                statusCache.put(repo, sc);
+            }
+        }
+        catch(IOException | GitAPIException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Status Cache", ex);
+        }
+    }
     
     // ===============================================================================================
-	// ===================================== Tree Model ==============================================
-	// ===============================================================================================
+    // ===================================== Tree Model ==============================================
+    // ===============================================================================================
     
     /**
      * The model for the Tree.
@@ -214,6 +256,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         @Override
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
+            if(newInput != null) {
+                resetStatusCache();
+            }
         }
         
         @Override
@@ -254,41 +299,26 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
     }
     
     // ===============================================================================================
-	// ===================================== Label Model ==============================================
-	// ===============================================================================================
+    // ===================================== Label Model ==============================================
+    // ===============================================================================================
 
     class ModelRepoTreeLabelProvider extends CellLabelProvider {
-        // Cache status for expensive calls
-        private class StatusCache {
-            boolean hasUnpushedCommits;
-            boolean hasRemoteCommits;
-            boolean hasLocalChanges;
-            
-            private StatusCache(boolean hasUnpushedCommits, boolean hasRemoteCommits, boolean hasLocalChanges) {
-                this.hasUnpushedCommits = hasUnpushedCommits;
-                this.hasRemoteCommits = hasRemoteCommits;
-                this.hasLocalChanges = hasLocalChanges;
-            }
-        }
-        
-        private Map<IArchiRepository, StatusCache> cache = new Hashtable<IArchiRepository, StatusCache>();
-        
         Image getImage(IArchiRepository repo) {
             Image image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
             
-            StatusCache sc = cache.get(repo);
+            StatusCache sc = statusCache.get(repo);
             if(sc != null) {
-                if(sc.hasLocalChanges) {
+                if(sc.hasChangesToCommit) {
                     image = IModelRepositoryImages.ImageFactory.getOverlayImage(image,
                             IModelRepositoryImages.ICON_LEFT_BALL_OVERLAY, IDecoration.BOTTOM_LEFT);
                 }
                 
-                if(sc.hasUnpushedCommits) {
+                if(sc.branchInfo.hasUnpushedCommits()) {
                     image = IModelRepositoryImages.ImageFactory.getOverlayImage(image,
                             IModelRepositoryImages.ICON_RIGHT_BALL_OVERLAY, IDecoration.BOTTOM_RIGHT);
                 }
                 
-                if(sc.hasRemoteCommits) {
+                if(sc.branchInfo.hasRemoteCommits()) {
                     image = IModelRepositoryImages.ImageFactory.getOverlayImage(image,
                             IModelRepositoryImages.ICON_TOP_BALL_OVERLAY, IDecoration.TOP_RIGHT);
                 }
@@ -300,18 +330,18 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         String getStatusText(IArchiRepository repo) {
             String s = "";
             
-            StatusCache sc = cache.get(repo);
+            StatusCache sc = statusCache.get(repo);
             if(sc != null) {
-                if(sc.hasLocalChanges) {
+                if(sc.hasChangesToCommit) {
                     s += Messages.ModelRepositoryTreeViewer_0;
                 }
-                if(sc.hasUnpushedCommits) {
+                if(sc.branchInfo.hasUnpushedCommits()) {
                     if(StringUtils.isSet(s)) {
-                        s += " | "; 
+                        s += " | ";
                     }
                     s += Messages.ModelRepositoryTreeViewer_1;
                 }
-                if(sc.hasRemoteCommits) {
+                if(sc.branchInfo.hasRemoteCommits()) {
                     if(StringUtils.isSet(s)) {
                         s += " | ";
                     }
@@ -340,38 +370,24 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     return;
                 }
                 
-                // Check status of current branch
-                String currentLocalBranch = "";
-                
-                // TODO: Get status, current branch etc...
-                boolean hasUnpushedCommits = false;
-                boolean hasRemoteCommits = false;
-                boolean hasLocalChanges = false;
-                
-                try {
-                    currentLocalBranch = repo.getCurrentLocalBranchName();
-                    hasLocalChanges = repo.hasChangesToCommit();
+                StatusCache sc = statusCache.get(repo);
+                if(sc != null) {
+                    // Repository name and current branch
+                    cell.setText(repo.getName() + " [" + sc.branchInfo.getShortName() + "]");
+                    
+                    // Red text
+                    if(sc.branchInfo.hasUnpushedCommits() || sc.branchInfo.hasRemoteCommits() || sc.hasChangesToCommit) {
+                        cell.setForeground(ColorFactory.get(255, 64, 0));
+                    }
                 }
-                catch(IOException | GitAPIException ex) {
-                    ex.printStackTrace();
+                else {
+                    cell.setText(repo.getName());
                 }
-                
-                StatusCache sc = new StatusCache(hasUnpushedCommits, hasRemoteCommits, hasLocalChanges);
-                cache.put(repo, sc);
 
-                // Red text
-                if(hasUnpushedCommits || hasRemoteCommits || hasLocalChanges) {
-                    cell.setForeground(ColorFactory.get(255, 64, 0));
-                }
-                
                 // Image
                 cell.setImage(getImage(repo));
-
-                // Repository name and current branch
-                cell.setText(repo.getName() + " [" + currentLocalBranch + "]");
             }
-            
-            if(cell.getElement() instanceof Group) {
+            else if(cell.getElement() instanceof Group) {
                 Group group = (Group)cell.getElement();
                 cell.setText(group.getName());
                 cell.setImage(group.getImage());
@@ -392,8 +408,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 
                 return s;
             }
-            
-            if(element instanceof Group) {
+            else if(element instanceof Group) {
                 return ((Group)element).getName();
             }
             
