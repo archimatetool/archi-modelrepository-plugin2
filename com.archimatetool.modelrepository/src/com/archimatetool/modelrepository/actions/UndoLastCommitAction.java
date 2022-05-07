@@ -37,6 +37,11 @@ public class UndoLastCommitAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        if(!shouldBeEnabled()) {
+            setEnabled(false);
+            return;
+        }
+
         logger.info("Undoing last commit..."); //$NON-NLS-1$
         
         if(!MessageDialog.openConfirm(fWindow.getShell(),

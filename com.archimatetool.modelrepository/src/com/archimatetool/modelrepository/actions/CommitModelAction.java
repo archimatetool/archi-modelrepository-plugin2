@@ -47,6 +47,11 @@ public class CommitModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        if(!shouldBeEnabled()) {
+            setEnabled(false);
+            return;
+        }
+        
         // Ask to save the model if open and dirty
         IArchimateModel model = getRepository().getModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {

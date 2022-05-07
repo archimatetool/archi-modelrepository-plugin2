@@ -43,6 +43,11 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
     
     @Override
     public void run() {
+        if(!shouldBeEnabled()) {
+            setEnabled(false);
+            return;
+        }
+
         logger.info("Extracting model from a commit..."); //$NON-NLS-1$
         
         if(!MessageDialog.openConfirm(fWindow.getShell(),

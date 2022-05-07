@@ -45,6 +45,11 @@ public class RestoreCommitAction extends AbstractModelAction {
     
     @Override
     public void run() {
+        if(!shouldBeEnabled()) {
+            setEnabled(false);
+            return;
+        }
+
         logger.info("Restoring to a commit..."); //$NON-NLS-1$
         
         if(!MessageDialog.openConfirm(fWindow.getShell(),
@@ -119,20 +124,17 @@ public class RestoreCommitAction extends AbstractModelAction {
     @Override
     protected boolean shouldBeEnabled() {
         try {
-            return super.shouldBeEnabled() && !isCommitLocalHead();
+            return super.shouldBeEnabled() && fCommit != null && !isCommitLocalHead();
         }
         catch(IOException ex) {
             ex.printStackTrace();
+            logger.log(Level.SEVERE, "Extract commit", ex); //$NON-NLS-1$
         }
         
         return false;
     }
     
     private boolean isCommitLocalHead() throws IOException {
-        if(fCommit == null) {
-            return false;
-        }
-        
         try(Repository repo = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
             ObjectId headID = repo.resolve(Constants.HEAD);
             ObjectId commitID = fCommit.getId();

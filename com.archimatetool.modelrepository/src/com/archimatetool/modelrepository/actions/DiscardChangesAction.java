@@ -41,6 +41,11 @@ public class DiscardChangesAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        if(!shouldBeEnabled()) {
+            setEnabled(false);
+            return;
+        }
+
         logger.info("Discarding uncommitted changes..."); //$NON-NLS-1$
         
         try {
