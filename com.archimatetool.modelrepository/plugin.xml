@@ -279,6 +279,13 @@
             name="Change History"
             restorable="true">
       </view>
+      <view
+            class="com.archimatetool.modelrepository.views.branches.BranchesView"
+            icon="img/branches_obj.png"
+            id="com.archimatetool.modelrepository.branchesView"
+            name="Branches"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
@@ -295,6 +302,12 @@
                minimized="false"
                relationship="stack"
                relative="com.archimatetool.editor.propertiesView">
+         </view>
+         <view
+               id="com.archimatetool.modelrepository.branchesView"
+               minimized="false"
+               relationship="stack"
+               relative="com.archimatetool.modelrepository.historyView">
          </view>
       </perspectiveExtension>
    </extension>

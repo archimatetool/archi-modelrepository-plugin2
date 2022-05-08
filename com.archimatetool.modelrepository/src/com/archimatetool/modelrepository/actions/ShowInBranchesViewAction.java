@@ -7,7 +7,9 @@ package com.archimatetool.modelrepository.actions;
 
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.ui.services.ViewManager;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.views.branches.BranchesView;
 
 /**
  * Show In Branches View Action
@@ -25,6 +27,6 @@ public class ShowInBranchesViewAction extends AbstractModelAction {
     
     @Override
     public void run() {
-        //ViewManager.showViewPart(BranchesView.ID, false);
+        ViewManager.showViewPart(BranchesView.ID, false);
     }
 }
