@@ -6,6 +6,22 @@ public class Messages extends NLS {
 
     private static final String BUNDLE_NAME = "com.archimatetool.modelrepository.dialogs.messages"; //$NON-NLS-1$
 
+    public static String AddBranchDialog_0;
+
+    public static String AddBranchDialog_1;
+
+    public static String AddBranchDialog_2;
+
+    public static String AddBranchDialog_3;
+
+    public static String AddBranchDialog_4;
+
+    public static String AddBranchDialog_5;
+
+    public static String AddBranchDialog_6;
+
+    public static String AddBranchDialog_7;
+
     public static String CloneDialog_0;
 
     public static String CloneDialog_12;

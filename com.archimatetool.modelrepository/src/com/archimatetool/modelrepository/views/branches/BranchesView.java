@@ -12,6 +12,7 @@ import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -21,6 +22,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
@@ -29,7 +31,9 @@ import org.eclipse.ui.part.ViewPart;
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.actions.AddBranchAction;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
+import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
@@ -53,7 +57,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private BranchesTableViewer fBranchesTableViewer;
     
     // TODO: Add actions
-    // private AddBranchAction fActionAddBranch;
+    private AddBranchAction fActionAddBranch;
     // private SwitchBranchAction fActionSwitchBranch;
     // private MergeBranchAction fActionMergeBranch;
     // private DeleteBranchAction fActionDeleteBranch;
@@ -136,8 +140,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
      * Make local actions
      */
     private void makeActions() {
-        //fActionAddBranch = new AddBranchAction(getViewSite().getWorkbenchWindow());
-        //fActionAddBranch.setEnabled(false);
+        fActionAddBranch = new AddBranchAction(getViewSite().getWorkbenchWindow());
+        fActionAddBranch.setEnabled(false);
         
         //fActionSwitchBranch = new SwitchBranchAction(getViewSite().getWorkbenchWindow());
         //fActionSwitchBranch.setEnabled(false);
@@ -176,10 +180,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
      * Make Local Toolbar items
      */
     protected void makeLocalToolBarActions() {
-        //IActionBars bars = getViewSite().getActionBars();
-        //IToolBarManager manager = bars.getToolBarManager();
+        IActionBars bars = getViewSite().getActionBars();
+        IToolBarManager manager = bars.getToolBarManager();
 
-        //manager.add(fActionAddBranch);
+        manager.add(fActionAddBranch);
         //manager.add(fActionSwitchBranch);
         //manager.add(fActionMergeBranch);
         //manager.add(new Separator());
@@ -192,16 +196,16 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
      * @param selection
      */
     private void updateActions() {
-        //BranchInfo branchInfo = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
+        BranchInfo branchInfo = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
         //fActionSwitchBranch.setBranch(branchInfo);
-        //fActionAddBranch.setBranch(branchInfo);
+        fActionAddBranch.setBranch(branchInfo);
         //fActionMergeBranch.setBranch(branchInfo);
         //fActionDeleteBranch.setBranch(branchInfo);
         //fActionDeleteStaleBranches.setSelection(getBranchesViewer().getStructuredSelection());
     }
     
     private void fillContextMenu(IMenuManager manager) {
-        //manager.add(fActionAddBranch);
+        manager.add(fActionAddBranch);
         //manager.add(fActionSwitchBranch);
         //manager.add(fActionMergeBranch);
         //manager.add(new Separator());
@@ -255,7 +259,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             getBranchesViewer().doSetInput(selectedRepository);
             
             // Update actions
-            //fActionAddBranch.setRepository(selectedRepository);
+            fActionAddBranch.setRepository(selectedRepository);
             //fActionSwitchBranch.setRepository(selectedRepository);
             //fActionMergeBranch.setRepository(selectedRepository);
             //fActionDeleteBranch.setRepository(selectedRepository);
