@@ -5,10 +5,21 @@
  */
 package com.archimatetool.modelrepository.actions;
 
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.IRepositoryListener;
+import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
+import com.archimatetool.modelrepository.treemodel.RepositoryRef;
+import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 
 /**
  * Delete local repo folder
@@ -16,6 +27,8 @@ import com.archimatetool.modelrepository.repository.IArchiRepository;
  * @author Phillip Beauvoir
  */
 public class DeleteModelAction extends AbstractModelAction {
+    
+    private static Logger logger = Logger.getLogger(DeleteModelAction.class.getName());
     
     public DeleteModelAction(IWorkbenchWindow window) {
         super(window);
@@ -35,6 +48,32 @@ public class DeleteModelAction extends AbstractModelAction {
             setEnabled(false);
             return;
         }
+
+        if(!MessageDialog.openConfirm(fWindow.getShell(), Messages.DeleteModelAction_0, Messages.DeleteModelAction_2)) {
+            return;
+        }
         
+        try {
+            if(!IEditorModelManager.INSTANCE.closeModel(getRepository().getModel())) {
+                return;
+            }
+            
+            // Delete folder
+            FileUtils.deleteFolder(getRepository().getLocalRepositoryFolder());
+            
+            // Delete from Tree Model
+            RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(getRepository().getLocalRepositoryFolder());
+            if(ref != null) {
+                ref.delete();
+                RepositoryTreeModel.getInstance().saveManifest();
+            }
+            
+            // Notify
+            RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, getRepository());
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Delete Model", ex); //$NON-NLS-1$
+        }
     }
 }
