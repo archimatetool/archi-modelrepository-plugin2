@@ -32,6 +32,10 @@ public class Messages extends NLS {
 
     public static String CreateRepoFromModelAction_2;
 
+    public static String DeleteModelAction_0;
+
+    public static String DeleteModelAction_1;
+
     public static String DiscardChangesAction_0;
 
     public static String DiscardChangesAction_1;
@@ -44,6 +48,14 @@ public class Messages extends NLS {
 
     public static String ExtractModelFromCommitAction_2;
 
+    public static String PushModelAction_0;
+
+    public static String PushModelAction_1;
+
+    public static String RefreshModelAction_0;
+
+    public static String RefreshModelAction_1;
+
     public static String RestoreCommitAction_0;
 
     public static String RestoreCommitAction_1;
@@ -53,6 +65,10 @@ public class Messages extends NLS {
     public static String RestoreCommitAction_3;
 
     public static String RestoreCommitAction_4;
+
+    public static String ShowInBranchesViewAction_0;
+
+    public static String ShowInBranchesViewAction_1;
 
     public static String ShowInHistoryAction_0;
 

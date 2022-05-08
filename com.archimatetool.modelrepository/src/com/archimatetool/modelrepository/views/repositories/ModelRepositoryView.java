@@ -60,6 +60,9 @@ import com.archimatetool.modelrepository.actions.CloneModelAction;
 import com.archimatetool.modelrepository.actions.CommitModelAction;
 import com.archimatetool.modelrepository.actions.DiscardChangesAction;
 import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
+import com.archimatetool.modelrepository.actions.PushModelAction;
+import com.archimatetool.modelrepository.actions.RefreshModelAction;
+import com.archimatetool.modelrepository.actions.ShowInBranchesViewAction;
 import com.archimatetool.modelrepository.actions.ShowInHistoryAction;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -93,10 +96,13 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
      * Actions
      */
     private IModelRepositoryAction fActionClone;
+    private IModelRepositoryAction fActionRefresh;
     private IModelRepositoryAction fActionCommit;
+    private IModelRepositoryAction fActionPush;
     private IModelRepositoryAction fActionDiscardChanges;
 
     private IModelRepositoryAction fActionShowInHistory;
+    private IModelRepositoryAction fActionShowInBranches;
     
     private IAction fActionOpen;
     private IAction fActionAddGroup;
@@ -163,10 +169,18 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         // Clone
         fActionClone = new CloneModelAction(getViewSite().getWorkbenchWindow());
         
+        // Refresh
+        fActionRefresh = new RefreshModelAction(getViewSite().getWorkbenchWindow());
+        fActionRefresh.setEnabled(false);
+
         // Commit
         fActionCommit = new CommitModelAction(getViewSite().getWorkbenchWindow());
         fActionCommit.setEnabled(false);
         
+        // Push
+        fActionPush = new PushModelAction(getViewSite().getWorkbenchWindow());
+        fActionPush.setEnabled(false);
+
         // Discard changes
         fActionDiscardChanges = new DiscardChangesAction(getViewSite().getWorkbenchWindow());
         fActionDiscardChanges.setEnabled(false);
@@ -256,6 +270,10 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         // Show in History
         fActionShowInHistory = new ShowInHistoryAction(getViewSite().getWorkbenchWindow());
         fActionShowInHistory.setEnabled(false);
+        
+        // Show in Branches
+        fActionShowInBranches = new ShowInBranchesViewAction(getViewSite().getWorkbenchWindow());
+        fActionShowInBranches.setEnabled(false);
         
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
@@ -485,14 +503,15 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private void updateActions(ISelection selection) {
         Object obj = ((IStructuredSelection)selection).getFirstElement();
         
-        // TODO: more actions
         if(obj instanceof RepositoryRef) {
             IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
             
+            fActionRefresh.setRepository(repo);
             fActionCommit.setRepository(repo);
+            fActionPush.setRepository(repo);
             fActionDiscardChanges.setRepository(repo);
             fActionShowInHistory.setRepository(repo);
-            //fActionShowInBranches.setRepository(repo);
+            fActionShowInBranches.setRepository(repo);
         }
     }
     
@@ -533,11 +552,13 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             if(obj instanceof RepositoryRef) {
                 manager.add(fActionAddGroup);
                 manager.add(new Separator());
+                manager.add(fActionRefresh);
                 manager.add(fActionCommit);
+                manager.add(fActionPush);
                 manager.add(fActionDiscardChanges);
                 manager.add(new Separator());
                 manager.add(fActionShowInHistory);
-                //manager.add(fActionShowInBranches);
+                manager.add(fActionShowInBranches);
                 manager.add(new Separator());
                 manager.add(fActionDelete);
             }

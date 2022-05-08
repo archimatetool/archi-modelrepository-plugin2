@@ -14,6 +14,11 @@
             name="Toggle Change History">
       </command>
       <command
+            defaultHandler="com.archimatetool.modelrepository.actions.ShowBranchesViewHandler"
+            id="com.archimatetool.modelrepository.command.showBranchesView"
+            name="Toggle Branches View">
+      </command>
+      <command
             defaultHandler="com.archimatetool.modelrepository.actions.ShowInRepositoryViewHandler"
             id="com.archimatetool.modelrepository.command.showInRepositoryView"
             name="Show in Collaboration Workspace">
@@ -22,6 +27,11 @@
             defaultHandler="com.archimatetool.modelrepository.actions.ShowInHistoryViewHandler"
             id="com.archimatetool.modelrepository.command.showInHistoryView"
             name="Show Change History">
+      </command>
+      <command
+            defaultHandler="com.archimatetool.modelrepository.actions.ShowInBranchesViewHandler"
+            id="com.archimatetool.modelrepository.command.showInBranchesView"
+            name="Show Branches">
       </command>
       <command
             defaultHandler="com.archimatetool.modelrepository.actions.CreateRepoFromModelHandler"
@@ -34,14 +44,29 @@
             name="Import Remote Model to Workspace">
       </command>
       <command
+            defaultHandler="com.archimatetool.modelrepository.actions.RefreshModelHandler"
+            id="com.archimatetool.modelrepository.command.refreshModel"
+            name="Refresh Model">
+      </command>
+      <command
             defaultHandler="com.archimatetool.modelrepository.actions.CommitModelHandler"
             id="com.archimatetool.modelrepository.command.commitModel"
             name="Commit Changes">
       </command>
       <command
+            defaultHandler="com.archimatetool.modelrepository.actions.PushModelHandler"
+            id="com.archimatetool.modelrepository.command.pushModel"
+            name="Publish Changes">
+      </command>
+      <command
             defaultHandler="com.archimatetool.modelrepository.actions.DiscardChangesHandler"
             id="com.archimatetool.modelrepository.command.discardChanges"
             name="Discard Uncommited Changes">
+      </command>
+      <command
+            defaultHandler="com.archimatetool.modelrepository.actions.DeleteModelHandler"
+            id="com.archimatetool.modelrepository.command.deleteModel"
+            name="Delete Model from Workspace">
       </command>
    </extension>
    <extension
@@ -61,13 +86,28 @@
                   icon="img/createRepository.png"
                   style="push">
             </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.deleteModel"
+                  icon="img/delete.png"
+                  style="push">
+            </command>
             <separator
                   name="com.archimatetool.modelrepository.popup.separator1"
                   visible="true">
             </separator>
             <command
+                  commandId="com.archimatetool.modelrepository.command.refreshModel"
+                  icon="img/pull.png"
+                  style="push">
+            </command>
+            <command
                   commandId="com.archimatetool.modelrepository.command.commitModel"
                   icon="img/commit.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.pushModel"
+                  icon="img/push.png"
                   style="push">
             </command>
             <command
@@ -87,6 +127,11 @@
             <command
                   commandId="com.archimatetool.modelrepository.command.showInHistoryView"
                   icon="img/history_view.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.showInBranchesView"
+                  icon="img/branches_obj.png"
                   style="push">
             </command>
             <separator
@@ -111,13 +156,28 @@
                   icon="img/cloneGit.png"
                   style="push">
             </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.deleteModel"
+                  icon="img/delete.png"
+                  style="push">
+            </command>
             <separator
                   name="com.archimatetool.modelrepository.menu.separator1"
                   visible="true">
             </separator>
             <command
+                  commandId="com.archimatetool.modelrepository.command.refreshModel"
+                  icon="img/pull.png"
+                  style="push">
+            </command>
+            <command
                   commandId="com.archimatetool.modelrepository.command.commitModel"
                   icon="img/commit.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.pushModel"
+                  icon="img/push.png"
                   style="push">
             </command>
             <command
@@ -140,6 +200,11 @@
                   icon="img/history_view.png"
                   style="push">
             </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.showInBranchesView"
+                  icon="img/branches_obj.png"
+                  style="push">
+            </command>
          </menu>
       </menuContribution>
       <menuContribution
@@ -157,8 +222,18 @@
                   visible="true">
             </separator>
             <command
+                  commandId="com.archimatetool.modelrepository.command.refreshModel"
+                  icon="img/pull.png"
+                  style="push">
+            </command>
+            <command
                   commandId="com.archimatetool.modelrepository.command.commitModel"
                   icon="img/commit.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.pushModel"
+                  icon="img/push.png"
                   style="push">
             </command>
             <command
@@ -178,6 +253,11 @@
             <command
                   commandId="com.archimatetool.modelrepository.command.showHistoryView"
                   icon="img/history_view.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.showBranchesView"
+                  icon="img/branches_obj.png"
                   style="push">
             </command>
          </toolbar>
