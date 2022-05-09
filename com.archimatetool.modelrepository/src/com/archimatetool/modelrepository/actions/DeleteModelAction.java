@@ -54,9 +54,8 @@ public class DeleteModelAction extends AbstractModelAction {
         }
         
         try {
-            if(!IEditorModelManager.INSTANCE.closeModel(getRepository().getModel())) {
-                return;
-            }
+            // Close model without asking to save
+            IEditorModelManager.INSTANCE.closeModel(getRepository().getModel(), false);
             
             // Delete folder
             FileUtils.deleteFolder(getRepository().getLocalRepositoryFolder());
