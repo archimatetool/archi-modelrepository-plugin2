@@ -11,9 +11,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -101,26 +103,36 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
     }
 
     /**
-     * Ask to save the model
+     * Ask to save the model. If user clicks yes, model is saved
      * @param model The model
-     * @return True if the model was saved
+     * @return SWT.YES, SWT.NO or SWT.CANCEL
      */
-    protected boolean askToSaveModel(IArchimateModel model) {
-        boolean doSave = MessageDialog.openConfirm(fWindow.getShell(),
-                Messages.AbstractModelAction_1,
-                Messages.AbstractModelAction_2);
-
-        if(doSave) {
-            try {
-                doSave = IEditorModelManager.INSTANCE.saveModel(model);
-            }
-            catch(IOException ex) {
-                doSave = false;
-                displayErrorDialog(Messages.AbstractModelAction_1, ex);
-            }
+    protected int askToSaveModel(IArchimateModel model) throws IOException {
+        int response = openYesNoCancelDialog(Messages.AbstractModelAction_1, Messages.AbstractModelAction_2);
+        if(response == SWT.YES) {
+            IEditorModelManager.INSTANCE.saveModel(model);
         }
-        
-        return doSave;
+        return response;
+    }
+    
+    /**
+     * Open a YES/NO/CANCEL dialog
+     * @return SWT.YES, SWT.NO or SWT.CANCEL
+     */
+    protected int openYesNoCancelDialog(String title, String message) {
+        switch(MessageDialog.open(MessageDialog.CONFIRM,
+                fWindow.getShell(),
+                title,
+                message,
+                SWT.NONE,
+                IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.CANCEL_LABEL)) {
+            case 0:
+                return SWT.YES;
+            case 1:
+                return SWT.NO;
+            default:
+                return SWT.CANCEL;
+        }
     }
     
     /**
