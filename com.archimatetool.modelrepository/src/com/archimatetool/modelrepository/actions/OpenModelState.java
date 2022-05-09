@@ -45,9 +45,9 @@ public class OpenModelState {
     private boolean modelClosed = false;
     
     /**
-     * Ask to close the model if it's open
+     * Close the model if it's open
      */
-    void closeModel(IArchimateModel model) {
+    void closeModel(IArchimateModel model, boolean askSaveModel) {
         if(model != null) {
             try {
                 // Store any open diagrams
@@ -55,7 +55,7 @@ public class OpenModelState {
                 
                 // Close it
                 logger.info("Closing model");
-                result = IEditorModelManager.INSTANCE.closeModel(model);
+                result = IEditorModelManager.INSTANCE.closeModel(model, askSaveModel);
                 modelClosed = result;
             }
             catch(IOException ex) {

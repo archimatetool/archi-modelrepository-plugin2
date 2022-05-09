@@ -160,12 +160,12 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
     
     
     /**
-     * If the model is open in the models tree, close it, asking to save if needed.
+     * If the model is open in the models tree, close it, asking to save if needed if askSaveModel is true.
      * OpenModelState is returned in all cases.
      */
-    protected OpenModelState closeModel() {
+    protected OpenModelState closeModel(boolean askSaveModel) {
         OpenModelState modelState = new OpenModelState();
-        modelState.closeModel(getRepository().getModel());
+        modelState.closeModel(getRepository().getModel(), askSaveModel);
         return modelState;
     }
     

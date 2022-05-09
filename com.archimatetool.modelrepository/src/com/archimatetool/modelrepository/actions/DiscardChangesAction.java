@@ -68,7 +68,7 @@ public class DiscardChangesAction extends AbstractModelAction {
         }
         
         // Close the model if it's open in the tree
-        OpenModelState modelState = closeModel();
+        OpenModelState modelState = closeModel(true);
         if(modelState.cancelled()) {
             return;
         }
