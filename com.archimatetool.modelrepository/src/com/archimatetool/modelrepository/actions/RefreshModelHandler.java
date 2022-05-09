@@ -7,6 +7,7 @@ package com.archimatetool.modelrepository.actions;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
@@ -22,9 +23,8 @@ public class RefreshModelHandler extends AbstractModelHandler {
     public Object execute(ExecutionEvent event) throws ExecutionException {
         IArchiRepository repository = getActiveArchiRepository();
         if(repository != null) {
-//            RefreshModelAction action = new RefreshModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event));
-//            action.setRepository(repository);
-//            action.run();
+            RefreshModelAction action = new RefreshModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), repository);
+            action.run();
         }
         
         return null;
