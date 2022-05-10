@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.actions;
+package com.archimatetool.modelrepository.handlers;
 
 import java.io.File;
 
@@ -18,7 +18,7 @@ import com.archimatetool.modelrepository.repository.RepoUtils;
 
 
 /**
- * Abstract Model handler manageing enabled state
+ * Abstract Model handler managing enabled state
  * 
  * @author Phillip Beauvoir
  */

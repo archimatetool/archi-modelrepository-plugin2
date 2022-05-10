@@ -3,27 +3,28 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.actions;
+package com.archimatetool.modelrepository.handlers;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import com.archimatetool.modelrepository.actions.PushModelAction;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 
 /**
- * Refresh model handler
+ * Push model handler
  * 
  * @author Phillip Beauvoir
  */
-public class RefreshModelHandler extends AbstractModelHandler {
+public class PushModelHandler extends AbstractModelHandler {
     
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         IArchiRepository repository = getActiveArchiRepository();
         if(repository != null) {
-            RefreshModelAction action = new RefreshModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), repository);
+            PushModelAction action = new PushModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), repository);
             action.run();
         }
         

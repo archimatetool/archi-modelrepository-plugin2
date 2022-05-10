@@ -3,29 +3,28 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.actions;
+package com.archimatetool.modelrepository.handlers;
 
+import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
 import com.archimatetool.editor.ui.services.ViewManager;
-import com.archimatetool.modelrepository.views.repositories.ModelRepositoryView;
+import com.archimatetool.modelrepository.views.history.HistoryView;
 
 
 /**
- * Show In Repository View Handler
+ * Show History View
  * 
  * @author Phillip Beauvoir
  */
-public class ShowInRepositoryViewHandler extends AbstractModelHandler {
+public class ShowHistoryViewHandler extends AbstractHandler {
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        ModelRepositoryView part = (ModelRepositoryView)ViewManager.showViewPart(ModelRepositoryView.ID, false);
-        if(part != null && getActiveArchimateModel() != null) {
-            part.selectObject(getActiveArchimateModel());
-        }
-        
+        // activate = false to keep originating part in focus so we can update based on current selection
+        ViewManager.toggleViewPart(HistoryView.ID, false);
         return null;
     }
+
 }
