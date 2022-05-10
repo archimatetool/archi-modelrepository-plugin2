@@ -6,46 +6,28 @@
 package com.archimatetool.modelrepository.repository;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import org.eclipse.jgit.api.CleanCommand;
 import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
-import org.eclipse.jgit.api.PushCommand;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.ResetCommand.ResetType;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteConfig;
-import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.treewalk.TreeWalk;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.PlatformUtils;
-import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsAuthenticator;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
@@ -73,7 +55,7 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public void init() throws GitAPIException, IOException {
         // Init
-        try(Git git = Git.init().setInitialBranch(MAIN).setDirectory(getLocalRepositoryFolder()).call()) {
+        try(Git git = Git.init().setInitialBranch(IRepositoryConstants.MAIN).setDirectory(getLocalRepositoryFolder()).call()) {
             // Config Defaults
             setDefaultConfigSettings(git.getRepository());
             
@@ -82,35 +64,6 @@ public class ArchiRepository implements IArchiRepository {
         }
     }
     
-    @Override
-    public RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            Status status = git.status().call();
-            
-            // Nothing changed
-            if(status.isClean()) {
-                return null;
-            }
-            
-            // Add modified files to index
-            git.add().addFilepattern(".").call();
-            //git.add().addFilepattern(MODEL_FILENAME).addFilepattern(IMAGES_FOLDER).call();
-            
-            // Add missing files to index
-            for(String s : status.getMissing()) {
-                git.rm().addFilepattern(s).call();
-            }
-            
-            // Commit
-            CommitCommand commitCommand = git.commit();
-            PersonIdent userDetails = getUserDetails();
-            commitCommand.setAuthor(userDetails);
-            commitCommand.setMessage(commitMessage);
-            commitCommand.setAmend(amend);
-            return commitCommand.call();
-        }
-    }
-
     @Override
     public void cloneModel(String repoURL, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException {
         CloneCommand cloneCommand = Git.cloneRepository();
@@ -129,99 +82,51 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
+    public RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException {
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            return utils.commitChanges(commitMessage, amend);
+        }
+    }
+
+    @Override
     public boolean hasChangesToCommit() throws IOException, GitAPIException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            Status status = git.status().call();
-            //Status status = git.status().addPath(MODEL_FILENAME).call();
-            return !status.isClean();
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            return utils.hasChangesToCommit();
         }
     }
     
     @Override
     public Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            // Ensure we are tracking the current branch
-            setTrackedBranch(git.getRepository(), git.getRepository().getBranch());
-            
-            PushCommand pushCommand = git.push();
-            pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
-            pushCommand.setProgressMonitor(monitor);
-            return pushCommand.call();
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            return utils.pushToRemote(npw, monitor);
         }
     }
     
     @Override
     public PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            // Ensure we are tracking the current branch
-            setTrackedBranch(git.getRepository(), git.getRepository().getBranch());
-            
-            PullCommand pullCommand = git.pull();
-            pullCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
-            pullCommand.setRebase(false); // Merge, not rebase
-            pullCommand.setProgressMonitor(monitor);
-            return pullCommand.call();
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            return utils.pullFromRemote(npw, monitor);
         }
     }
 
     @Override
     public RemoteConfig setRemote(String URL) throws IOException, GitAPIException, URISyntaxException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            RemoteConfig config;
-            
-            // Remove existing remote
-            config = git.remoteRemove().setRemoteName(IRepositoryConstants.ORIGIN).call();
-            
-            // Add new one
-            if(StringUtils.isSetAfterTrim(URL)) {
-                config = git.remoteAdd().setName(ORIGIN).setUri(new URIish(URL)).call();
-            }
-            
-            return config;
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            return utils.setRemote(URL);
         }
     }
     
     @Override
     public void resetToRef(String ref) throws IOException, GitAPIException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            // Reset
-            ResetCommand resetCommand = git.reset();
-            resetCommand.setRef(ref);
-            resetCommand.setMode(ResetType.HARD);
-            resetCommand.call();
-            
-            // Clean extra files
-            CleanCommand cleanCommand = git.clean();
-            cleanCommand.setCleanDirectories(true);
-            cleanCommand.call();
-        }
-    }
-
-    @Override
-    public boolean isHeadAndRemoteSame() throws IOException {
-        // TODO: Possibly replace this with the version from coArchi 1 using BranchStatus and BranchInfo
-        try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
-            Ref onlineRef = repository.findRef(ORIGIN + "/" + repository.getBranch());
-            Ref localRef = repository.findRef(Constants.HEAD);
-            
-            // In case of missing ref return false
-            if(onlineRef == null || localRef == null) {
-                return false;
-            }
-            
-            try(RevWalk revWalk = new RevWalk(repository)) {
-                RevCommit onlineCommit = revWalk.parseCommit(onlineRef.getObjectId());
-                RevCommit localLatestCommit = revWalk.parseCommit(localRef.getObjectId());
-                revWalk.dispose();
-                return onlineCommit.equals(localLatestCommit);
-            }
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            utils.resetToRef(ref);
         }
     }
 
     @Override
     public String getCurrentLocalBranchName() throws IOException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            return git.getRepository().getBranch();
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            return utils.getCurrentLocalBranchName();
         }
     }
     
@@ -231,7 +136,7 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public File getLocalGitFolder() {
+    public File getGitFolder() {
         return new File(getLocalRepositoryFolder(), ".git");
     }
 
@@ -268,20 +173,13 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public File getModelFile() {
-        return new File(getLocalRepositoryFolder(), MODEL_FILENAME);
+        return new File(getLocalRepositoryFolder(), IRepositoryConstants.MODEL_FILENAME);
     }
     
     @Override
     public String getOnlineRepositoryURL() throws IOException, GitAPIException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            List<RemoteConfig> remotes = git.remoteList().call();
-            if(!remotes.isEmpty()) {
-                List<URIish> uris = remotes.get(0).getURIs();
-                if(!uris.isEmpty()) {
-                    return uris.get(0).toASCIIString();
-                }
-            }
-            return null;
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            return utils.getOnlineRepositoryURL();
         }
     }
     
@@ -300,72 +198,22 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public PersonIdent getUserDetails() throws IOException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            StoredConfig config = git.getRepository().getConfig();
-            String name = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME));
-            String email = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL));
-            return new PersonIdent(name, email);
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            return utils.getUserDetails();
         }
     }
 
     @Override
     public void saveUserDetails(String name, String email) throws IOException {
-        // Get global user details from .gitconfig for comparison
-        PersonIdent global = new PersonIdent("", "");
-        
-        try {
-            global = RepoUtils.getGitConfigUserDetails();
-        }
-        catch(ConfigInvalidException ex) {
-            logger.warning("Could not get user details!");
-            ex.printStackTrace();
-        }
-        
-        // Save to local config
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            StoredConfig config = git.getRepository().getConfig();
-            
-            // If global name == local name or blank then unset
-            if(!StringUtils.isSet(name) || global.getName().equals(name)) {
-                config.unset(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME);
-            }
-            // Set
-            else {
-                config.setString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME, name);
-            }
-            
-            // If global email == local email or blank then unset
-            if(!StringUtils.isSet(email) || global.getEmailAddress().equals(email)) {
-                config.unset(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL);
-            }
-            else {
-                config.setString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL, email);
-            }
-
-            config.save();
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            utils.saveUserDetails(name, email);
         }
     }
 
     @Override
     public void extractCommit(RevCommit commit, File folder) throws IOException {
-        try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
-            // Walk the tree and extract the contents of the commit
-            try(TreeWalk treeWalk = new TreeWalk(repository)) {
-                treeWalk.addTree(commit.getTree());
-                treeWalk.setRecursive(true);
-
-                while(treeWalk.next()) {
-                    ObjectId objectId = treeWalk.getObjectId(0);
-                    ObjectLoader loader = repository.open(objectId);
-                    
-                    File file = new File(folder, treeWalk.getPathString());
-                    file.getParentFile().mkdirs();
-                    
-                    try(FileOutputStream out = new FileOutputStream(file)) {
-                        loader.copyTo(out);
-                    }
-                }
-            }
+        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+            utils.extractCommit(commit, folder);
         }
     }
 
@@ -383,6 +231,9 @@ public class ArchiRepository implements IArchiRepository {
         return fLocalRepoFolder != null ? fLocalRepoFolder.hashCode() : super.hashCode();
     }
 
+    /**
+     * Set some default local config settings
+     */
     private void setDefaultConfigSettings(Repository repository) throws IOException {
         StoredConfig config = repository.getConfig();
 
@@ -398,28 +249,11 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     /**
-     * Set the given branchName to track "origin"
-     */
-    private void setTrackedBranch(Repository repository, String branchName) throws IOException {
-        if(branchName == null) {
-            return;
-        }
-        
-        StoredConfig config = repository.getConfig();
-        
-        if(!ORIGIN.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
-            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, ORIGIN);
-            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
-            config.save();
-        }
-    }
-    
-    /**
      * Create exclude file for ignored files
      */
     private void createExcludeFile() throws IOException {
         String excludes = "*.bak\n.DS_Store";
-        File excludeFile = new File(getLocalGitFolder(), "/info/exclude");
+        File excludeFile = new File(getGitFolder(), "/info/exclude");
         excludeFile.getParentFile().mkdirs();
         Files.write(excludeFile.toPath(), excludes.getBytes());
     }

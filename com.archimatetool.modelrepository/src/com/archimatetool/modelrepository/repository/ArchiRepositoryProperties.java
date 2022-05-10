@@ -23,7 +23,7 @@ public class ArchiRepositoryProperties extends Properties {
     private File folder;
 
     public static ArchiRepositoryProperties open(IArchiRepository archiRepo) throws IOException {
-        return new ArchiRepositoryProperties(archiRepo.getLocalGitFolder()).load();
+        return new ArchiRepositoryProperties(archiRepo.getGitFolder()).load();
     }
     
     private ArchiRepositoryProperties(File folder) {

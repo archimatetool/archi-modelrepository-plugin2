@@ -14,6 +14,7 @@ public class AllRepositoryTests {
 		TestSuite suite = new TestSuite("com.archimatetool.modelrepository.repository");
 		
         suite.addTest(ArchiRepositoryTests.suite());
+        suite.addTest(GitUtilsTests.suite());
         suite.addTest(RepoUtilsTests.suite());
 
         return suite;

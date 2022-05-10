@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
 
@@ -83,9 +84,9 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
             
             textFile.setText(fRepository.getLocalRepositoryFolder().getAbsolutePath());
 
-            try {
-                textURL.setText(StringUtils.safeString(fRepository.getOnlineRepositoryURL()));
-                textCurrentBranch.setText(StringUtils.safeString(fRepository.getCurrentLocalBranchName()));
+            try(GitUtils utils = GitUtils.open(fRepository.getLocalRepositoryFolder())) {
+                textURL.setText(StringUtils.safeString(utils.getOnlineRepositoryURL()));
+                textCurrentBranch.setText(StringUtils.safeString(utils.getCurrentLocalBranchName()));
             }
             catch(IOException | GitAPIException ex) {
                 logger.log(Level.SEVERE, "Update info", ex); //$NON-NLS-1$

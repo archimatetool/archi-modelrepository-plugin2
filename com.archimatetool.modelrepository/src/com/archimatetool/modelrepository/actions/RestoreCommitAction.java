@@ -10,15 +10,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 
@@ -123,22 +121,19 @@ public class RestoreCommitAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        try {
-            return super.shouldBeEnabled() && fCommit != null && !isCommitLocalHead();
+        if(!super.shouldBeEnabled() || fCommit == null) {
+            return false;
+        }
+        
+        // Don't restore if the commit is at HEAD
+        try(GitUtils utils = GitUtils.open(getRepository().getLocalRepositoryFolder())) {
+            return !utils.isCommitAtHead(fCommit);
         }
         catch(IOException ex) {
             ex.printStackTrace();
-            logger.log(Level.SEVERE, "Extract commit", ex); //$NON-NLS-1$
+            logger.log(Level.SEVERE, "Is Commit at Head", ex); //$NON-NLS-1$
         }
         
         return false;
-    }
-    
-    private boolean isCommitLocalHead() throws IOException {
-        try(Repository repo = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
-            ObjectId headID = repo.resolve(Constants.HEAD);
-            ObjectId commitID = fCommit.getId();
-            return commitID.equals(headID);
-        }
     }
 }

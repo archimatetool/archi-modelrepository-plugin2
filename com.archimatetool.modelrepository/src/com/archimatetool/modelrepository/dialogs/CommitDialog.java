@@ -10,15 +10,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -34,6 +27,7 @@ import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 /**
@@ -46,6 +40,8 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     private static Logger logger = Logger.getLogger(CommitDialog.class.getName());
     
     private static String DIALOG_ID = "CommitDialog"; //$NON-NLS-1$
+    
+    private Label fRepoLabel;
     
     private Text fTextUserName, fTextUserEmail, fTextCommitMessage;
     private Button fAmendLastCommitCheckbox;
@@ -78,50 +74,23 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         GridLayout layout = new GridLayout(2, false);
         container.setLayout(layout);
         
-        // Repo and branch
-        String shortBranchName = ""; //$NON-NLS-1$
-        
-        try {
-            shortBranchName = fRepository.getCurrentLocalBranchName();
-        }
-        catch(IOException ex) {
-            ex.printStackTrace();
-        }
-
         Label label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_2);
         
-        label = new Label(container, SWT.NONE);
-        label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        label.setText(fRepository.getName() + " [" + shortBranchName + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+        fRepoLabel = new Label(container, SWT.NONE);
+        fRepoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
-        // User name & email
-        String userName = ""; //$NON-NLS-1$
-        String userEmail = ""; //$NON-NLS-1$
-        
-        try {
-            PersonIdent result = fRepository.getUserDetails();
-            userName = result.getName();
-            userEmail = result.getEmailAddress();
-        }
-        catch(IOException ex) {
-            logger.log(Level.WARNING, "Could not get user details", ex); //$NON-NLS-1$
-            ex.printStackTrace();
-        }
-
         label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_3);
         
         fTextUserName = UIUtils.createSingleTextControl(container, SWT.BORDER, false);
         fTextUserName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        fTextUserName.setText(userName);
         
         label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_4);
         
         fTextUserEmail = UIUtils.createSingleTextControl(container, SWT.BORDER, false);
         fTextUserEmail.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        fTextUserEmail.setText(userEmail);
         
         label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_5);
@@ -142,19 +111,39 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 2;
         fAmendLastCommitCheckbox.setLayoutData(gd);
-        fAmendLastCommitCheckbox.setEnabled(isAmendAllowed());
         
-        if(!StringUtils.isSet(userName)) {
-            fTextUserName.setFocus();
-        }
-        else if(!StringUtils.isSet(userEmail)) {
-            fTextUserEmail.setFocus();
-        }
-        else {
-            fTextCommitMessage.setFocus();
-        }
+        setValues();
         
         return area;
+    }
+    
+    private void setValues() {
+        try(GitUtils utils = GitUtils.open(fRepository.getLocalRepositoryFolder())) {
+            fRepoLabel.setText(fRepository.getName() + " [" + utils.getCurrentLocalBranchName() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+            
+            PersonIdent result = utils.getUserDetails();
+            fTextUserName.setText(result.getName());
+            fTextUserEmail.setText(result.getEmailAddress());
+            
+            // An amend of the last commit is allowed:
+            // If HEAD and Remote Ref are not the same && the HEAD commit does not have more than one parent (i.e HEAD commit is not a merged commit)
+            boolean isAmendable = !utils.isRemoteRefForCurrentBranchAtHead() && utils.getCommitParentCount(Constants.HEAD) < 2;
+            fAmendLastCommitCheckbox.setEnabled(isAmendable);
+            
+            if(!StringUtils.isSet(result.getName())) {
+                fTextUserName.setFocus();
+            }
+            else if(!StringUtils.isSet(result.getEmailAddress())) {
+                fTextUserEmail.setFocus();
+            }
+            else {
+                fTextCommitMessage.setFocus();
+            }
+        }
+        catch(IOException ex) {
+            logger.log(Level.WARNING, "Set Values", ex); //$NON-NLS-1$
+            ex.printStackTrace();
+        } 
     }
 
     @Override
@@ -190,42 +179,5 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         }
         
         super.okPressed();
-    }
-
-    /**
-     * An amend of last commit is allowed
-     * If HEAD and remote are not the same AND
-     * The latest local commit does not have more than one parent (i.e last commit was a merge)
-     */
-    private boolean isAmendAllowed() {
-        try {
-            return !fRepository.isHeadAndRemoteSame() && getLatestLocalCommitParentCount() < 2;
-        }
-        catch(IOException | GitAPIException ex) {
-            logger.log(Level.SEVERE, "Could not get amend allowed", ex); //$NON-NLS-1$
-            ex.printStackTrace();
-        }
-        
-        return false;
-    }
-    
-    private int getLatestLocalCommitParentCount() throws IOException {
-        try(Repository repository = Git.open(fRepository.getLocalRepositoryFolder()).getRepository()) {
-            Ref head = repository.exactRef(Constants.HEAD);
-            if(head == null) {
-                return 0;
-            }
-            
-            ObjectId objectID = head.getObjectId();
-            if(objectID == null) {
-                return 0;
-            }
-
-            try(RevWalk revWalk = new RevWalk(repository)) {
-                RevCommit commit = revWalk.parseCommit(objectID);
-                revWalk.dispose();
-                return commit.getParentCount();
-            }
-        }
     }
 }

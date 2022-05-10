@@ -20,7 +20,7 @@ import com.archimatetool.modelrepository.authentication.UsernamePassword;
  * 
  * @author Phillip Beauvoir
  */
-public interface IArchiRepository extends IRepositoryConstants {
+public interface IArchiRepository {
     
     /**
      * Initialise this repository
@@ -28,30 +28,20 @@ public interface IArchiRepository extends IRepositoryConstants {
     void init() throws GitAPIException, IOException;
     
     /**
-     * Commit any changes
-     * @param commitMessage
-     * @param amend If true, previous commit is amended
-     * @return RevCommit
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException;
-
-
-    /**
      * Clone a model
-     * @param repoURL
-     * @param npw
-     * @param monitor
-     * @throws GitAPIException
-     * @throws IOException
      */
     void cloneModel(String repoURL, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException;
 
     /**
+     * Commit any changes
+     * @param commitMessage
+     * @param amend If true, previous commit is amended
+     * @return RevCommit
+     */
+    RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException;
+
+    /**
      * @return true if there are changes to commit in the working tree
-     * @throws IOException
-     * @throws GitAPIException
      */
     boolean hasChangesToCommit() throws IOException, GitAPIException;
 
@@ -78,13 +68,7 @@ public interface IArchiRepository extends IRepositoryConstants {
     void resetToRef(String ref) throws IOException, GitAPIException;
 
     /**
-     * @return true if the latest local HEAD commit and the remote commit are the same
-     */
-    boolean isHeadAndRemoteSame() throws IOException, GitAPIException;
-
-    /**
      * @return The short name of the current local branch
-     * @throws IOException
      */
     String getCurrentLocalBranchName() throws IOException;
 
@@ -94,9 +78,9 @@ public interface IArchiRepository extends IRepositoryConstants {
     File getLocalRepositoryFolder();
 
     /**
-     * @return The local repository's ".git" folder
+     * @return The repository's ".git" folder
      */
-    File getLocalGitFolder();
+    File getGitFolder();
 
     /**
      * @return The repository name - the model's name
@@ -109,11 +93,8 @@ public interface IArchiRepository extends IRepositoryConstants {
     File getModelFile();
 
     /**
-     * Return the online URL of the Git repo
+     * Return the online URL of the Git repo or null if not found
      * We assume that there is only one remote per repo, and its name is "origin"
-     * @return The online URL or null if not found
-     * @throws IOException
-     * @throws GitAPIException 
      */
     String getOnlineRepositoryURL() throws IOException, GitAPIException;
 
@@ -124,24 +105,19 @@ public interface IArchiRepository extends IRepositoryConstants {
     IArchimateModel getModel();
     
     /**
-     * @return User name and email from config. This is either local or global
-     * @throws IOException
+     * @return User name and email from config. This is either local or global config.
      */
     PersonIdent getUserDetails() throws IOException;
     
     /**
-     * Save user name and email
-     * @param name
-     * @param email
-     * @throws IOException
+     * Save user name and email to local config
      */
     void saveUserDetails(String name, String email) throws IOException;
 
     /**
      * Extract the contents of a commit to a folder
-     * @param commit The commit to extract froms
+     * @param commit The commit to extract from
      * @param folder The folder to extract the commit's contents to
-     * @throws IOException
      */
     void extractCommit(RevCommit commit, File folder) throws IOException;
 }
