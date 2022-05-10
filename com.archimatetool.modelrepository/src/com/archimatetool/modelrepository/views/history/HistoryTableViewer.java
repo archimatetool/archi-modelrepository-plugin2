@@ -18,6 +18,7 @@ import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ILazyContentProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -103,11 +104,11 @@ public class HistoryTableViewer extends TableViewer {
         // Do the Layout kludge
         ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
 
-        // Select first row
-        //Object element = getElementAt(0);
-        //if(element != null) {
-        //    setSelection(new StructuredSelection(element), true);
-        //}
+        // Select first row. This will ensure we only load the first few commits
+        Object element = getElementAt(0);
+        if(element != null) {
+            setSelection(new StructuredSelection(element), true);
+        }
     }
     
     void setSelectedBranch(BranchInfo branchInfo) {
@@ -121,89 +122,118 @@ public class HistoryTableViewer extends TableViewer {
         
         // Layout kludge
         ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
+        
+        // Select first row. This will ensure we only load the first few commits
+        Object element = getElementAt(0);
+        if(element != null) {
+            setSelection(new StructuredSelection(element), true);
+        }
     }
     
     // ===============================================================================================
-    // ===================================== Table Model ==============================================
+    // ===================================== Table Model =============================================
     // ===============================================================================================
     
     /**
      * The Model for the Table.
      */
-    class HistoryContentProvider implements ILazyContentProvider {
+    private class HistoryContentProvider implements ILazyContentProvider {
         List<RevCommit> commits;
+        RevWalk theRevWalk;
         
         @Override
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-            commits = getCommits(newInput);
-            setItemCount(commits.size());
-        }
-
-        @Override
-        public void dispose() {
-        }
-        
-        List<RevCommit> getCommits(Object parent) {
-            List<RevCommit> commits = new ArrayList<RevCommit>();
-            fLocalCommit = null;
-            fOriginCommit = null;
+            dispose();
             
-            if(!(parent instanceof IArchiRepository) || fSelectedBranch == null) {
-                return commits;
+            if(!(newInput instanceof IArchiRepository
+                    && ((IArchiRepository)newInput).getLocalRepositoryFolder().exists() // Local Repo might have been deleted
+                    && fSelectedBranch != null)) {
+                setItemCount(0);
+                return;
             }
             
-            IArchiRepository repo = (IArchiRepository)parent;
-            
-            // Local Repo was deleted
-            if(!repo.getLocalRepositoryFolder().exists()) {
-                return commits;
-            }
+            commits = new ArrayList<>();
 
-            try(Repository repository = Git.open(repo.getLocalRepositoryFolder()).getRepository()) {
-                // a RevWalk allows to walk over commits based on some filtering that is defined
-                try(RevWalk revWalk = new RevWalk(repository)) {
-                    // Find the local branch
-                    ObjectId objectID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());
-                    if(objectID != null) {
-                        fLocalCommit = revWalk.parseCommit(objectID);
-                        revWalk.markStart(fLocalCommit); 
-                    }
-                    
-                    // Find the remote branch
-                    objectID = repository.resolve(fSelectedBranch.getRemoteBranchNameFor());
-                    if(objectID != null) {
-                        fOriginCommit = revWalk.parseCommit(objectID);
-                        revWalk.markStart(fOriginCommit);
-                    }
-                    
-                    // Collect the commits
-                    for(RevCommit commit : revWalk ) {
-                        commits.add(commit);
-                    }
-                    
-                    revWalk.dispose();
-                }
+            try(Repository repository = Git.open(((IArchiRepository)newInput).getLocalRepositoryFolder()).getRepository()) {
+                setItemCount(getCommitCount(repository));
+                theRevWalk = getRevWalk(repository);
             }
             catch(IOException ex) {
+                setItemCount(0);
                 ex.printStackTrace();
+                logger.log(Level.SEVERE, "Rev Walk", ex); //$NON-NLS-1$
+            }
+        }
+        
+        RevWalk getRevWalk(Repository repository) throws IOException {
+            RevWalk revWalk = new RevWalk(repository);
+            
+            // Find the local branch commit start
+            ObjectId localCommitID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());
+            if(localCommitID != null) {
+                fLocalCommit = revWalk.parseCommit(localCommitID);
+                revWalk.markStart(fLocalCommit);
+            }
+
+            // Find the remote branch commit start
+            ObjectId remoteCommitID = repository.resolve(fSelectedBranch.getRemoteBranchNameFor());
+            if(remoteCommitID != null) {
+                fOriginCommit = revWalk.parseCommit(remoteCommitID);
+                revWalk.markStart(fOriginCommit);
             }
             
-            return commits;
+            return revWalk;
+        }
+        
+        int getCommitCount(Repository repository) throws IOException {
+            RevWalk revWalk = getRevWalk(repository);
+            revWalk.setRetainBody(false); // Set this false to reduce load
+            
+            // Count the commits
+            int count = 0;
+            while(revWalk.next() != null) {
+                count++;
+            }
+            
+            revWalk.dispose();
+            
+            return count;
         }
 
         @Override
         public void updateElement(int index) {
-            if(commits != null) {
-                replace(commits.get(index), index);
+            // Lazily load the RevCommits into the list
+            while(commits.size() <= index) {
+                try {
+                    commits.add(theRevWalk.next());
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                    logger.log(Level.SEVERE, "Rev Walk", ex); //$NON-NLS-1$
+                }
             }
+            
+            replace(commits.get(index), index);
+        }
+
+        @Override
+        public void dispose() {
+            if(theRevWalk != null) {
+                theRevWalk.dispose();
+                theRevWalk = null;
+            }
+            
+            commits = null;
+            fLocalCommit = null;
+            fOriginCommit = null;
         }
     }
     
     // ===============================================================================================
-	// ===================================== Label Model ==============================================
+	// ===================================== Label Model =============================================
 	// ===============================================================================================
 
-    class HistoryLabelProvider extends CellLabelProvider {
+    private class HistoryLabelProvider extends CellLabelProvider {
         
         DateFormat dateFormat = DateFormat.getDateTimeInstance();
         
@@ -264,12 +294,11 @@ public class HistoryTableViewer extends TableViewer {
                 else if(commit.equals(fLocalCommit)) {
                     s += Messages.HistoryTableViewer_5 + " "; //$NON-NLS-1$
                 }
-
                 else if(commit.equals(fOriginCommit)) {
                     s += Messages.HistoryTableViewer_6 + " "; //$NON-NLS-1$
                 }
                 
-                s += commit.getFullMessage().trim();
+                s += commit.getShortMessage().trim();
                 
                 return s;
             }
