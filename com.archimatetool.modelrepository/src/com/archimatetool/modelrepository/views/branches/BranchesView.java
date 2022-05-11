@@ -15,7 +15,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -230,21 +229,23 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             return;
         }
         
-        Object selected = ((IStructuredSelection)selection).getFirstElement();
-        
         IArchiRepository selectedRepository = null;
         
-        // Repository ref selected
-        if(selected instanceof RepositoryRef) {
-            selectedRepository = ((RepositoryRef)selected).getArchiRepository();
+        // Repository selected in another part
+        if(part.getAdapter(IArchiRepository.class) != null) {
+            selectedRepository = part.getAdapter(IArchiRepository.class);
         }
-        // Model selected, but is it in a git repo?
-        else {
+        // Model selected in another part, but is it in a git repo?
+        else if(part.getAdapter(IArchimateModel.class) != null) {
             IArchimateModel model = part.getAdapter(IArchimateModel.class);
             File folder = RepoUtils.getLocalRepositoryFolderForModel(model);
             if(folder != null) {
                 selectedRepository = new ArchiRepository(folder);
             }
+        }
+        // Repository wrapped in a Repository Ref from History View
+        else if(part.getAdapter(RepositoryRef.class) != null) {
+            selectedRepository = part.getAdapter(RepositoryRef.class).getArchiRepository();
         }
         
         // Update if selectedRepository is different 
@@ -293,6 +294,18 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     break;
             }
         }
+    }
+    
+    @Override
+    public <T> T getAdapter(Class<T> adapter) {
+        /*
+         * Return the active repository wrapped in a RepositoryRef so that we don't enable main toolbar/menu items
+         */
+        if(adapter == RepositoryRef.class) {
+            return adapter.cast(new RepositoryRef((IArchiRepository)getBranchesViewer().getInput()));
+        }
+        
+        return super.getAdapter(adapter);
     }
     
     @Override

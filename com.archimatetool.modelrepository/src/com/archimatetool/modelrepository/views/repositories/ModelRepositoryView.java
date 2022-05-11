@@ -633,9 +633,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
          */
         if(adapter == IArchiRepository.class) {
             Object obj = getViewer().getStructuredSelection().getFirstElement();
-            if(obj instanceof RepositoryRef) {
-                return adapter.cast(((RepositoryRef)obj).getArchiRepository());
-            }
+            return obj instanceof RepositoryRef ? adapter.cast(((RepositoryRef)obj).getArchiRepository()) : null;
         }
         
         return super.getAdapter(adapter);
