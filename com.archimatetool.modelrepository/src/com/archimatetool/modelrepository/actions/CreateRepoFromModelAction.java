@@ -10,7 +10,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
@@ -130,22 +129,19 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         // Push
         
         // If using this be careful that no UI operations are included as this could lead to an SWT Invalid thread access exception
-        PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
-            @Override
-            public void run(IProgressMonitor pm) {
-                try {
-                    pm.beginTask(Messages.CreateRepoFromModelAction_2, IProgressMonitor.UNKNOWN);
-                    Iterable<PushResult> pushResult = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(pm));
-                    
-                    // Get any errors in Push Results
-                    String errorMessage = getPushResultErrorMessage(pushResult);
-                    if(errorMessage.length() > 0) {
-                        throw new GitAPIException(errorMessage) {};
-                    }
+        PlatformUI.getWorkbench().getProgressService().busyCursorWhile((monitor) -> {
+            try {
+                monitor.beginTask(Messages.CreateRepoFromModelAction_2, IProgressMonitor.UNKNOWN);
+                Iterable<PushResult> pushResult = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));
+
+                // Get any errors in Push Results and set exception if there are errors
+                String errorMessage = getPushResultErrorMessage(pushResult);
+                if(errorMessage.length() > 0) {
+                    exception[0] = new GitAPIException(errorMessage) {};
                 }
-                catch(Exception ex) {
-                    exception[0] = ex;
-                }
+            }
+            catch(Exception ex) {
+                exception[0] = ex;
             }
         });
 
