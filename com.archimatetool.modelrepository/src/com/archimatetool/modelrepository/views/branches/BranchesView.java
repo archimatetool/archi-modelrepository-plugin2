@@ -14,6 +14,7 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -31,6 +32,7 @@ import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.AddBranchAction;
+import com.archimatetool.modelrepository.actions.DeleteBranchAction;
 import com.archimatetool.modelrepository.actions.SwitchBranchAction;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.BranchInfo;
@@ -59,8 +61,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     // TODO: Add actions
     private AddBranchAction fActionAddBranch;
     private SwitchBranchAction fActionSwitchBranch;
+    private DeleteBranchAction fActionDeleteBranch;
     // private MergeBranchAction fActionMergeBranch;
-    // private DeleteBranchAction fActionDeleteBranch;
     // private DeleteStaleBranchesAction fActionDeleteStaleBranches;
     
     @Override
@@ -145,11 +147,11 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionSwitchBranch = new SwitchBranchAction(getViewSite().getWorkbenchWindow());
         fActionSwitchBranch.setEnabled(false);
         
+        fActionDeleteBranch = new DeleteBranchAction(getViewSite().getWorkbenchWindow());
+        fActionDeleteBranch.setEnabled(false);
+        
         //fActionMergeBranch = new MergeBranchAction(getViewSite().getWorkbenchWindow());
         //fActionMergeBranch.setEnabled(false);
-        
-        //fActionDeleteBranch = new DeleteBranchAction(getViewSite().getWorkbenchWindow());
-        //fActionDeleteBranch.setEnabled(false);
         
         //fActionDeleteStaleBranches = new DeleteStaleBranchesAction(getViewSite().getWorkbenchWindow());
         //fActionDeleteStaleBranches.setEnabled(false);
@@ -185,8 +187,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(fActionAddBranch);
         manager.add(fActionSwitchBranch);
         //manager.add(fActionMergeBranch);
-        //manager.add(new Separator());
-        //manager.add(fActionDeleteBranch);
+        manager.add(new Separator());
+        manager.add(fActionDeleteBranch);
         //manager.add(fActionDeleteStaleBranches);
     }
     
@@ -198,8 +200,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         BranchInfo branchInfo = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
         fActionSwitchBranch.setBranch(branchInfo);
         fActionAddBranch.setBranch(branchInfo);
+        fActionDeleteBranch.setBranch(branchInfo);
         //fActionMergeBranch.setBranch(branchInfo);
-        //fActionDeleteBranch.setBranch(branchInfo);
         //fActionDeleteStaleBranches.setSelection(getBranchesViewer().getStructuredSelection());
     }
     
@@ -207,8 +209,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(fActionAddBranch);
         manager.add(fActionSwitchBranch);
         //manager.add(fActionMergeBranch);
-        //manager.add(new Separator());
-        //manager.add(fActionDeleteBranch);
+        manager.add(new Separator());
+        manager.add(fActionDeleteBranch);
         //manager.add(fActionDeleteStaleBranches);
     }
 
@@ -262,8 +264,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             // Update actions
             fActionAddBranch.setRepository(selectedRepository);
             fActionSwitchBranch.setRepository(selectedRepository);
+            fActionDeleteBranch.setRepository(selectedRepository);
             //fActionMergeBranch.setRepository(selectedRepository);
-            //fActionDeleteBranch.setRepository(selectedRepository);
             //fActionDeleteStaleBranches.setRepository(selectedRepository);
         }
     }

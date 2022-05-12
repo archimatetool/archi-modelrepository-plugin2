@@ -31,6 +31,7 @@ import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -197,10 +198,35 @@ public class GitUtils implements AutoCloseable {
     }
 
     /**
-     * @return
+     * Return the current local branch name that HEAD points to
      */
     public String getCurrentLocalBranchName() throws IOException {
         return git.getRepository().getBranch();
+    }
+    
+    /**
+     * Delete branches
+     * @param force if false a check will be performed whether the branch to be deleted
+     *              is already merged into the current branch and deletion will be refused if not merged
+     * @param branchNames Any number of branch names. For example, "refs/heads/branch" or "refs/remotes/origin/branch"
+     * @return a list of the result of full branch names deleted
+     */
+    public List<String> deleteBranch(boolean force, String... branchNames) throws GitAPIException {
+        // Delete local and remote branch refs
+        return git.branchDelete().setBranchNames(branchNames).setForce(force).call();
+    }
+    
+    /**
+     * Delete a remote branch by pushing to repo
+     * @param branchName Local type ref like "refs/heads/branch"
+     */
+    public Iterable<PushResult> deleteRemoteBranch(String branchName, UsernamePassword npw) throws GitAPIException {
+        PushCommand pushCommand = git.push();
+        pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
+        RefSpec refSpec = new RefSpec(":" + branchName);
+        pushCommand.setRefSpecs(refSpec);
+        pushCommand.setRemote(IRepositoryConstants.ORIGIN);
+        return pushCommand.call();
     }
     
     /**

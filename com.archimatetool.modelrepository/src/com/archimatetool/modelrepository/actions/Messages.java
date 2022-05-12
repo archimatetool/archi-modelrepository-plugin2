@@ -38,6 +38,10 @@ public class Messages extends NLS {
 
     public static String CreateRepoFromModelAction_2;
 
+    public static String DeleteBranchAction_0;
+
+    public static String DeleteBranchAction_1;
+
     public static String DeleteModelAction_0;
 
     public static String DeleteModelAction_1;
