@@ -39,6 +39,11 @@ public class AddBranchAction extends AbstractModelAction {
         setToolTipText(Messages.AddBranchAction_0);
     }
 
+    public void setBranch(BranchInfo branchInfo) {
+        fBranchInfo = branchInfo;
+        setEnabled(shouldBeEnabled());
+    }
+    
     @Override
     public void run() {
         if(!shouldBeEnabled()) {
@@ -83,11 +88,6 @@ public class AddBranchAction extends AbstractModelAction {
             logger.log(Level.SEVERE, "Add Branch", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.AddBranchAction_1, ex);
         }
-    }
-    
-    public void setBranch(BranchInfo branchInfo) {
-        fBranchInfo = branchInfo;
-        setEnabled(shouldBeEnabled());
     }
     
     @Override
