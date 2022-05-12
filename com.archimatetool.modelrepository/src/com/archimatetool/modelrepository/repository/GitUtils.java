@@ -115,7 +115,7 @@ public class GitUtils implements AutoCloseable {
         setTrackedBranch(git.getRepository().getBranch());
 
         PushCommand pushCommand = git.push();
-        pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
+        pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         pushCommand.setProgressMonitor(monitor);
         return pushCommand.call();
     }
@@ -128,7 +128,7 @@ public class GitUtils implements AutoCloseable {
         setTrackedBranch(git.getRepository().getBranch());
 
         PullCommand pullCommand = git.pull();
-        pullCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
+        pullCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         pullCommand.setRebase(false); // Merge, not rebase
         pullCommand.setProgressMonitor(monitor);
         return pullCommand.call();

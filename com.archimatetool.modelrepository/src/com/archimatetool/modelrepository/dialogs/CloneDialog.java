@@ -45,7 +45,7 @@ public class CloneDialog extends TitleAreaDialog {
     
     private String URL;
     private String username;
-    private String password;
+    private char[] password;
     private boolean doStoreCredentials;
     
     public CloneDialog(Shell parentShell, String title) {
@@ -141,14 +141,16 @@ public class CloneDialog extends TitleAreaDialog {
     // as soon as the Dialog closes
     protected void saveInput() {
         username = txtUsername.getText().trim();
-        password = txtPassword.getText().trim();
+        password = txtPassword.getTextChars();
         URL = txtURL.getText().trim();
         doStoreCredentials = storeCredentialsButton.getSelection();
     }
 
     @Override
     protected void buttonPressed(int buttonId) {
-        saveInput();
+        if(buttonId != IDialogConstants.CANCEL_ID) {
+            saveInput();
+        }
         super.buttonPressed(buttonId);
     }
     

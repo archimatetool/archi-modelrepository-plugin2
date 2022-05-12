@@ -69,7 +69,7 @@ public class ArchiRepository implements IArchiRepository {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setDirectory(getLocalRepositoryFolder());
         cloneCommand.setURI(repoURL);
-        cloneCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(repoURL, npw));
+        cloneCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         cloneCommand.setProgressMonitor(monitor);
         
         try(Git git = cloneCommand.call()) {

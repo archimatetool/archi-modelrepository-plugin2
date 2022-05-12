@@ -9,8 +9,6 @@ import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
-import com.archimatetool.modelrepository.repository.RepoUtils;
-
 
 /**
  * Authenticator for SSH and HTTP
@@ -23,19 +21,20 @@ public final class CredentialsAuthenticator {
      * Factory method to get the TransportConfigCallback for authentication for repoURL
      * npw can be null and is ignored if repoURL is SSH
      */
-    public static TransportConfigCallback getTransportConfigCallback(String repoURL, UsernamePassword npw) {
+    public static TransportConfigCallback getTransportConfigCallback(UsernamePassword npw) {
         return new TransportConfigCallback() {
             @Override
             public void configure(Transport transport) {
-                transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
+                // Delete remote branches that we don't have
+                transport.setRemoveDeletedRefs(true);
                 
-                // SSH
-                if(RepoUtils.isSSH(repoURL)) {
+                // If npw is null we are using SSH
+                if(npw == null) {
                     // TODO: Set SSHCredentialsProvider
                     //transport.setCredentialsProvider(new SSHCredentialsProvider());
                 }
-                // HTTP
-                else if(npw != null) {
+                // HTTPS
+                else {
                     transport.setCredentialsProvider(new UsernamePasswordCredentialsProvider(npw.getUsername(), npw.getPassword()));
                 }
             }

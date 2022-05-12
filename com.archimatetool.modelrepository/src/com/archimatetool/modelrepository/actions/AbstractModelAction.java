@@ -5,8 +5,11 @@
  */
 package com.archimatetool.modelrepository.actions;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,7 +23,9 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CommitDialog;
+import com.archimatetool.modelrepository.dialogs.UserNamePasswordDialog;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 
@@ -164,12 +169,47 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
     }
 
     /**
+     * Get user name and password from credentials file if prefs set or from dialog
+     */
+    protected UsernamePassword getUsernamePassword() {
+        // TODO: Get credentials from encrypted storage and return that, if present
+        
+        /*
+         * This is for testing and debugging purposes only.
+         * Set a VM argument with a path referencing a file containing username/password
+         * -DcoArchi.credentials=pathToFile
+         */
+        String credentialsFile = System.getProperty("coArchi.credentials"); //$NON-NLS-1$
+        if(credentialsFile != null) {
+            File file = new File(credentialsFile);
+            if(file.exists()) {
+                try(FileInputStream is = new FileInputStream(file)) {
+                    Properties props = new Properties();
+                    props.load(is);
+                    return new UsernamePassword(props.getProperty("username", ""), //$NON-NLS-1$ //$NON-NLS-2$
+                            props.getProperty("password", "").toCharArray()); //$NON-NLS-1$ //$NON-NLS-2$
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        
+        // Else ask the user
+        UserNamePasswordDialog dialog = new UserNamePasswordDialog(fWindow.getShell());
+        if(dialog.open() == Window.OK) {
+            return new UsernamePassword(dialog.getUsername(), dialog.getPassword());
+        }
+
+        return null;
+    }
+    
+    /**
      * Notify that the repo changed
      */
     protected void notifyChangeListeners(String eventName) {
         RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(eventName, getRepository());
     }
-    
     
     /**
      * If the model is open in the models tree, close it, asking to save if needed if askSaveModel is true.
