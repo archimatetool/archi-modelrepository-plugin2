@@ -59,7 +59,7 @@ public class SwitchBranchAction extends AbstractModelAction {
         logger.info("Switching branch to: " + branchInfo.getShortName()); //$NON-NLS-1$
         
         // If switched branch Ref == current HEAD Ref (i.e current branch and switched branch are same Ref) just switch branch
-        try(GitUtils utils = GitUtils.open(getRepository().getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
             if(utils.isRefAtHead(branchInfo.getRef())) {
                 switchBranch(branchInfo);
                 notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
@@ -121,7 +121,7 @@ public class SwitchBranchAction extends AbstractModelAction {
     private boolean switchBranch(BranchInfo branchInfo) {
         logger.info("Switching branch to: " + branchInfo.getShortName()); //$NON-NLS-1$
         
-        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
+        try(Git git = Git.open(getRepository().getWorkingFolder())) {
             // If the branch is local just checkout
             if(branchInfo.isLocal()) {
                 git.checkout().setName(branchInfo.getFullName()).call();

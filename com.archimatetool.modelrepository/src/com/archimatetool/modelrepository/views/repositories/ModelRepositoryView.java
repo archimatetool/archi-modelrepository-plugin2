@@ -364,7 +364,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             try {
                 for(RepositoryRef ref : refsToDelete) {
                     // Delete repository folder
-                    FileUtils.deleteFolder(ref.getArchiRepository().getLocalRepositoryFolder());
+                    FileUtils.deleteFolder(ref.getArchiRepository().getWorkingFolder());
                     
                     // Delete from tree model
                     ref.delete();
@@ -588,11 +588,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     public void selectObject(Object object) {
         // Model
         if(object instanceof IArchimateModel) {
-            object = RepositoryTreeModel.getInstance().findRepositoryRef(RepoUtils.getLocalRepositoryFolderForModel((IArchimateModel)object));
+            object = RepositoryTreeModel.getInstance().findRepositoryRef(RepoUtils.getWorkingFolderForModel((IArchimateModel)object));
         }
         // Repository
         else if(object instanceof IArchiRepository) {
-            object = RepositoryTreeModel.getInstance().findRepositoryRef(((IArchiRepository)object).getLocalRepositoryFolder());
+            object = RepositoryTreeModel.getInstance().findRepositoryRef(((IArchiRepository)object).getWorkingFolder());
         }
         
         if(object != null) {

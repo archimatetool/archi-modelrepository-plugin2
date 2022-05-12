@@ -73,12 +73,12 @@ public interface IArchiRepository {
     String getCurrentLocalBranchName() throws IOException;
 
     /**
-     * @return The local repository folder (aka the working directory)
+     * @return The repository's working directory
      */
-    File getLocalRepositoryFolder();
+    File getWorkingFolder();
 
     /**
-     * @return The repository's ".git" folder
+     * @return The repository's ".git" directory
      */
     File getGitFolder();
 
@@ -93,7 +93,7 @@ public interface IArchiRepository {
     File getModelFile();
 
     /**
-     * Return the online URL of the Git repo or null if not found
+     * Return the URL of the Git repo or null if not found
      * We assume that there is only one remote per repo, and its name is "origin"
      */
     String getOnlineRepositoryURL() throws IOException, GitAPIException;

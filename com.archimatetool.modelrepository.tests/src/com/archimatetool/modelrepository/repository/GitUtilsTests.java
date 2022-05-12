@@ -44,24 +44,24 @@ public class GitUtilsTests {
 
     @Test
     public void isRemoteRefForCurrentBranchAtHead_False() throws Exception {
-        File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
-        IArchiRepository repository =  new ArchiRepository(localRepoFolder);
+        File repoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
+        IArchiRepository repository =  new ArchiRepository(repoFolder);
         repository.init();
         
-        try(GitUtils utils = GitUtils.open(localRepoFolder)) {
+        try(GitUtils utils = GitUtils.open(repoFolder)) {
             assertFalse(utils.isRemoteRefForCurrentBranchAtHead());
         }
     }
     
     @Test
     public void getOnlineRepositoryURL() throws Exception {
-        File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
-        IArchiRepository repo = new ArchiRepository(localRepoFolder);
+        File repoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
+        IArchiRepository repo = new ArchiRepository(repoFolder);
         repo.init();
         
         String url = "https://www.somewherethereish.net/myRepo.git";
         
-        try(GitUtils utils = GitUtils.open(localRepoFolder)) {
+        try(GitUtils utils = GitUtils.open(repoFolder)) {
             utils.setRemote(url);
             assertEquals(url, utils.getOnlineRepositoryURL());
         }
@@ -69,17 +69,17 @@ public class GitUtilsTests {
     
     @Test
     public void setRemote() throws Exception {
-        File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
-        IArchiRepository repository =  new ArchiRepository(localRepoFolder);
+        File repoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
+        IArchiRepository repository =  new ArchiRepository(repoFolder);
         repository.init();
         
         String url = "https://www.somewherethereish.net/myRepo.git";
         
-        try(GitUtils utils = GitUtils.open(localRepoFolder)) {
+        try(GitUtils utils = GitUtils.open(repoFolder)) {
             utils.setRemote(url);
         }
         
-        try(Git git = Git.open(localRepoFolder)) {
+        try(Git git = Git.open(repoFolder)) {
             List<RemoteConfig> remotes = git.remoteList().call();
             assertEquals(1, remotes.size());
             RemoteConfig config = remotes.get(0);
@@ -91,11 +91,11 @@ public class GitUtilsTests {
     
     @Test
     public void removeRemote() throws Exception {
-        File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
-        IArchiRepository repository =  new ArchiRepository(localRepoFolder);
+        File repoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
+        IArchiRepository repository =  new ArchiRepository(repoFolder);
         repository.init();
         
-        try(GitUtils utils = GitUtils.open(localRepoFolder)) {
+        try(GitUtils utils = GitUtils.open(repoFolder)) {
             String url = "https://www.somewherethereish.net/myRepo.git";
             utils.setRemote(url); // Set a remote
             
@@ -115,11 +115,11 @@ public class GitUtilsTests {
     
     @Test
     public void savegetUserDetails() throws Exception {
-        File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
-        IArchiRepository repo = new ArchiRepository(localRepoFolder);
+        File repoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
+        IArchiRepository repo = new ArchiRepository(repoFolder);
         repo.init();
         
-        try(GitUtils utils = GitUtils.open(localRepoFolder)) {
+        try(GitUtils utils = GitUtils.open(repoFolder)) {
             utils.saveUserDetails("Monkey", "monkey@apes.com");
             PersonIdent personIdent = utils.getUserDetails();
             assertEquals("Monkey", personIdent.getName());
@@ -129,11 +129,11 @@ public class GitUtilsTests {
 
     @Test
     public void getCurrentLocalBranchName() throws Exception {
-        File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
-        IArchiRepository repo = new ArchiRepository(localRepoFolder);
+        File repoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
+        IArchiRepository repo = new ArchiRepository(repoFolder);
         repo.init();
         
-        try(GitUtils utils = GitUtils.open(localRepoFolder)) {
+        try(GitUtils utils = GitUtils.open(repoFolder)) {
             assertEquals(IRepositoryConstants.MAIN, utils.getCurrentLocalBranchName());
         }
     }

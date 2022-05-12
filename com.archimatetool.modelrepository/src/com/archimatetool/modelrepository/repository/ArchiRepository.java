@@ -44,18 +44,18 @@ public class ArchiRepository implements IArchiRepository {
     private static Logger logger = Logger.getLogger(ArchiRepository.class.getName());
     
     /**
-     * The folder location of the local repository
+     * The working directory of the local git repository
      */
-    private File fLocalRepoFolder;
+    private File repoFolder;
 
-    public ArchiRepository(File localRepoFolder) {
-        fLocalRepoFolder = localRepoFolder;
+    public ArchiRepository(File repoFolder) {
+        this.repoFolder = repoFolder;
     }
     
     @Override
     public void init() throws GitAPIException, IOException {
         // Init
-        try(Git git = Git.init().setInitialBranch(IRepositoryConstants.MAIN).setDirectory(getLocalRepositoryFolder()).call()) {
+        try(Git git = Git.init().setInitialBranch(IRepositoryConstants.MAIN).setDirectory(getWorkingFolder()).call()) {
             // Config Defaults
             setDefaultConfigSettings(git.getRepository());
             
@@ -67,7 +67,7 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public void cloneModel(String repoURL, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException {
         CloneCommand cloneCommand = Git.cloneRepository();
-        cloneCommand.setDirectory(getLocalRepositoryFolder());
+        cloneCommand.setDirectory(getWorkingFolder());
         cloneCommand.setURI(repoURL);
         cloneCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         cloneCommand.setProgressMonitor(monitor);
@@ -83,61 +83,61 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.commitChanges(commitMessage, amend);
         }
     }
 
     @Override
     public boolean hasChangesToCommit() throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.hasChangesToCommit();
         }
     }
     
     @Override
     public Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.pushToRemote(npw, monitor);
         }
     }
     
     @Override
     public PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.pullFromRemote(npw, monitor);
         }
     }
 
     @Override
     public RemoteConfig setRemote(String URL) throws IOException, GitAPIException, URISyntaxException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.setRemote(URL);
         }
     }
     
     @Override
     public void resetToRef(String ref) throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             utils.resetToRef(ref);
         }
     }
 
     @Override
     public String getCurrentLocalBranchName() throws IOException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.getCurrentLocalBranchName();
         }
     }
     
     @Override
-    public File getLocalRepositoryFolder() {
-        return fLocalRepoFolder;
+    public File getWorkingFolder() {
+        return repoFolder;
     }
     
     @Override
     public File getGitFolder() {
-        return new File(getLocalRepositoryFolder(), ".git");
+        return new File(getWorkingFolder(), ".git");
     }
 
     @Override
@@ -173,12 +173,12 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public File getModelFile() {
-        return new File(getLocalRepositoryFolder(), IRepositoryConstants.MODEL_FILENAME);
+        return new File(getWorkingFolder(), IRepositoryConstants.MODEL_FILENAME);
     }
     
     @Override
     public String getOnlineRepositoryURL() throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.getOnlineRepositoryURL();
         }
     }
@@ -198,21 +198,21 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public PersonIdent getUserDetails() throws IOException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.getUserDetails();
         }
     }
 
     @Override
     public void saveUserDetails(String name, String email) throws IOException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             utils.saveUserDetails(name, email);
         }
     }
 
     @Override
     public void extractCommit(RevCommit commit, File folder) throws IOException {
-        try(GitUtils utils = GitUtils.open(getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             utils.extractCommit(commit, folder);
         }
     }
@@ -220,7 +220,7 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof ArchiRepository) {
-            return fLocalRepoFolder != null && fLocalRepoFolder.equals(((ArchiRepository)obj).getLocalRepositoryFolder());
+            return repoFolder != null && repoFolder.equals(((ArchiRepository)obj).getWorkingFolder());
         }
         return false;
     }
@@ -228,7 +228,7 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public int hashCode() {
         // Equality for Java sets
-        return fLocalRepoFolder != null ? fLocalRepoFolder.hashCode() : super.hashCode();
+        return repoFolder != null ? repoFolder.hashCode() : super.hashCode();
     }
 
     /**

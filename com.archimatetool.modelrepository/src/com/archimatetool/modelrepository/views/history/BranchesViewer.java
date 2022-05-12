@@ -85,7 +85,7 @@ public class BranchesViewer extends ComboViewer {
         BranchStatus branchStatus = null;
         
         try {
-            branchStatus = new BranchStatus(archiRepo.getLocalRepositoryFolder());
+            branchStatus = new BranchStatus(archiRepo.getWorkingFolder());
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();

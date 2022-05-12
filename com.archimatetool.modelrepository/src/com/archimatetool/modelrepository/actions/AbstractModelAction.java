@@ -66,7 +66,7 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
 	 * @return true if this action should be enabled
 	 */
 	protected boolean shouldBeEnabled() {
-	    return getRepository() != null && getRepository().getLocalRepositoryFolder().exists();
+	    return getRepository() != null && getRepository().getWorkingFolder().exists();
 	}
 	
     /**

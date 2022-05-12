@@ -196,7 +196,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         switch(eventName) {
             case IRepositoryListener.REPOSITORY_CHANGED:
             case IRepositoryListener.BRANCHES_CHANGED:
-                RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(repository.getLocalRepositoryFolder());
+                RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(repository.getWorkingFolder());
                 if(ref != null) {
                     updateStatusCache(ref.getArchiRepository());
                     update(ref, null);
@@ -233,7 +233,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
      */
     private void updateStatusCache(IArchiRepository repo) {
         try {
-            BranchStatus status = new BranchStatus(repo.getLocalRepositoryFolder());
+            BranchStatus status = new BranchStatus(repo.getWorkingFolder());
             BranchInfo branchInfo = status.getCurrentLocalBranch();
             if(branchInfo != null) { // This can be null!!
                 StatusCache sc = new StatusCache(branchInfo, repo.hasChangesToCommit());

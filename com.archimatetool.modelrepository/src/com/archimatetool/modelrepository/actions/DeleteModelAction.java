@@ -58,10 +58,10 @@ public class DeleteModelAction extends AbstractModelAction {
             IEditorModelManager.INSTANCE.closeModel(getRepository().getModel(), false);
             
             // Delete folder
-            FileUtils.deleteFolder(getRepository().getLocalRepositoryFolder());
+            FileUtils.deleteFolder(getRepository().getWorkingFolder());
             
             // Delete from Tree Model
-            RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(getRepository().getLocalRepositoryFolder());
+            RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(getRepository().getWorkingFolder());
             if(ref != null) {
                 ref.delete();
                 RepositoryTreeModel.getInstance().saveManifest();

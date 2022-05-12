@@ -55,24 +55,24 @@ public class RepositoryTreeModel extends Group {
     }
 
     /**
-     * @param repoLocation
-     * @return True if repoLocation is present as a RepositoryRef in this tree model
+     * @param repoFolder
+     * @return True if repoFolder is present as a RepositoryRef in this tree model
      */
-    public boolean hasRepositoryRef(File repoLocation) {
-        return findRepositoryRef(repoLocation) != null;
+    public boolean hasRepositoryRef(File repoFolder) {
+        return findRepositoryRef(repoFolder) != null;
     }
 
     /**
-     * @param repoLocation
-     * @return A RepositoryRef matching repoLocation in this tree model
+     * @param repoFolder
+     * @return A RepositoryRef matching repoFolder in this tree model
      */
-    public RepositoryRef findRepositoryRef(File repoLocation) {
-        if(repoLocation == null) {
+    public RepositoryRef findRepositoryRef(File repoFolder) {
+        if(repoFolder == null) {
             return null;
         }
         
         for(RepositoryRef ref : getAllChildRepositoryRefs()) {
-            if(repoLocation.equals(ref.getArchiRepository().getLocalRepositoryFolder())) {
+            if(repoFolder.equals(ref.getArchiRepository().getWorkingFolder())) {
                 return ref;
             }
         }
@@ -155,8 +155,8 @@ public class RepositoryTreeModel extends Group {
     
     private void saveRepositoryRef(Element parentElement, RepositoryRef ref) {
         Element repoElement = new Element("repository"); //$NON-NLS-1$
-        repoElement.setAttribute("location", ref.getArchiRepository().getLocalRepositoryFolder().getPath()); //$NON-NLS-1$
-        //repoElement.setAttribute("location", ref.getArchiRepository().getLocalRepositoryFolder().getName()); //$NON-NLS-1$
+        repoElement.setAttribute("location", ref.getArchiRepository().getWorkingFolder().getPath()); //$NON-NLS-1$
+        //repoElement.setAttribute("location", ref.getArchiRepository().getWorkingFolder().getName()); //$NON-NLS-1$
         parentElement.addContent(repoElement);
     }
     

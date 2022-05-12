@@ -89,7 +89,7 @@ public class HistoryTableViewer extends TableViewer {
     void doSetInput(IArchiRepository archiRepo) {
         // Get BranchStatus and currentLocalBranch
         try {
-            BranchStatus branchStatus = new BranchStatus(archiRepo.getLocalRepositoryFolder());
+            BranchStatus branchStatus = new BranchStatus(archiRepo.getWorkingFolder());
             if(branchStatus != null) {
                 fSelectedBranch = branchStatus.getCurrentLocalBranch();
             }
@@ -146,7 +146,7 @@ public class HistoryTableViewer extends TableViewer {
             dispose();
             
             if(!(newInput instanceof IArchiRepository
-                    && ((IArchiRepository)newInput).getLocalRepositoryFolder().exists() // Local Repo might have been deleted
+                    && ((IArchiRepository)newInput).getWorkingFolder().exists() // Local Repo might have been deleted
                     && fSelectedBranch != null)) {
                 setItemCount(0);
                 return;
@@ -154,7 +154,7 @@ public class HistoryTableViewer extends TableViewer {
             
             commits = new ArrayList<>();
 
-            try(Repository repository = Git.open(((IArchiRepository)newInput).getLocalRepositoryFolder()).getRepository()) {
+            try(Repository repository = Git.open(((IArchiRepository)newInput).getWorkingFolder()).getRepository()) {
                 setItemCount(getCommitCount(repository));
                 theRevWalk = getRevWalk(repository);
             }

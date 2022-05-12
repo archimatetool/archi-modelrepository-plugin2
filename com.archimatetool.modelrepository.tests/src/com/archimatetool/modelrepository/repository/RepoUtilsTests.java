@@ -120,7 +120,7 @@ public class RepoUtilsTests {
     }
 
     @Test
-    public void getLocalRepositoryFolderForModel_True() throws IOException {
+    public void getWorkingFolderForModel_True() throws IOException {
         File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
         File gitFolder = new File(tmpFolder, ".git");
         gitFolder.mkdirs();
@@ -129,16 +129,16 @@ public class RepoUtilsTests {
         File modelFile = new File(tmpFolder, IRepositoryConstants.MODEL_FILENAME);
         modelFile.createNewFile();
         model.setFile(modelFile);
-        assertEquals(tmpFolder, RepoUtils.getLocalRepositoryFolderForModel(model));
+        assertEquals(tmpFolder, RepoUtils.getWorkingFolderForModel(model));
     }
     
     @Test
-    public void getLocalRepositoryFolderForModel_Null() throws IOException {
+    public void getWorkingFolderForModel_Null() throws IOException {
         File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
         
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
         File modelFile = new File(tmpFolder, IRepositoryConstants.MODEL_FILENAME);
         model.setFile(modelFile);
-        assertNull(RepoUtils.getLocalRepositoryFolderForModel(model));
+        assertNull(RepoUtils.getWorkingFolderForModel(model));
     }
 }

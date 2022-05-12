@@ -46,28 +46,28 @@ public class ArchiRepositoryTests {
 
     @Test
     public void init() throws Exception {
-        File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
-        new ArchiRepository(localRepoFolder).init();
+        File repoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
+        new ArchiRepository(repoFolder).init();
         
-        try(Git git = Git.open(localRepoFolder)) {
-            assertEquals(localRepoFolder, git.getRepository().getWorkTree());
+        try(Git git = Git.open(repoFolder)) {
+            assertEquals(repoFolder, git.getRepository().getWorkTree());
             assertFalse(git.getRepository().isBare());
             assertEquals(IRepositoryConstants.MAIN, git.getRepository().getBranch());
         }
     }
     
     @Test
-    public void getLocalRepositoryFolder() {
-        File localRepoFolder = new File("/temp/folder");
-        IArchiRepository repo = new ArchiRepository(localRepoFolder);
-        assertEquals(localRepoFolder, repo.getLocalRepositoryFolder());
+    public void getWorkingFolder() {
+        File repoFolder = new File("/temp/folder");
+        IArchiRepository repo = new ArchiRepository(repoFolder);
+        assertEquals(repoFolder, repo.getWorkingFolder());
     }
 
     @Test
     public void getGitFolder() {
-        File localRepoFolder = new File("/temp/folder");
-        IArchiRepository repo = new ArchiRepository(localRepoFolder);
-        assertEquals(new File(localRepoFolder, ".git"), repo.getGitFolder());
+        File repoFolder = new File("/temp/folder");
+        IArchiRepository repo = new ArchiRepository(repoFolder);
+        assertEquals(new File(repoFolder, ".git"), repo.getGitFolder());
     }
 
     @Test
@@ -92,15 +92,15 @@ public class ArchiRepositoryTests {
 
     @Test
     public void getModelFile() {
-        File localRepoFolder = new File("/temp/folder");
-        IArchiRepository repo = new ArchiRepository(localRepoFolder);
-        assertEquals(new File(localRepoFolder, IRepositoryConstants.MODEL_FILENAME), repo.getModelFile());
+        File repoFolder = new File("/temp/folder");
+        IArchiRepository repo = new ArchiRepository(repoFolder);
+        assertEquals(new File(repoFolder, IRepositoryConstants.MODEL_FILENAME), repo.getModelFile());
     }
     
     @Test
     public void getModel() {
-        File localRepoFolder = new File("/temp/folder");
-        IArchiRepository repo = new ArchiRepository(localRepoFolder);
+        File repoFolder = new File("/temp/folder");
+        IArchiRepository repo = new ArchiRepository(repoFolder);
         
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
         model.setFile(repo.getModelFile());

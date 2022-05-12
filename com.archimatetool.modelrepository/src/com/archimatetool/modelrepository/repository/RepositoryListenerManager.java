@@ -80,7 +80,7 @@ public class RepositoryListenerManager {
      * If model changed and is in a repo, send notification
      */
     private void notifyModelChanged(IArchimateModel model) {
-        File repoFolder = RepoUtils.getLocalRepositoryFolderForModel(model);
+        File repoFolder = RepoUtils.getWorkingFolderForModel(model);
         if(repoFolder != null) {
             IArchiRepository repo = new ArchiRepository(repoFolder);
             fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);

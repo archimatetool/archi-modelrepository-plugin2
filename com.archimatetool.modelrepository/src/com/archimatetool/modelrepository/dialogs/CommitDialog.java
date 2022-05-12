@@ -118,7 +118,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     }
     
     private void setValues() {
-        try(GitUtils utils = GitUtils.open(fRepository.getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(fRepository.getWorkingFolder())) {
             fRepoLabel.setText(fRepository.getName() + " [" + utils.getCurrentLocalBranchName() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
             
             PersonIdent result = utils.getUserDetails();

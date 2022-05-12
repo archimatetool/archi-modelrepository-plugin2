@@ -66,7 +66,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         logger.info("Deleting contents of working directory"); //$NON-NLS-1$
         
         try {
-            RepoUtils.deleteContentsOfGitRepository(getRepository().getLocalRepositoryFolder());
+            RepoUtils.deleteContentsOfGitRepository(getRepository().getWorkingFolder());
         }
         catch(IOException ex) {
             logger.log(Level.SEVERE, "Delete files", ex); //$NON-NLS-1$
@@ -77,7 +77,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         // Extract the contents of the commit
         try {
             logger.info("Extracting the oommit"); //$NON-NLS-1$
-            getRepository().extractCommit(fCommit, getRepository().getLocalRepositoryFolder());
+            getRepository().extractCommit(fCommit, getRepository().getWorkingFolder());
         }
         catch(IOException ex) {
             logger.log(Level.SEVERE, "Extract commit", ex); //$NON-NLS-1$
@@ -126,7 +126,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         }
         
         // Don't restore if the commit is at HEAD
-        try(GitUtils utils = GitUtils.open(getRepository().getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
             return !utils.isCommitAtHead(fCommit);
         }
         catch(IOException ex) {

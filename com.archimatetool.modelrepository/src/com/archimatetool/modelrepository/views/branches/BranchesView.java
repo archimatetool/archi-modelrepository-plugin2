@@ -240,7 +240,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         // Model selected in another part, but is it in a git repo?
         else if(part.getAdapter(IArchimateModel.class) != null) {
             IArchimateModel model = part.getAdapter(IArchimateModel.class);
-            File folder = RepoUtils.getLocalRepositoryFolderForModel(model);
+            File folder = RepoUtils.getWorkingFolderForModel(model);
             if(folder != null) {
                 selectedRepository = new ArchiRepository(folder);
             }

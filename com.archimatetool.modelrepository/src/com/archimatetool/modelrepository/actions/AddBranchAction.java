@@ -57,7 +57,7 @@ public class AddBranchAction extends AbstractModelAction {
         
         String fullName = Constants.R_HEADS + branchName;
     	
-        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
+        try(Git git = Git.open(getRepository().getWorkingFolder())) {
             // If the branch exists show error
             if(git.getRepository().findRef(fullName) != null) {
                 MessageDialog.openError(fWindow.getShell(),

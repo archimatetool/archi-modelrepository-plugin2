@@ -31,7 +31,7 @@ public abstract class AbstractModelHandler extends AbstractHandler {
 
     protected IArchiRepository getActiveArchiRepository() {
         // Check active model first if in a repo folder
-        File folder = RepoUtils.getLocalRepositoryFolderForModel(getActiveArchimateModel());
+        File folder = RepoUtils.getWorkingFolderForModel(getActiveArchimateModel());
         if(folder != null) {
             return new ArchiRepository(folder);
         }

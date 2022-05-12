@@ -112,7 +112,7 @@ public class DeleteBranchAction extends AbstractModelAction {
 
         // If using this be careful that no UI operations are peformed as this could lead to an SWT Invalid thread access exception
         PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
-            try(GitUtils utils = GitUtils.open(getRepository().getLocalRepositoryFolder())) {
+            try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
                 // Delete the remote branch first in case of error
                 utils.deleteRemoteBranch(branchInfo.getLocalBranchNameFor(), npw);
 
@@ -139,7 +139,7 @@ public class DeleteBranchAction extends AbstractModelAction {
         logger.info("Deleting local branch: " + branchInfo.getShortName()); //$NON-NLS-1$
 
         // Delete local and tracked branch
-        try(GitUtils utils = GitUtils.open(getRepository().getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
             utils.deleteBranch(true, // force the delete even if the branch hasn't been merged
                                branchInfo.getLocalBranchNameFor(),
                                branchInfo.getRemoteBranchNameFor());

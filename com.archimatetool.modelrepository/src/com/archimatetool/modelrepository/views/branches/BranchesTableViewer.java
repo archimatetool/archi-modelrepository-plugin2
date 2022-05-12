@@ -121,12 +121,12 @@ public class BranchesTableViewer extends TableViewer {
                 IArchiRepository repo = (IArchiRepository)parent;
                 
                 // Local Repo was deleted
-                if(!repo.getLocalRepositoryFolder().exists()) {
+                if(!repo.getWorkingFolder().exists()) {
                     return new Object[0];
                 }
                 
                 try {
-                    BranchStatus status = new BranchStatus(repo.getLocalRepositoryFolder());
+                    BranchStatus status = new BranchStatus(repo.getWorkingFolder());
                     return status.getLocalAndUntrackedRemoteBranches().toArray();
                 }
                 catch(IOException | GitAPIException ex) {

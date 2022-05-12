@@ -62,7 +62,7 @@ public class GroupTests {
         RepositoryRef ref = group.addNewRepositoryRef(folder);
         
         assertSame(group, ref.getParent());
-        assertSame(folder, ref.getArchiRepository().getLocalRepositoryFolder());
+        assertSame(folder, ref.getArchiRepository().getWorkingFolder());
     }
     
     @Test

@@ -104,15 +104,15 @@ public class RepoUtils implements IRepositoryConstants {
      * @return true if a model is in an Archi repo folder
      */
     public static boolean isModelInArchiRepository(IArchimateModel model) {
-        return getLocalRepositoryFolderForModel(model) != null;
+        return getWorkingFolderForModel(model) != null;
     }
     
     /**
-     * Get the enclosing local repo folder for a model
+     * Get the enclosing repo folder (sorking dir) for a model
      * It is assumed that the model file is named "model.archimate", exists, and has a .git folder
      * @return The folder or null if the model is not in a Archi repo
      */
-    public static File getLocalRepositoryFolderForModel(IArchimateModel model) {
+    public static File getWorkingFolderForModel(IArchimateModel model) {
         File parentFolder = (model != null && model.getFile() != null) ? model.getFile().getParentFile() : null;
         return isArchiGitRepository(parentFolder) ? parentFolder : null;
     }

@@ -73,7 +73,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
             return false;
         }
         
-        try(GitUtils utils = GitUtils.open(getRepository().getLocalRepositoryFolder())) {
+        try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
             return utils.hasMoreThanOneCommit()                       // Has to be at least 2 commits 
                     && !utils.isRemoteRefForCurrentBranchAtHead();    // Head commit and remote commit must be different
         }

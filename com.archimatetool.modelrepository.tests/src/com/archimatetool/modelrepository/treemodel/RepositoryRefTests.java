@@ -38,7 +38,7 @@ public class RepositoryRefTests {
     public void getArchiRepository_File() {
         File file = new File("folder");
         RepositoryRef ref = new RepositoryRef(file);
-        assertSame(file, ref.getArchiRepository().getLocalRepositoryFolder());
+        assertSame(file, ref.getArchiRepository().getWorkingFolder());
     }
     
     @Test

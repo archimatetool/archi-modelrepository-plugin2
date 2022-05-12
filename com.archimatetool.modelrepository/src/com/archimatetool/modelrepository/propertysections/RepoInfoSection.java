@@ -82,9 +82,9 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         if(selection.getFirstElement() instanceof RepositoryRef) {
             fRepository = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
             
-            textFile.setText(fRepository.getLocalRepositoryFolder().getAbsolutePath());
+            textFile.setText(fRepository.getWorkingFolder().getAbsolutePath());
 
-            try(GitUtils utils = GitUtils.open(fRepository.getLocalRepositoryFolder())) {
+            try(GitUtils utils = GitUtils.open(fRepository.getWorkingFolder())) {
                 textURL.setText(StringUtils.safeString(utils.getOnlineRepositoryURL()));
                 textCurrentBranch.setText(StringUtils.safeString(utils.getCurrentLocalBranchName()));
             }
