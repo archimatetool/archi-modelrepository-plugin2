@@ -54,12 +54,12 @@ public class CloneModelAction extends AbstractModelAction {
             return;
         }
         
-        final String repoURL = dialog.getURL();
+        final String url = dialog.getURL();
         final boolean storeCredentials = dialog.doStoreCredentials();
         final UsernamePassword npw = dialog.getUsernamePassword();
         final File folder = RepoUtils.generateNewRepoFolder();
         
-        logger.info("Cloning model at: " + repoURL); //$NON-NLS-1$
+        logger.info("Cloning model at: " + url); //$NON-NLS-1$
 
         setRepository(new ArchiRepository(folder));
         
@@ -77,7 +77,7 @@ public class CloneModelAction extends AbstractModelAction {
                 public void run(IProgressMonitor pm) {
                     try {
                         pm.beginTask(Messages.CloneModelAction_1, IProgressMonitor.UNKNOWN);
-                        getRepository().cloneModel(repoURL, npw, new ProgressMonitorWrapper(pm));
+                        getRepository().cloneModel(url, npw, new ProgressMonitorWrapper(pm));
                     }
                     catch(Exception ex) {
                         exception[0] = ex;
@@ -120,7 +120,7 @@ public class CloneModelAction extends AbstractModelAction {
             RepositoryTreeModel.getInstance().addNewRepositoryRef(getRepository());
 
             // Store repo credentials if HTTP and option is set
-            if(RepoUtils.isHTTP(repoURL) && storeCredentials) {
+            if(RepoUtils.isHTTP(url) && storeCredentials) {
                 // TODO: Store repo credentials if HTTP and option is set
             }
             

@@ -93,10 +93,10 @@ public interface IArchiRepository {
     File getModelFile();
 
     /**
-     * Return the URL of the Git repo or null if not found
+     * Return the remote URL of the Git repo (or null if not found)
      * We assume that there is only one remote per repo, and its name is "origin"
      */
-    String getOnlineRepositoryURL() throws IOException, GitAPIException;
+    String getRemoteURL() throws IOException, GitAPIException;
 
     /**
      * Get the model in the model manager based on its file location

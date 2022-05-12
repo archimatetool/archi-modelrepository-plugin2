@@ -65,10 +65,10 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public void cloneModel(String repoURL, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException {
+    public void cloneModel(String url, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setDirectory(getWorkingFolder());
-        cloneCommand.setURI(repoURL);
+        cloneCommand.setURI(url);
         cloneCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         cloneCommand.setProgressMonitor(monitor);
         
@@ -177,9 +177,9 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public String getOnlineRepositoryURL() throws IOException, GitAPIException {
+    public String getRemoteURL() throws IOException, GitAPIException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.getOnlineRepositoryURL();
+            return utils.getRemoteURL();
         }
     }
     

@@ -54,7 +54,7 @@ public class GitUtilsTests {
     }
     
     @Test
-    public void getOnlineRepositoryURL() throws Exception {
+    public void getRemoteURL() throws Exception {
         File repoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
         IArchiRepository repo = new ArchiRepository(repoFolder);
         repo.init();
@@ -63,7 +63,7 @@ public class GitUtilsTests {
         
         try(GitUtils utils = GitUtils.open(repoFolder)) {
             utils.setRemote(url);
-            assertEquals(url, utils.getOnlineRepositoryURL());
+            assertEquals(url, utils.getRemoteURL());
         }
     }
     

@@ -136,10 +136,10 @@ public class GitUtils implements AutoCloseable {
     }
     
     /**
-     * Return the online URL of the Git repo (or null if not found)
+     * Return the remote URL of the Git repo (or null if not found)
      * We assume that there is only one remote per repo, and its name is "origin"
      */
-    public String getOnlineRepositoryURL() throws GitAPIException {
+    public String getRemoteURL() throws GitAPIException {
         List<RemoteConfig> remotes = git.remoteList().call();
         if(!remotes.isEmpty()) {
             List<URIish> uris = remotes.get(0).getURIs();

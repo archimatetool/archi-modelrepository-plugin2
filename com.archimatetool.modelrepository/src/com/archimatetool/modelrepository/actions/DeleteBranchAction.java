@@ -72,7 +72,7 @@ public class DeleteBranchAction extends AbstractModelAction {
             try {
                 // Get credentials if HTTP
                 UsernamePassword npw = null;
-                if(RepoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
+                if(RepoUtils.isHTTP(getRepository().getRemoteURL())) {
                     npw = getUsernamePassword();
                     if(npw == null) { // User cancelled or there are no stored credentials
                         return;
