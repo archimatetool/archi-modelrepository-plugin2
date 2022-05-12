@@ -113,7 +113,7 @@ public class DeleteBranchAction extends AbstractModelAction {
         PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
             try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
                 // Delete the remote branch first in case of error
-                utils.deleteRemoteBranch(branchInfo.getLocalBranchNameFor(), npw);
+                utils.deleteRemoteBranch(branchInfo.getLocalBranchNameFor(), npw, new ProgressMonitorWrapper(monitor));
 
                 // Then delete local and tracked branch
                 utils.deleteBranch(true, // force the delete even if the branch hasn't been merged

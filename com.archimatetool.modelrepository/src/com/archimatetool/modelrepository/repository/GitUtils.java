@@ -220,12 +220,13 @@ public class GitUtils implements AutoCloseable {
      * Delete a remote branch by pushing to repo
      * @param branchName Local type ref like "refs/heads/branch"
      */
-    public Iterable<PushResult> deleteRemoteBranch(String branchName, UsernamePassword npw) throws GitAPIException {
+    public Iterable<PushResult> deleteRemoteBranch(String branchName, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException {
         PushCommand pushCommand = git.push();
         pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         RefSpec refSpec = new RefSpec(":" + branchName);
         pushCommand.setRefSpecs(refSpec);
         pushCommand.setRemote(IRepositoryConstants.ORIGIN);
+        pushCommand.setProgressMonitor(monitor);
         return pushCommand.call();
     }
     
