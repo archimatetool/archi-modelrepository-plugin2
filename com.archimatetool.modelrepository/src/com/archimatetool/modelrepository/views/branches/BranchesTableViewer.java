@@ -148,7 +148,7 @@ public class BranchesTableViewer extends TableViewer {
         DateFormat dateFormat = DateFormat.getDateTimeInstance();
         
         public String getColumnText(BranchInfo branchInfo, int columnIndex) {
-            RevCommit commit = branchInfo.getLatestCommit();
+            RevCommit latestCommit = branchInfo.getLatestCommit();
             
             switch(columnIndex) {
                 case 0:
@@ -170,10 +170,10 @@ public class BranchesTableViewer extends TableViewer {
                     }
                  
                 case 2:
-                    return commit == null ? "" : commit.getCommitterIdent().getName(); //$NON-NLS-1$
+                    return latestCommit == null ? "" : latestCommit.getCommitterIdent().getName(); //$NON-NLS-1$
                     
                 case 3:
-                    return commit == null ? "" : dateFormat.format(new Date(commit.getCommitTime() * 1000L)); //$NON-NLS-1$
+                    return latestCommit == null ? "" : dateFormat.format(new Date(latestCommit.getCommitTime() * 1000L)); //$NON-NLS-1$
                     
                 case 4:
                     String text;

@@ -47,12 +47,10 @@ public class BranchStatus {
                 currentLocalBranch = infos.get(head);
             }
             
-            // Get current remote branch
+            // Get current remote branch if there is one (can be null)
             if(currentLocalBranch != null) {
                 String remoteName = currentLocalBranch.getRemoteBranchNameFor();
-                if(remoteName != null) {
-                    currentRemoteBranch = infos.get(remoteName);
-                }
+                currentRemoteBranch = infos.get(remoteName);
             }
         }
     }
