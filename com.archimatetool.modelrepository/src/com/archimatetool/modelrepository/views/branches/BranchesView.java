@@ -133,7 +133,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fBranchesTableViewer.addDoubleClickListener(event -> {
             if(fActionSwitchBranch.isEnabled()) {
                 fActionSwitchBranch.run();
-                updateActions(); // These need to be updated because switching branch doesn't generate a new selection event
             }
         });
     }
@@ -291,6 +290,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 
                 case IRepositoryListener.BRANCHES_CHANGED:
                     getBranchesViewer().doSetInput(repository);
+                    updateActions(); // These need to be updated (switching branch doesn't generate a new selection event)
                     break;
                     
                 default:
