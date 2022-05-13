@@ -291,11 +291,13 @@ public class GitUtils implements AutoCloseable {
     public boolean hasMoreThanOneCommit() throws IOException, GitAPIException {
         int count = 0;
         
-        RevWalk revWalk = (RevWalk)git.log().setMaxCount(2).call();
-        while(revWalk.next() != null) {
-            count++;
+        try(RevWalk revWalk = (RevWalk)git.log().setMaxCount(2).call()) {
+            revWalk.setRetainBody(false);
+            while(revWalk.next() != null) {
+                count++;
+            }
+            revWalk.dispose();
         }
-        revWalk.dispose(); // dispose will also close the RevWalk
         
         return count > 1;
     }

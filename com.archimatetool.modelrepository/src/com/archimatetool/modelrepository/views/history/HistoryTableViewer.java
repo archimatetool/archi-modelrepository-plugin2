@@ -166,28 +166,28 @@ public class HistoryTableViewer extends TableViewer {
         }
         
         RevWalk getRevWalk(Repository repository) throws IOException {
-            RevWalk revWalk = new RevWalk(repository);
-            
-            // Find the local branch commit start
-            ObjectId localCommitID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());
-            if(localCommitID != null) {
-                fLocalCommit = revWalk.parseCommit(localCommitID);
-                revWalk.markStart(fLocalCommit);
-            }
+            try(RevWalk revWalk = new RevWalk(repository)) {
+                // Find the local branch commit start
+                ObjectId localCommitID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());
+                if(localCommitID != null) {
+                    fLocalCommit = revWalk.parseCommit(localCommitID);
+                    revWalk.markStart(fLocalCommit);
+                }
 
-            // Find the remote branch commit start
-            ObjectId remoteCommitID = repository.resolve(fSelectedBranch.getRemoteBranchNameFor());
-            if(remoteCommitID != null) {
-                fOriginCommit = revWalk.parseCommit(remoteCommitID);
-                revWalk.markStart(fOriginCommit);
-            }
-            
-            return revWalk;
+                // Find the remote branch commit start
+                ObjectId remoteCommitID = repository.resolve(fSelectedBranch.getRemoteBranchNameFor());
+                if(remoteCommitID != null) {
+                    fOriginCommit = revWalk.parseCommit(remoteCommitID);
+                    revWalk.markStart(fOriginCommit);
+                }
+
+                return revWalk;
+            } // close the RevWalk
         }
         
         int getCommitCount(Repository repository) throws IOException {
             RevWalk revWalk = getRevWalk(repository);
-            revWalk.setRetainBody(false); // Set this false to reduce load
+            revWalk.setRetainBody(false); // Don't need this for the general RevWalk
             
             // Count the commits
             int count = 0;

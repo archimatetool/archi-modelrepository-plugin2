@@ -204,23 +204,25 @@ public class BranchInfo {
         try(RevWalk revWalk = new RevWalk(repository)) {
             // Get the latest commit for this branch
             latestCommit = revWalk.parseCommit(ref.getObjectId());
-            
-            // If this is the main branch isMerged is true
+
+            // If this is the master branch isMerged is true
             if(isMainBranch()) {
                 isMerged = true;
             }
             // Else this is another branch
             else {
-                // Get all other branch refs
-            	// Setting ListMode to REMOTE lists only remote branches while ALL lists remote and local branches
+                // Get ALL other branch refs
                 List<Ref> otherRefs = Git.wrap(repository).branchList().setListMode(ListMode.ALL).call();
                 otherRefs.remove(ref); // remove this one
+
+                // Don't need this for the general RevWalk
+                revWalk.setRetainBody(false);
                 
                 // In-built method
                 List<Ref> refs = RevWalkUtils.findBranchesReachableFrom(latestCommit, revWalk, otherRefs);
                 isMerged = !refs.isEmpty(); // If there are other reachable branches then this is merged
-                
-                /* Another method to do this...
+
+                /* Another way to do this...
                 for(Ref otherRef : otherRefs) {
                     // Get the other branch's latest commit
                     RevCommit otherHead = revWalk.parseCommit(otherRef.getObjectId());
@@ -230,11 +232,12 @@ public class BranchInfo {
                         isMerged = true;
                         break;
                     }
-                } */
+                }
+                */
             }
-            
+
             revWalk.dispose();
-        }
+        } // close the RevWalk in all cases
     }
     
     private void getCommitStatus(Repository repository) throws IOException {
