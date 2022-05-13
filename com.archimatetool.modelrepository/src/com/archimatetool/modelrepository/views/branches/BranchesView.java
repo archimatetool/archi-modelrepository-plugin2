@@ -130,9 +130,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             updateActions();
         });
         
-        fBranchesTableViewer.addDoubleClickListener((event) -> {
+        fBranchesTableViewer.addDoubleClickListener(event -> {
             if(fActionSwitchBranch.isEnabled()) {
                 fActionSwitchBranch.run();
+                updateActions(); // These need to be updated because switching branch doesn't generate a new selection event
             }
         });
     }
