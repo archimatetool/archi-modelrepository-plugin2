@@ -278,13 +278,31 @@ public class GitUtils implements AutoCloseable {
     }
 
     /**
-     * @return true if the remote Ref for the current branch is at HEAD
+     * Return true if the remote Ref for the current branch exists and is at HEAD
+     * 
+     * Note that if the remote Ref does not exist (is null) this will return false,
+     * so callers might need to check {@link #getRemoteRefForCurrentBranch()} as well.
      */
     public boolean isRemoteRefForCurrentBranchAtHead() throws IOException {
-        Ref onlineRef = git.getRepository().findRef(IRepositoryConstants.ORIGIN + "/" + git.getRepository().getBranch());
-        return isRefAtHead(onlineRef);
+        Ref remoteRef = getRemoteRefForCurrentBranch();
+        return remoteRef != null && isRefAtHead(remoteRef);
     }
-
+    
+    /**
+     * Return the remote Ref for the current branch that HEAD points to, or null if there is no remote ref
+     */
+    public Ref getRemoteRefForCurrentBranch() throws IOException {
+        return git.getRepository().findRef(getRemoteRefNameForCurrentBranch());
+    }
+    
+    /**
+     * Return the remote Ref name for the current branch that HEAD points to
+     * This does not mean that the remote Ref exists. For that, call {@link #getRemoteRefForCurrentBranch()}
+     */
+    public String getRemoteRefNameForCurrentBranch() throws IOException {
+        return IRepositoryConstants.ORIGIN + "/" + git.getRepository().getBranch();
+    }
+    
     /**
      * Return true if there are 2 or more commits for current HEAD
      */

@@ -68,6 +68,10 @@ public class Messages extends NLS {
 
     public static String RefreshModelAction_1;
 
+    public static String ResetToRemoteCommitAction_0;
+
+    public static String ResetToRemoteCommitAction_1;
+
     public static String RestoreCommitAction_0;
 
     public static String RestoreCommitAction_1;

@@ -38,6 +38,7 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.ExtractModelFromCommitAction;
 import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
+import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
 import com.archimatetool.modelrepository.actions.RestoreCommitAction;
 import com.archimatetool.modelrepository.actions.UndoLastCommitAction;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
@@ -71,6 +72,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private IModelRepositoryAction fActionUndoLastCommit;
     private ExtractModelFromCommitAction fActionExtractCommit;
     private RestoreCommitAction fActionRestoreCommit;
+    private ResetToRemoteCommitAction fActionResetToRemoteCommit;
     
     /*
      * Selected repository
@@ -189,6 +191,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionRestoreCommit = new RestoreCommitAction(getViewSite().getWorkbenchWindow());
         fActionRestoreCommit.setEnabled(false);
 
+        fActionResetToRemoteCommit = new ResetToRemoteCommitAction(getViewSite().getWorkbenchWindow());
+        fActionResetToRemoteCommit.setEnabled(false);
+        
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
 //        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
@@ -244,7 +249,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(fActionRestoreCommit);
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
-        //manager.add(fActionResetToRemoteCommit);
+        manager.add(fActionResetToRemoteCommit);
         
         manager.add(new Separator());
     }
@@ -263,16 +268,18 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         // Set the commit in the Comment Viewer
         fCommentViewer.setCommit(commit);
         
-        // Update these actions
-        fActionUndoLastCommit.update();
-
-        // Disable actions if our selected branch in the combo is not actually the current branch
+        // Disable these actions if our selected branch in the combo is not actually the current branch
         BranchInfo selectedBranch = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
-        boolean isCurrentBranch = selectedBranch != null && selectedBranch.isCurrentBranch();
-        
-        fActionRestoreCommit.setEnabled(isCurrentBranch && fActionRestoreCommit.isEnabled());
-        fActionUndoLastCommit.setEnabled(isCurrentBranch && fActionUndoLastCommit.isEnabled());
-        //fActionResetToRemoteCommit.setEnabled(isCurrentBranch && fActionResetToRemoteCommit.isEnabled());
+        if(selectedBranch != null && selectedBranch.isCurrentBranch()) {
+            fActionRestoreCommit.update();
+            fActionUndoLastCommit.update();
+            fActionResetToRemoteCommit.update();
+        }
+        else {
+            fActionRestoreCommit.setEnabled(false);
+            fActionUndoLastCommit.setEnabled(false);
+            fActionResetToRemoteCommit.setEnabled(false);
+        }
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -280,7 +287,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(fActionRestoreCommit);
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
-        //manager.add(fActionResetToRemoteCommit);
+        manager.add(fActionResetToRemoteCommit);
     }
 
     HistoryTableViewer getHistoryViewer() {
@@ -341,6 +348,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             fActionExtractCommit.setRepository(selectedRepository);
             fActionUndoLastCommit.setRepository(selectedRepository);
             fActionRestoreCommit.setRepository(selectedRepository);
+            fActionResetToRemoteCommit.setRepository(selectedRepository);
         }
     }
     
