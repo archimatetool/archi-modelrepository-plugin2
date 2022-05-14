@@ -60,6 +60,24 @@ public class Messages extends NLS {
 
     public static String ExtractModelFromCommitAction_2;
 
+    public static String MergeBranchAction_0;
+
+    public static String MergeBranchAction_1;
+
+    public static String MergeBranchAction_2;
+
+    public static String MergeBranchAction_3;
+
+    public static String MergeBranchAction_4;
+
+    public static String MergeBranchAction_5;
+
+    public static String MergeBranchAction_6;
+
+    public static String MergeBranchAction_7;
+
+    public static String MergeBranchAction_8;
+
     public static String PushModelAction_0;
 
     public static String PushModelAction_1;

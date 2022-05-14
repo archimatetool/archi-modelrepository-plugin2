@@ -33,6 +33,7 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.AddBranchAction;
 import com.archimatetool.modelrepository.actions.DeleteBranchAction;
+import com.archimatetool.modelrepository.actions.MergeBranchAction;
 import com.archimatetool.modelrepository.actions.SwitchBranchAction;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.BranchInfo;
@@ -58,11 +59,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private Label fRepoLabel;
     private BranchesTableViewer fBranchesTableViewer;
     
-    // TODO: Add actions
     private AddBranchAction fActionAddBranch;
     private SwitchBranchAction fActionSwitchBranch;
     private DeleteBranchAction fActionDeleteBranch;
-    // private MergeBranchAction fActionMergeBranch;
+    private MergeBranchAction fActionMergeBranch;
     // private DeleteStaleBranchesAction fActionDeleteStaleBranches;
     
     @Override
@@ -150,8 +150,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionDeleteBranch = new DeleteBranchAction(getViewSite().getWorkbenchWindow());
         fActionDeleteBranch.setEnabled(false);
         
-        //fActionMergeBranch = new MergeBranchAction(getViewSite().getWorkbenchWindow());
-        //fActionMergeBranch.setEnabled(false);
+        fActionMergeBranch = new MergeBranchAction(getViewSite().getWorkbenchWindow());
+        fActionMergeBranch.setEnabled(false);
         
         //fActionDeleteStaleBranches = new DeleteStaleBranchesAction(getViewSite().getWorkbenchWindow());
         //fActionDeleteStaleBranches.setEnabled(false);
@@ -186,7 +186,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 
         manager.add(fActionAddBranch);
         manager.add(fActionSwitchBranch);
-        //manager.add(fActionMergeBranch);
+        manager.add(fActionMergeBranch);
         manager.add(new Separator());
         manager.add(fActionDeleteBranch);
         //manager.add(fActionDeleteStaleBranches);
@@ -201,14 +201,14 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionSwitchBranch.setBranch(branchInfo);
         fActionAddBranch.setBranch(branchInfo);
         fActionDeleteBranch.setBranch(branchInfo);
-        //fActionMergeBranch.setBranch(branchInfo);
+        fActionMergeBranch.setBranch(branchInfo);
         //fActionDeleteStaleBranches.setSelection(getBranchesViewer().getStructuredSelection());
     }
     
     private void fillContextMenu(IMenuManager manager) {
         manager.add(fActionAddBranch);
         manager.add(fActionSwitchBranch);
-        //manager.add(fActionMergeBranch);
+        manager.add(fActionMergeBranch);
         manager.add(new Separator());
         manager.add(fActionDeleteBranch);
         //manager.add(fActionDeleteStaleBranches);
@@ -265,7 +265,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             fActionAddBranch.setRepository(selectedRepository);
             fActionSwitchBranch.setRepository(selectedRepository);
             fActionDeleteBranch.setRepository(selectedRepository);
-            //fActionMergeBranch.setRepository(selectedRepository);
+            fActionMergeBranch.setRepository(selectedRepository);
             //fActionDeleteStaleBranches.setRepository(selectedRepository);
         }
     }
