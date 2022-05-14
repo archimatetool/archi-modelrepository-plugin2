@@ -280,7 +280,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     
                 case IRepositoryListener.REPOSITORY_DELETED:
                     fRepoLabel.setText(Messages.BranchesView_0);
-                    getBranchesViewer().setInput(""); //$NON-NLS-1$
+                    getBranchesViewer().setInput(null);
                     fSelectedRepository = null; // Reset this
                     break;
                     

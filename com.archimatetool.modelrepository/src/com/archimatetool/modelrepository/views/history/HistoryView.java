@@ -363,7 +363,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     
                 case IRepositoryListener.REPOSITORY_DELETED:
                     fRepoLabel.setText(Messages.HistoryView_0);
-                    getHistoryViewer().setInput(""); //$NON-NLS-1$
+                    getHistoryViewer().setInput(null);
                     fSelectedRepository = null; // Reset this
                     break;
                     
