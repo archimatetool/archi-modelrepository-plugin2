@@ -327,79 +327,80 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     }
     
     private void deleteSelected() {
-        if(MessageDialog.openQuestion(getViewSite().getShell(),
+        Set<RepositoryRef> refsToDelete = new HashSet<RepositoryRef>();
+        Set<Group> groupsToDelete = new HashSet<Group>();
+
+        // Get all selected Repository Refs and Groups
+        for(Object object : ((IStructuredSelection)getViewer().getSelection()).toArray()) {
+            // Selected RepositoryRef
+            if(object instanceof RepositoryRef) {
+                refsToDelete.add((RepositoryRef)object);
+            }
+            // Selected Group and its sub-groups and sub-RepositoryRefs
+            if(object instanceof Group) {
+                Group group = (Group)object;
+                groupsToDelete.add(group);
+                groupsToDelete.addAll(group.getAllChildGroups());
+                refsToDelete.addAll(group.getAllChildRepositoryRefs());
+            }
+        }
+
+        // Check if a repository model is open, if it is warn and cancel
+        for(RepositoryRef ref : refsToDelete) {
+            if(ref.getArchiRepository().getModel() != null) {
+                MessageDialog.openError(getViewSite().getShell(),
+                        Messages.ModelRepositoryView_11,
+                        Messages.ModelRepositoryView_15);
+                return;
+            }
+        }
+
+        // Confirm
+        if(!MessageDialog.openQuestion(getViewSite().getShell(),
                 Messages.ModelRepositoryView_11,
                 Messages.ModelRepositoryView_12)) {
-            
-            Set<RepositoryRef> refsToDelete = new HashSet<RepositoryRef>();
-            Set<Group> groupsToDelete = new HashSet<Group>();
-            
-            // Get all selected Repository Refs and Groups
-            for(Object object : ((IStructuredSelection)getViewer().getSelection()).toArray()) {
-                // Selected RepositoryRef
-                if(object instanceof RepositoryRef) {
-                    refsToDelete.add((RepositoryRef)object);
-                }
-                // Selected Group and its sub-groups and sub-RepositoryRefs
-                if(object instanceof Group) {
-                    Group group = (Group)object;
-                    groupsToDelete.add(group);
-                    groupsToDelete.addAll(group.getAllChildGroups());
-                    refsToDelete.addAll(group.getAllChildRepositoryRefs());
-                }
-            }
-            
-            // Check if a repository model is open, if it is warn and cancel
-            for(RepositoryRef ref : refsToDelete) {
-                boolean isModelOpen = ref.getArchiRepository().getModel() != null;
-                if(isModelOpen) {
-                    MessageDialog.openError(getViewSite().getShell(),
-                            Messages.ModelRepositoryView_11,
-                            Messages.ModelRepositoryView_15);
-                    return;
-                }
-            }
-            
-            // Delete repositories
-            try {
-                for(RepositoryRef ref : refsToDelete) {
-                    // Delete repository folder
-                    FileUtils.deleteFolder(ref.getArchiRepository().getWorkingFolder());
-                    
-                    // Delete from tree model
-                    ref.delete();
-                    
-                    // Notify
-                    RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, ref.getArchiRepository());
-                }
-            }
-            catch(IOException ex) {
-                ex.printStackTrace();
-                logger.log(Level.SEVERE, "Deleting Tree Models", ex); //$NON-NLS-1$
-                MessageDialog.openError(getViewSite().getShell(),
-                        Messages.ModelRepositoryView_11, Messages.ModelRepositoryView_16 + "\n" + ex.getMessage()); //$NON-NLS-1$
-            }
-
-            // Now delete Groups
-            for(Group group : groupsToDelete) {
-                // Safety measure in case a repository was not deleted in a Group
-                boolean isSafeToDelete = group.getAllChildRepositoryRefs().isEmpty();
-                if(isSafeToDelete) {
-                    group.delete();
-                }
-            }
-            
-            // Save manifest
-            try {
-                RepositoryTreeModel.getInstance().saveManifest();
-            }
-            catch(IOException ex) {
-                ex.printStackTrace();
-                logger.log(Level.SEVERE, "Saving Manifest", ex); //$NON-NLS-1$
-            }
-
-            getViewer().refresh();
+            return;
         }
+
+        // Delete repositories
+        try {
+            for(RepositoryRef ref : refsToDelete) {
+                // Delete repository folder
+                FileUtils.deleteFolder(ref.getArchiRepository().getWorkingFolder());
+
+                // Delete from tree model
+                ref.delete();
+
+                // Notify
+                RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, ref.getArchiRepository());
+            }
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Deleting Tree Models", ex); //$NON-NLS-1$
+            MessageDialog.openError(getViewSite().getShell(),
+                    Messages.ModelRepositoryView_11, Messages.ModelRepositoryView_16 + "\n" + ex.getMessage()); //$NON-NLS-1$
+        }
+
+        // Now delete Groups
+        for(Group group : groupsToDelete) {
+            // Safety measure in case a repository was not deleted in a Group
+            boolean isSafeToDelete = group.getAllChildRepositoryRefs().isEmpty();
+            if(isSafeToDelete) {
+                group.delete();
+            }
+        }
+
+        // Save manifest
+        try {
+            RepositoryTreeModel.getInstance().saveManifest();
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Saving Manifest", ex); //$NON-NLS-1$
+        }
+
+        getViewer().refresh();
     }
     
     /**
