@@ -40,6 +40,7 @@ public class OpenModelState {
     
     private String activeDiagramModelID;
     private List<String> openDiagramModelIDs;
+    private IEditorPart activeEditor; // This might be an editor from a different model
     
     private boolean result = true;
     private boolean modelClosed = false;
@@ -96,7 +97,7 @@ public class OpenModelState {
         openDiagramModelIDs = new ArrayList<String>();
         
         // Store the active editor, if any
-        IEditorPart activeEditor = getActivePage().getActiveEditor();
+        activeEditor = getActivePage().getActiveEditor();
         
         for(IEditorReference ref : getActivePage().getEditorReferences()) {
             try {
@@ -107,7 +108,7 @@ public class OpenModelState {
                         // Add to list
                         openDiagramModelIDs.add(dm.getId());
 
-                        // Active Editor
+                        // Active Editor is one that we will close
                         if(ref.getPart(false) == activeEditor) {
                             activeDiagramModelID = dm.getId();
                         }
@@ -124,8 +125,6 @@ public class OpenModelState {
      * Re-open any diagram editors in the re-opened model
      */
     private void restoreEditors(IArchimateModel model) {
-        IDiagramModelEditor activeEditor = null;
-        
         if(openDiagramModelIDs != null) {
             logger.info(NLS.bind("Restoring open editors for ''{0}''", model.getName()));
             
@@ -140,10 +139,10 @@ public class OpenModelState {
                     }
                 }
             }
-        }
-        
-        if(activeEditor != null) {
-            getActivePage().activate(activeEditor);
+            
+            if(activeEditor != null) {
+                getActivePage().activate(activeEditor);
+            }
         }
     }
     
