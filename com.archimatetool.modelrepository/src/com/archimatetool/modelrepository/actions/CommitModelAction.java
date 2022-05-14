@@ -11,11 +11,8 @@ import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -53,18 +50,9 @@ public class CommitModelAction extends AbstractModelAction {
             return;
         }
         
-        // Ask to save the model if open and dirty
-        IArchimateModel model = getRepository().getModel();
-        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
-            try {
-                if(askToSaveModel(model) == SWT.CANCEL) {
-                    return;
-                }
-            }
-            catch(IOException ex) {
-                logger.log(Level.SEVERE, "Save", ex); //$NON-NLS-1$
-                return;
-            }
+        // Check if the model is open and needs saving
+        if(!checkModelNeedsSaving()) {
+            return;
         }
 
         // Then Commit

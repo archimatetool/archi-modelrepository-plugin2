@@ -20,14 +20,11 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.GitUtils;
@@ -95,40 +92,13 @@ public class MergeBranchAction extends AbstractModelAction {
      * Local Merge
      */
     private void doLocalMerge(BranchInfo branchToMerge) {
-        // Model is open and needs saving
-        IArchimateModel model = getRepository().getModel();
-        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
-            try {
-                if(askToSaveModel(model) == SWT.CANCEL) {
-                    return;
-                }
-            }
-            catch(IOException ex) {
-                logger.log(Level.SEVERE, "Save", ex); //$NON-NLS-1$
-                return;
-            }
+        // Check if the model is open and needs saving
+        if(!checkModelNeedsSaving()) {
+            return;
         }
 
-        // There are uncommitted changes
-        try {
-            if(getRepository().hasChangesToCommit()) {
-                int response = openYesNoCancelDialog(Messages.MergeBranchAction_1, Messages.MergeBranchAction_6);
-                // Cancel / Yes
-                if(response == SWT.CANCEL || (response == SWT.YES && !commitChanges())) { // Commit dialog
-                    // Commit cancelled
-                    return;
-                }
-                // No. Discard changes by resetting to HEAD before merging
-                else if(response == SWT.NO) {
-                    logger.info("Resetting to HEAD"); //$NON-NLS-1$
-                    getRepository().resetToRef(Constants.HEAD);
-                }
-            }
-        }
-        catch(IOException | GitAPIException ex) {
-            logger.log(Level.SEVERE, "Commit Changes", ex); //$NON-NLS-1$
-            ex.printStackTrace();
-            closeModel(false); // Safety precaution
+        // Check if there are uncommitted changes
+        if(!checkIfCommitNeeded()) {
             return;
         }
 
@@ -141,7 +111,7 @@ public class MergeBranchAction extends AbstractModelAction {
             result = merge(branchToMerge);
         }
         catch(IOException | GitAPIException ex) {
-            closeModel(false);
+            closeModel(false); // Safety precaution
             logger.log(Level.SEVERE, "Merge", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.MergeBranchAction_1, ex);
         }
@@ -153,7 +123,7 @@ public class MergeBranchAction extends AbstractModelAction {
         
         // Already up to date
         if(result == MERGE_STATUS_ALREADY_UP_TO_DATE) {
-            MessageDialog.openInformation(fWindow.getShell(),  Messages.MergeBranchAction_1, Messages.MergeBranchAction_8);
+            MessageDialog.openInformation(fWindow.getShell(),  Messages.MergeBranchAction_1, Messages.MergeBranchAction_7);
             return;
         }
         
@@ -180,7 +150,7 @@ public class MergeBranchAction extends AbstractModelAction {
             Git git = utils.getGit();
             
             String currentBranchName = git.getRepository().getBranch();
-            String mergeMessage = NLS.bind(Messages.MergeBranchAction_7, branchToMerge.getShortName(), currentBranchName);
+            String mergeMessage = NLS.bind(Messages.MergeBranchAction_6, branchToMerge.getShortName(), currentBranchName);
             logger.info(NLS.bind("Merging {0} into {1}", branchToMerge.getShortName(), currentBranchName)); //$NON-NLS-1$
             
             // Do the merge

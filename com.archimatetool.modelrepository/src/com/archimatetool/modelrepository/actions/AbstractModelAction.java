@@ -17,7 +17,9 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -108,6 +110,30 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
     }
 
     /**
+     * If the model is open check whether it is dirty and needs saving.
+     * If it is, the user is asked to save the model.
+     * Return false if the user cancels or an exception occcurs.
+     * Return true if the model doesn't need saving or user saved the model.
+     */
+    boolean checkModelNeedsSaving() {
+        // Model is open and needs saving
+        IArchimateModel model = getRepository().getModel();
+        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
+            try {
+                if(askToSaveModel(model) == SWT.CANCEL) {
+                    return false;
+                }
+            }
+            catch(IOException ex) {
+                logger.log(Level.SEVERE, "Save", ex); //$NON-NLS-1$
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
      * Ask to save the model. If user clicks yes, model is saved
      * @param model The model
      * @return SWT.YES, SWT.NO or SWT.CANCEL
@@ -138,6 +164,41 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
             default:
                 return SWT.CANCEL;
         }
+    }
+    
+    /**
+     * Check if there are changes that need to be committed before proceeding.
+     * Ask the user to commit with a Yes/No/Cancel dialog.
+     * If user cancels, return false.
+     * If Yes, open the Commit dialog.
+     * If user cancels, return false.
+     * If No, reset the working dir with a hard reset to clear uncommitted changes
+     * Return true
+     */
+    boolean checkIfCommitNeeded() {
+        try {
+            if(getRepository().hasChangesToCommit()) {
+                int response = openYesNoCancelDialog(Messages.AbstractModelAction_3, Messages.AbstractModelAction_4);
+                // Cancel / Yes
+                if(response == SWT.CANCEL || (response == SWT.YES && !commitChanges())) { // Commit dialog
+                    // Commit cancelled
+                    return false;
+                }
+                // No. Discard changes by resetting to HEAD before merging
+                else if(response == SWT.NO) {
+                    logger.info("Resetting to HEAD"); //$NON-NLS-1$
+                    getRepository().resetToRef(Constants.HEAD);
+                }
+            }
+        }
+        catch(IOException | GitAPIException ex) {
+            logger.log(Level.SEVERE, "Commit Changes", ex); //$NON-NLS-1$
+            ex.printStackTrace();
+            closeModel(false); // Safety precaution
+            return false;
+        }
+        
+        return true;
     }
     
     /**

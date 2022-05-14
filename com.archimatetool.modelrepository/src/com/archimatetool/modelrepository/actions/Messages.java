@@ -14,6 +14,8 @@ public class Messages extends NLS {
 
     public static String AbstractModelAction_3;
 
+    public static String AbstractModelAction_4;
+
     public static String AddBranchAction_0;
 
     public static String AddBranchAction_1;
@@ -76,8 +78,6 @@ public class Messages extends NLS {
 
     public static String MergeBranchAction_7;
 
-    public static String MergeBranchAction_8;
-
     public static String PushModelAction_0;
 
     public static String PushModelAction_1;
@@ -109,8 +109,6 @@ public class Messages extends NLS {
     public static String SwitchBranchAction_0;
 
     public static String SwitchBranchAction_1;
-
-    public static String SwitchBranchAction_2;
 
     public static String UndoLastCommitAction_0;
 
