@@ -126,7 +126,7 @@ public class BranchesTableViewer extends TableViewer {
                 }
                 
                 try {
-                    BranchStatus status = new BranchStatus(repo.getWorkingFolder());
+                    BranchStatus status = new BranchStatus(repo.getWorkingFolder(), true);
                     return status.getLocalAndUntrackedRemoteBranches().toArray();
                 }
                 catch(IOException | GitAPIException ex) {

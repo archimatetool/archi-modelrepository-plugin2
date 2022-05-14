@@ -31,13 +31,17 @@ public class BranchStatus {
     private BranchInfo currentLocalBranch;
     private BranchInfo currentRemoteBranch;
     
-    public BranchStatus(File repoFolder) throws IOException, GitAPIException {
+    /**
+     * BranchStatus is a list of all branches in the repo, local and remote, as a list of BranchInfo objects.
+     * @param fullStatus if true all BranchInfo status info is calculated. Setting this to false can mean a more lightweight instance.
+     */
+    public BranchStatus(File repoFolder, boolean fullStatus) throws IOException, GitAPIException {
         try(Git git = Git.open(repoFolder)) {
             Repository repository = git.getRepository();
 
             // Get all known branches
             for(Ref ref : git.branchList().setListMode(ListMode.ALL).call()) {
-                BranchInfo info = new BranchInfo(repository, ref);
+                BranchInfo info = new BranchInfo(repository, ref, fullStatus);
                 infos.put(info.getFullName(), info);
             }
             

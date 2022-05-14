@@ -34,8 +34,6 @@ public class BranchInfo {
 
     private Ref ref;
     
-    private String shortName;
-    
     private boolean isRemoteDeleted;
     private boolean isCurrentBranch;
     private boolean hasLocalRef;
@@ -48,37 +46,46 @@ public class BranchInfo {
     
     private File repoDir; 
     
-    BranchInfo(Repository repository, Ref ref) throws IOException, GitAPIException {
-        repoDir = repository.getWorkTree();
-        init(repository, ref);
-    }
-    
     /**
-     * Initialise this BranchInfo from the Repository and the Ref
+     * Get Current Local BranchInfo.
+     * @param fullStatus if true all BranchInfo status info is calculated. Setting this to false can mean a more lightweight instance.
      */
-    private void init(Repository repository, Ref ref) throws IOException, GitAPIException {
-        this.ref = ref;
-        
-        // These functions depend on the JGit Repository being open, so we call them now
-        
-        getCommitStatus(repository);
-        hasLocalRef = hasLocalRef(repository);
-        hasRemoteRef = hasRemoteRef(repository);
-        isRemoteDeleted = isRemoteDeleted(repository);
-        isCurrentBranch = isCurrentBranch(repository);
-        
-        getRevWalkStatus(repository);
+    public static BranchInfo currentLocalBranchInfo(File repoDir, boolean fullStatus) throws IOException, GitAPIException {
+        try(Repository repository = Git.open(repoDir).getRepository()) {
+            return new BranchInfo(repository, repository.exactRef(Constants.HEAD).getTarget(), fullStatus);
+        }
+    }
+    
+    BranchInfo(Repository repository, Ref ref, boolean fullStatus) throws IOException, GitAPIException {
+        repoDir = repository.getWorkTree();
+        init(repository, ref, fullStatus);
     }
     
     /**
-     * Refresh this BranchInfo with updated information
-     * @throws IOException
-     * @throws GitAPIException
+     * Refresh this BranchInfo with full updated information
      */
     public void refresh() throws IOException, GitAPIException {
-        try(Git git = Git.open(repoDir)) {
-            Ref ref = git.getRepository().findRef(getFullName());  // Ref will be a different object with a new Repository instance so renew it
-            init(git.getRepository(), ref);
+        try(Repository repository = Git.open(repoDir).getRepository()) {
+            Ref ref = repository.findRef(getFullName());  // Ref will be a different object with a new Repository instance so renew it
+            init(repository, ref, true);
+        }
+    }
+    
+    /**
+     * Initialise this BranchInfo from Ref and the Repository
+     */
+    private void init(Repository repository, Ref ref, boolean fullStatus) throws IOException, GitAPIException {
+        this.ref = ref;
+        
+        hasLocalRef = repository.findRef(getLocalBranchNameFor()) != null;
+        hasRemoteRef = repository.findRef(getRemoteBranchNameFor()) != null;
+        isCurrentBranch = getFullName().equals(repository.getFullBranch());
+
+        // If fullStatus is true get this information
+        if(fullStatus) {
+            getCommitStatus(repository);
+            getIsRemoteDeleted(repository);
+            getRevWalkStatus(repository);
         }
     }
     
@@ -91,10 +98,16 @@ public class BranchInfo {
     }
     
     public String getShortName() {
-        if(shortName == null) {
-            shortName = getShortName(getFullName());
+        String branchName = getFullName();
+        
+        if(branchName.startsWith(LOCAL_PREFIX)) {
+            return branchName.substring(LOCAL_PREFIX.length());
         }
-        return shortName;
+        if(branchName.startsWith(REMOTE_PREFIX)) {
+            return branchName.substring(REMOTE_PREFIX.length());
+        }
+        
+        return branchName;
     }
     
     public boolean isLocal() {
@@ -113,10 +126,6 @@ public class BranchInfo {
         return hasRemoteRef;
     }
 
-    public boolean isRemoteDeleted() {
-        return isRemoteDeleted;
-    }
-
     public boolean isCurrentBranch() {
         return isCurrentBranch;
     }
@@ -129,32 +138,39 @@ public class BranchInfo {
         return LOCAL_PREFIX + getShortName();
     }
     
+    public boolean isMainBranch() {
+        return IRepositoryConstants.MAIN.equals(getShortName());
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof BranchInfo) &&
+                repoDir.equals(((BranchInfo)obj).repoDir) &&
+                getFullName().equals(((BranchInfo)obj).getFullName());
+    }
+    
+    // ======================================================================================
+    // These status methods are a little expensive so are only called when fullStatus is true
+    // ======================================================================================
+    
     public RevCommit getLatestCommit() {
         return latestCommit;
     }
 
+    public boolean isMerged() {
+        return isMerged;
+    }
+    
+    public boolean isRemoteDeleted() {
+        return isRemoteDeleted;
+    }
+    
     public boolean hasRemoteCommits() {
         return hasRemoteCommits;
     }
     
     public boolean hasUnpushedCommits() {
         return hasUnpushedCommits;
-    }
-    
-    public boolean isMerged() {
-        return isMerged;
-    }
-    
-    public boolean isMainBranch() {
-        return IRepositoryConstants.MAIN.equals(getShortName());
-    }
-    
-    private boolean hasLocalRef(Repository repository) throws IOException {
-        return repository.findRef(getLocalBranchNameFor()) != null;
-    }
-
-    private boolean hasRemoteRef(Repository repository) throws IOException {
-        return repository.findRef(getRemoteBranchNameFor()) != null;
     }
 
     /*
@@ -163,9 +179,9 @@ public class BranchInfo {
      * 2. We are tracking it
      * 3. But it does not have a remote branch ref
      */
-    private boolean isRemoteDeleted(Repository repository) throws IOException {
+    private void getIsRemoteDeleted(Repository repository) throws IOException {
         if(isRemote()) {
-            return false;
+            isRemoteDeleted = false;
         }
         
         // Is it being tracked?
@@ -176,25 +192,9 @@ public class BranchInfo {
         boolean hasNoRemoteBranchFor = repository.findRef(getRemoteBranchNameFor()) == null;
         
         // Is being tracked but no remote ref
-        return isBeingTracked && hasNoRemoteBranchFor;
+        isRemoteDeleted = isBeingTracked && hasNoRemoteBranchFor;
     }
 
-    private boolean isCurrentBranch(Repository repository) throws IOException {
-        return getFullName().equals(repository.getFullBranch());
-    }
-    
-    private String getShortName(String branchName) {
-        if(branchName.startsWith(LOCAL_PREFIX)) {
-            return branchName.substring(LOCAL_PREFIX.length());
-        }
-        
-        if(branchName.startsWith(REMOTE_PREFIX)) {
-            return branchName.substring(REMOTE_PREFIX.length());
-        }
-        
-        return branchName;
-    }
-    
     /**
      * Get status of this branch from a RevWalk
      * This will get the latest commit for this branch
@@ -246,12 +246,5 @@ public class BranchInfo {
             hasUnpushedCommits = trackingStatus.getAheadCount() > 0;
             hasRemoteCommits = trackingStatus.getBehindCount() > 0;
         }
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return (obj instanceof BranchInfo) &&
-                repoDir.equals(((BranchInfo)obj).repoDir) &&
-                getFullName().equals(((BranchInfo)obj).getFullName());
     }
 }

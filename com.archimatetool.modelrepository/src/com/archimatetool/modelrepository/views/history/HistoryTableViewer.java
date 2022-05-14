@@ -36,7 +36,6 @@ import org.eclipse.swt.widgets.Composite;
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
-import com.archimatetool.modelrepository.repository.BranchStatus;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 
@@ -87,12 +86,9 @@ public class HistoryTableViewer extends TableViewer {
     }
     
     void doSetInput(IArchiRepository archiRepo) {
-        // Get BranchStatus and currentLocalBranch
+        // Get basic current LocalBranch Info
         try {
-            BranchStatus branchStatus = new BranchStatus(archiRepo.getWorkingFolder());
-            if(branchStatus != null) {
-                fSelectedBranch = branchStatus.getCurrentLocalBranch();
-            }
+            fSelectedBranch = BranchInfo.currentLocalBranchInfo(archiRepo.getWorkingFolder(), false);
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
