@@ -5,6 +5,7 @@
  */
 package com.archimatetool.modelrepository.actions;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
@@ -36,5 +37,6 @@ public class RefreshModelAction extends AbstractModelAction {
             return;
         }
         
+        MessageDialog.openInformation(fWindow.getShell(), "Refresh Model", "Not implemented yet!"); //$NON-NLS-1$ //$NON-NLS-2$
     }
 }
