@@ -131,12 +131,11 @@ public class HistoryTableViewer extends TableViewer {
     // ===============================================================================================
     
     /**
-     * The Model for the Table.
+     * The Model for the Table
      */
     private class HistoryContentProvider implements ILazyContentProvider {
+        final int PRELOAD_SIZE = 50; // Number of commits to preload
         List<RevCommit> commits;
-        RevWalk theRevWalk;
-        Repository repository;
         
         @Override
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
@@ -154,66 +153,76 @@ public class HistoryTableViewer extends TableViewer {
             }
             
             commits = new ArrayList<>();
-            
-            try {
-                repository = Git.open(((IArchiRepository)newInput).getWorkingFolder()).getRepository();
-                setItemCount(getCommitCount(repository));
-                theRevWalk = getRevWalk(repository);
+            loadCommits((IArchiRepository)newInput, -1);
+        }
+        
+        /**
+         * Loads and counts the number of commits and keeps a reference to the current local and remote commits
+         */
+        void loadCommits(IArchiRepository repo, int index) {
+            try(Repository repository = Git.open(repo.getWorkingFolder()).getRepository()) {
+                try(RevWalk revWalk = new RevWalk(repository)) {
+                    revWalk.setRetainBody(false); // Don't load the body of commits that are being counted
+
+                    // Set the local branch commit start
+                    ObjectId localCommitID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());
+                    if(localCommitID != null) {
+                        fLocalCommit = revWalk.parseCommit(localCommitID);
+                        revWalk.markStart(fLocalCommit);
+                    }
+
+                    // Set the remote branch commit start
+                    ObjectId remoteCommitID = repository.resolve(fSelectedBranch.getRemoteBranchNameFor());
+                    if(remoteCommitID != null) {
+                        fOriginCommit = revWalk.parseCommit(remoteCommitID);
+                        revWalk.markStart(fOriginCommit);
+                    }
+
+                    int count = 0;
+
+                    // If index is -1 we'll count the total number of commits and preload the first block
+                    // Note: don't use RevWalkUtils.count() because it won't count all local and remote commits
+                    if(index == -1) {
+                        for(RevCommit commit : revWalk) {
+                            count++;
+                            
+                            // While we're counting the commits, add the first preload block
+                            if(count <= PRELOAD_SIZE) {
+                                revWalk.parseBody(commit);
+                                commits.add(commit);
+                            }
+                        }
+
+                        setItemCount(count);
+                    }
+                    // If index is 0 or more we'll load PRELOAD_SIZE more commits from the given index point forwards
+                    else {
+                        for(RevCommit commit : revWalk) {
+                            if(count >= commits.size()) {  // We've reached the current commit size so add the next one
+                                revWalk.parseBody(commit);
+                                commits.add(commit);
+                            }
+                            
+                            if(++count > index + PRELOAD_SIZE - 1) { // Don't load more than PRELOAD_SIZE
+                                break;
+                            }
+                        }
+                    }
+
+                    revWalk.dispose();
+                }
             }
             catch(IOException ex) {
-                setItemCount(0);
                 ex.printStackTrace();
-                logger.log(Level.SEVERE, "Rev Walk", ex); //$NON-NLS-1$
+                logger.log(Level.SEVERE, "RevWalk", ex); //$NON-NLS-1$
+                setItemCount(0);
             }
         }
         
-        RevWalk getRevWalk(Repository repository) throws IOException {
-            try(RevWalk revWalk = new RevWalk(repository)) {
-                // Find the local branch commit start
-                ObjectId localCommitID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());
-                if(localCommitID != null) {
-                    fLocalCommit = revWalk.parseCommit(localCommitID);
-                    revWalk.markStart(fLocalCommit);
-                }
-
-                // Find the remote branch commit start
-                ObjectId remoteCommitID = repository.resolve(fSelectedBranch.getRemoteBranchNameFor());
-                if(remoteCommitID != null) {
-                    fOriginCommit = revWalk.parseCommit(remoteCommitID);
-                    revWalk.markStart(fOriginCommit);
-                }
-
-                return revWalk;
-            } // close the RevWalk
-        }
-        
-        int getCommitCount(Repository repository) throws IOException {
-            RevWalk revWalk = getRevWalk(repository);
-            revWalk.setRetainBody(false); // Don't need this for the general RevWalk
-            
-            // Count the commits
-            // Note: don't use RevWalkUtils.count() because it won't count all local and remote commits
-            int count = 0;
-            while(revWalk.next() != null) {
-                count++;
-            }
-            
-            revWalk.dispose();
-            
-            return count;
-        }
-
         @Override
         public void updateElement(int index) {
-            // Lazily load the RevCommits into the list
-            while(commits.size() <= index) {
-                try {
-                    commits.add(theRevWalk.next());
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                    logger.log(Level.SEVERE, "Rev Walk", ex); //$NON-NLS-1$
-                }
+            if(index >= commits.size()) {
+                loadCommits((IArchiRepository)getInput(), index);
             }
             
             replace(commits.get(index), index);
@@ -221,15 +230,6 @@ public class HistoryTableViewer extends TableViewer {
 
         @Override
         public void dispose() {
-            if(theRevWalk != null) {
-                theRevWalk.dispose();
-                theRevWalk = null;
-            }
-            if(repository != null) {
-                repository.close();
-                repository = null;
-            }
-            
             commits = null;
             fLocalCommit = null;
             fOriginCommit = null;

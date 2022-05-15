@@ -15,7 +15,6 @@ package com.archimatetool.modelrepository.repository;
 public interface IRepositoryListener {
     
     String REPOSITORY_CHANGED = "repository_changed";
-    String REPOSITORY_CLOSING = "repository_closing";
     String REPOSITORY_DELETED = "repository_deleted";
     String HISTORY_CHANGED = "history_changed";
     String BRANCHES_CHANGED = "branches_changed";

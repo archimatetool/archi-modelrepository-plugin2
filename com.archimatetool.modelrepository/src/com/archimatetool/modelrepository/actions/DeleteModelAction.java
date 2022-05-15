@@ -57,9 +57,6 @@ public class DeleteModelAction extends AbstractModelAction {
             // Close model without asking to save
             IEditorModelManager.INSTANCE.closeModel(getRepository().getModel(), false);
             
-            // Notify closing
-            RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CLOSING, getRepository());
-
             // Delete folder
             FileUtils.deleteFolder(getRepository().getWorkingFolder());
             

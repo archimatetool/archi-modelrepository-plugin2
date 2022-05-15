@@ -365,9 +365,6 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         // Delete repositories
         try {
             for(RepositoryRef ref : refsToDelete) {
-                // Notify closing
-                RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CLOSING, ref.getArchiRepository());
-
                 // Delete repository folder
                 FileUtils.deleteFolder(ref.getArchiRepository().getWorkingFolder());
 
