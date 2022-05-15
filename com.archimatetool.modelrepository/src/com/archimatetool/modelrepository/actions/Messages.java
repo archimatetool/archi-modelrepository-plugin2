@@ -50,6 +50,12 @@ public class Messages extends NLS {
 
     public static String DeleteModelAction_2;
 
+    public static String DeleteModelAction_3;
+
+    public static String DeleteModelAction_4;
+
+    public static String DeleteModelAction_5;
+
     public static String DiscardChangesAction_0;
 
     public static String DiscardChangesAction_1;

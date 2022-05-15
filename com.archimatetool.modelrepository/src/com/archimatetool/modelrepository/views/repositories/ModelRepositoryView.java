@@ -32,6 +32,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
@@ -329,6 +330,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private void deleteSelected() {
         Set<RepositoryRef> refsToDelete = new HashSet<RepositoryRef>();
         Set<Group> groupsToDelete = new HashSet<Group>();
+        boolean delete = false;
 
         // Get all selected Repository Refs and Groups
         for(Object object : ((IStructuredSelection)getViewer().getSelection()).toArray()) {
@@ -344,29 +346,48 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 refsToDelete.addAll(group.getAllChildRepositoryRefs());
             }
         }
+        
+        // Nothing to delete
+        if(refsToDelete.isEmpty() && groupsToDelete.isEmpty()) {
+            return;
+        }
 
-        // Check if a repository model is open, if it is warn and cancel
-        for(RepositoryRef ref : refsToDelete) {
-            if(ref.getArchiRepository().getModel() != null) {
-                MessageDialog.openError(getViewSite().getShell(),
-                        Messages.ModelRepositoryView_11,
-                        Messages.ModelRepositoryView_15);
+        // No Repositories selected, only groups
+        if(refsToDelete.isEmpty()) {
+            if(!MessageDialog.openQuestion(getViewSite().getShell(),
+                    Messages.ModelRepositoryView_11,
+                    Messages.ModelRepositoryView_12)) {
                 return;
             }
         }
+        else {
+            int response = MessageDialog.open(MessageDialog.QUESTION,
+                    getViewSite().getShell(),
+                    Messages.ModelRepositoryView_11,
+                    Messages.ModelRepositoryView_16,
+                    SWT.NONE,
+                    Messages.ModelRepositoryView_17,
+                    Messages.ModelRepositoryView_18,
+                    Messages.ModelRepositoryView_19);
 
-        // Confirm
-        if(!MessageDialog.openQuestion(getViewSite().getShell(),
-                Messages.ModelRepositoryView_11,
-                Messages.ModelRepositoryView_12)) {
-            return;
+            // Cancel
+            if(response == -1 || response == 2) {
+                return;
+            }
+            
+            delete = response == 1;
         }
 
         // Delete repositories
         try {
             for(RepositoryRef ref : refsToDelete) {
+                // Close model without asking to save
+                IEditorModelManager.INSTANCE.closeModel(ref.getArchiRepository().getModel(), false);
+
                 // Delete repository folder
-                FileUtils.deleteFolder(ref.getArchiRepository().getWorkingFolder());
+                if(delete) {
+                    FileUtils.deleteFolder(ref.getArchiRepository().getWorkingFolder());
+                }
 
                 // Delete from tree model
                 ref.delete();
@@ -379,7 +400,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             ex.printStackTrace();
             logger.log(Level.SEVERE, "Deleting Tree Models", ex); //$NON-NLS-1$
             MessageDialog.openError(getViewSite().getShell(),
-                    Messages.ModelRepositoryView_11, Messages.ModelRepositoryView_16 + "\n" + ex.getMessage()); //$NON-NLS-1$
+                    Messages.ModelRepositoryView_11, Messages.ModelRepositoryView_15 + "\n" + ex.getMessage()); //$NON-NLS-1$
         }
 
         // Now delete Groups
