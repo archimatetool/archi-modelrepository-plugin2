@@ -31,13 +31,16 @@ public class RevisionCommentViewer {
     
     public void setCommit(RevCommit commit) {
         if(commit != null) {
-            fText.setText(commit.getFullMessage());
+            String fullMessage = commit.getFullMessage();
+            fText.setText(fullMessage);
             
-            // The first line (short message) is bold
-            // There may be more than one line if there is no empty line between first line and next line of text
+            // The first line is bold
+            int firstLineLength = fullMessage.indexOf('\n');
+            firstLineLength = firstLineLength == -1 ? fullMessage.length() : firstLineLength;
+            
             StyleRange style = new StyleRange();
             style.start = 0;
-            style.length = commit.getShortMessage().length();
+            style.length = firstLineLength;
             style.fontStyle = SWT.BOLD;
             fText.setStyleRange(style);
         }
