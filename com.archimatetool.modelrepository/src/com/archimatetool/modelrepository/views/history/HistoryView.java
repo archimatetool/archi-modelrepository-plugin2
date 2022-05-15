@@ -359,11 +359,13 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                 case IRepositoryListener.HISTORY_CHANGED:
                     fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
                     getHistoryViewer().setInput(repository);
+                    fCommentViewer.setCommit(null);
                     break;
                     
                 case IRepositoryListener.REPOSITORY_DELETED:
                     fRepoLabel.setText(Messages.HistoryView_0);
                     getHistoryViewer().setInput(null);
+                    fCommentViewer.setCommit(null);
                     fSelectedRepository = null; // Reset this
                     break;
                     
