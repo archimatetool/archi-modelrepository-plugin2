@@ -362,6 +362,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     fCommentViewer.setCommit(null);
                     break;
                     
+                case IRepositoryListener.REPOSITORY_CLOSING:
+                    getHistoryViewer().setInput(null);
+                    break;
+                    
                 case IRepositoryListener.REPOSITORY_DELETED:
                     fRepoLabel.setText(Messages.HistoryView_0);
                     getHistoryViewer().setInput(null);

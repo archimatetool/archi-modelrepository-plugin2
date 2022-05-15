@@ -57,6 +57,9 @@ public class DeleteModelAction extends AbstractModelAction {
             // Close model without asking to save
             IEditorModelManager.INSTANCE.closeModel(getRepository().getModel(), false);
             
+            // Notify closing
+            RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CLOSING, getRepository());
+
             // Delete folder
             FileUtils.deleteFolder(getRepository().getWorkingFolder());
             
@@ -67,7 +70,7 @@ public class DeleteModelAction extends AbstractModelAction {
                 RepositoryTreeModel.getInstance().saveManifest();
             }
             
-            // Notify
+            // Notify deleted
             RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, getRepository());
         }
         catch(IOException ex) {

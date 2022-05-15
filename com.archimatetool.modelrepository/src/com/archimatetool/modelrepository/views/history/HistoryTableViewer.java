@@ -136,9 +136,14 @@ public class HistoryTableViewer extends TableViewer {
     private class HistoryContentProvider implements ILazyContentProvider {
         List<RevCommit> commits;
         RevWalk theRevWalk;
+        Repository repository;
         
         @Override
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
+            if(oldInput == null && newInput == null) { // nothing to do
+                return;
+            }
+            
             dispose();
             
             if(!(newInput instanceof IArchiRepository
@@ -149,8 +154,9 @@ public class HistoryTableViewer extends TableViewer {
             }
             
             commits = new ArrayList<>();
-
-            try(Repository repository = Git.open(((IArchiRepository)newInput).getWorkingFolder()).getRepository()) {
+            
+            try {
+                repository = Git.open(((IArchiRepository)newInput).getWorkingFolder()).getRepository();
                 setItemCount(getCommitCount(repository));
                 theRevWalk = getRevWalk(repository);
             }
@@ -186,6 +192,7 @@ public class HistoryTableViewer extends TableViewer {
             revWalk.setRetainBody(false); // Don't need this for the general RevWalk
             
             // Count the commits
+            // Note: don't use RevWalkUtils.count() because it won't count all local and remote commits
             int count = 0;
             while(revWalk.next() != null) {
                 count++;
@@ -217,6 +224,10 @@ public class HistoryTableViewer extends TableViewer {
             if(theRevWalk != null) {
                 theRevWalk.dispose();
                 theRevWalk = null;
+            }
+            if(repository != null) {
+                repository.close();
+                repository = null;
             }
             
             commits = null;
