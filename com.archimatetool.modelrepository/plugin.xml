@@ -325,50 +325,48 @@
    <extension
          point="org.eclipse.ui.views.properties.tabbed.propertyContributor">
       <propertyContributor
-            contributorId="com.archimatetool.modelrepository"
-            labelProvider="com.archimatetool.modelrepository.propertysections.LabelProvider">
+            contributorId="com.archimatetool.editor">
          <propertyCategory
-               category="main.category"></propertyCategory>
+               category="com.archimatetool.modelrepository.category"></propertyCategory>
       </propertyContributor>
    </extension>
    <extension
          point="org.eclipse.ui.views.properties.tabbed.propertyTabs">
       <propertyTabs
-            contributorId="com.archimatetool.modelrepository">
+            contributorId="com.archimatetool.editor">
          <propertyTab
-               category="main.category"
-               id="info.tab"
+               category="com.archimatetool.modelrepository.category"
+               id="repo.tab"
                label="Repository">
          </propertyTab>
          <propertyTab
                afterTab="info.tab"
-               category="main.category"
+               category="com.archimatetool.modelrepository.category"
                id="user.tab"
                label="User Details">
          </propertyTab>
          <propertyTab
                afterTab="user.tab"
-               category="main.category"
+               category="com.archimatetool.modelrepository.category"
                id="auth.tab"
                label="Authentication">
+         </propertyTab>
+         <propertyTab
+               category="com.archimatetool.modelrepository.category"
+               id="group.tab"
+               label="Group">
          </propertyTab>
       </propertyTabs>
    </extension>
    <extension
          point="org.eclipse.ui.views.properties.tabbed.propertySections">
       <propertySections
-            contributorId="com.archimatetool.modelrepository">
+            contributorId="com.archimatetool.editor">
          <propertySection
                class="com.archimatetool.modelrepository.propertysections.RepoInfoSection"
                filter="com.archimatetool.modelrepository.propertysections.RepoInfoSection$Filter"
                id="infoSection"
-               tab="info.tab">
-         </propertySection>
-         <propertySection
-               class="com.archimatetool.modelrepository.propertysections.GroupSection"
-               filter="com.archimatetool.modelrepository.propertysections.GroupSection$Filter"
-               id="groupSection"
-               tab="info.tab">
+               tab="repo.tab">
          </propertySection>
          <propertySection
                class="com.archimatetool.modelrepository.propertysections.UserDetailsSection"
@@ -382,7 +380,20 @@
                id="authSection"
                tab="auth.tab">
          </propertySection>
+         <propertySection
+               class="com.archimatetool.modelrepository.propertysections.GroupSection"
+               filter="com.archimatetool.modelrepository.propertysections.GroupSection$Filter"
+               id="groupSection"
+               tab="group.tab">
+         </propertySection>
       </propertySections>
+   </extension>
+   <extension
+         point="com.archimatetool.editor.labelProvider">
+      <labelProvider
+            class="com.archimatetool.modelrepository.propertysections.LabelProvider"
+            id="com.archimatetool.modelrepository.labelProvider">
+      </labelProvider>
    </extension>
 
 </plugin>

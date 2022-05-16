@@ -23,8 +23,11 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
 
 
@@ -40,7 +43,8 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
     public static class Filter implements IFilter {
         @Override
         public boolean select(Object object) {
-            return object instanceof RepositoryRef;
+            return object instanceof RepositoryRef ||
+                    (object instanceof IArchimateModel && RepoUtils.isModelInArchiRepository((IArchimateModel)object));
         }
     }
     
@@ -89,7 +93,15 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         
         if(selection.getFirstElement() instanceof RepositoryRef) {
             fRepository = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
-            
+        }
+        else if(selection.getFirstElement() instanceof IArchimateModel) {
+            fRepository = new ArchiRepository(RepoUtils.getWorkingFolderForModel((IArchimateModel)selection.getFirstElement()));
+        }
+        else {
+            fRepository = null;
+        }
+        
+        if(fRepository != null) {
             textFile.setText(fRepository.getWorkingFolder().getAbsolutePath());
 
             try(GitUtils utils = GitUtils.open(fRepository.getWorkingFolder())) {
@@ -99,9 +111,6 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
             catch(IOException | GitAPIException ex) {
                 logger.log(Level.SEVERE, "Update info", ex); //$NON-NLS-1$
             }
-        }
-        else {
-            fRepository = null;
         }
     }
 }

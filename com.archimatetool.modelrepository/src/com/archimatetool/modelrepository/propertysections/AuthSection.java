@@ -23,6 +23,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
+import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
@@ -40,7 +42,8 @@ public class AuthSection extends AbstractArchiPropertySection {
     public static class Filter implements IFilter {
         @Override
         public boolean select(Object object) {
-            return object instanceof RepositoryRef;
+            return object instanceof RepositoryRef ||
+                    (object instanceof IArchimateModel && RepoUtils.isModelInArchiRepository((IArchimateModel)object));
         }
     }
     
@@ -104,8 +107,21 @@ public class AuthSection extends AbstractArchiPropertySection {
     
     @Override
     protected void handleSelection(IStructuredSelection selection) {
+        if(selection == getSelection()) {
+            return;
+        }
+        
         if(selection.getFirstElement() instanceof RepositoryRef) {
             fRepository = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
+        }
+        else if(selection.getFirstElement() instanceof IArchimateModel) {
+            fRepository = new ArchiRepository(RepoUtils.getWorkingFolderForModel((IArchimateModel)selection.getFirstElement()));
+        }
+        else {
+            fRepository = null;
+        }
+
+        if(fRepository != null) {
             // TODO: enable this
             // updateControls();
         }

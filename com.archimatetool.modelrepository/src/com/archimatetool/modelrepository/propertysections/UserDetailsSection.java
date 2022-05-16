@@ -27,6 +27,8 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
@@ -44,7 +46,8 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
     public static class Filter implements IFilter {
         @Override
         public boolean select(Object object) {
-            return object instanceof RepositoryRef;
+            return object instanceof RepositoryRef ||
+                    (object instanceof IArchimateModel && RepoUtils.isModelInArchiRepository((IArchimateModel)object));
         }
     }
     
@@ -115,9 +118,21 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
     
     @Override
     protected void handleSelection(IStructuredSelection selection) {
+        if(selection == getSelection()) {
+            return;
+        }
+        
         if(selection.getFirstElement() instanceof RepositoryRef) {
             fRepository = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
-            
+        }
+        else if(selection.getFirstElement() instanceof IArchimateModel) {
+            fRepository = new ArchiRepository(RepoUtils.getWorkingFolderForModel((IArchimateModel)selection.getFirstElement()));
+        }
+        else {
+            fRepository = null;
+        }
+
+        if(fRepository != null) {
             String globalName = "", globalEmail = ""; //$NON-NLS-1$ //$NON-NLS-2$
             String localName = "", localEmail = ""; //$NON-NLS-1$ //$NON-NLS-2$
             
@@ -145,9 +160,6 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
             
             fTextName.setText(globalName, localName);
             fTextEmail.setText(globalEmail, localEmail);
-        }
-        else {
-            System.err.println(getClass() + " failed to get element for " + selection.getFirstElement()); //$NON-NLS-1$
         }
     }
     
