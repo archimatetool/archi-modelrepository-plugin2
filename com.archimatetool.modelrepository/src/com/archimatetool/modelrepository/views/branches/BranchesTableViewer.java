@@ -206,6 +206,9 @@ public class BranchesTableViewer extends TableViewer {
 
         @Override
         public void update(ViewerCell cell) {
+            // Need to clear this first
+            cell.setForeground(null);
+            
             if(cell.getElement() instanceof BranchInfo) {
                 BranchInfo branchInfo = (BranchInfo)cell.getElement();
                 
