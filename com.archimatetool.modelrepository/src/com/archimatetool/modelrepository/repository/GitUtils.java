@@ -33,6 +33,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
@@ -112,22 +113,39 @@ public class GitUtils implements AutoCloseable {
      * Push to Remote
      */
     public Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
-        // Ensure we are tracking the current branch
-        setTrackedBranch(git.getRepository().getBranch());
-
         PushCommand pushCommand = git.push();
         pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         pushCommand.setProgressMonitor(monitor);
-        return pushCommand.call();
+        Iterable<PushResult> result = pushCommand.call();
+        
+        // If successful, ensure we are tracking the current branch
+        // Do this *after* a push attempt in case of failure
+        RemoteRefUpdate.Status status = getPushResultStatus(result);
+        if(status == RemoteRefUpdate.Status.OK || status == RemoteRefUpdate.Status.UP_TO_DATE) {
+            setTrackedBranch(git.getRepository().getBranch());
+        }
+        
+        return result;
+    }
+    
+    /**
+     * @return a PushResult Status or null if there isn't one
+     */
+    public static RemoteRefUpdate.Status getPushResultStatus(Iterable<PushResult> pushResult) {
+        // As we're only pushing one Ref there should only be one PushResult and one RemoteRefUpdate
+        for(PushResult result : pushResult) {
+            for(RemoteRefUpdate refUpdate : result.getRemoteUpdates()) {
+                return refUpdate.getStatus();
+            }
+        }
+
+        return null;
     }
     
     /**
      * Pull from Remote
      */
-    public PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
-        // Ensure we are tracking the current branch
-        setTrackedBranch(git.getRepository().getBranch());
-
+    public PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException {
         PullCommand pullCommand = git.pull();
         pullCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         pullCommand.setRebase(false); // Merge, not rebase
