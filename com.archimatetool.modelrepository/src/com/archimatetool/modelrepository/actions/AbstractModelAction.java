@@ -243,6 +243,26 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
     }
 
     /**
+     * Check that there is a Remote set
+     */
+    protected boolean checkRemoteSet() {
+        // No repository URL set
+        try {
+            if(getRepository().getRemoteURL() == null) {
+                logger.warning("Remote not set for: " + getRepository().getWorkingFolder()); //$NON-NLS-1$
+                MessageDialog.openError(fWindow.getShell(), Messages.AbstractModelAction_5, Messages.AbstractModelAction_6);
+                return false;
+            }
+        }
+        catch(IOException | GitAPIException ex) {
+            logger.log(Level.SEVERE, "Remote", ex); //$NON-NLS-1$
+            ex.printStackTrace();
+        }
+        
+        return true;
+    }
+    
+    /**
      * Get user name and password from credentials file if prefs set or from dialog
      */
     protected UsernamePassword getUsernamePassword() {

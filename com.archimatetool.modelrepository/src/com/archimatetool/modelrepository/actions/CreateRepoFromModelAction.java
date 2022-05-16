@@ -13,7 +13,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
@@ -24,6 +24,7 @@ import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.NewRepoDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 
@@ -126,17 +127,19 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         // Store exception
         Exception[] exception = new Exception[1];
         
-        // Push
-        
         // If using this be careful that no UI operations are included as this could lead to an SWT Invalid thread access exception
-        PlatformUI.getWorkbench().getProgressService().busyCursorWhile((monitor) -> {
+        PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
             try {
                 monitor.beginTask(Messages.CreateRepoFromModelAction_2, IProgressMonitor.UNKNOWN);
-                Iterable<PushResult> pushResult = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));
-
-                // Get any errors in Push Results and set exception if there are errors
-                String errorMessage = getPushResultErrorMessage(pushResult);
-                if(errorMessage.length() > 0) {
+                PushResult pushResult = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));
+                
+                // Get any errors in Push Result and set exception
+                Status status = GitUtils.getPushResultStatus(pushResult);
+                if(status != Status.OK && status != Status.UP_TO_DATE) {
+                    String errorMessage = GitUtils.getPushResultErrorMessage(pushResult);
+                    if(errorMessage == null) {
+                        errorMessage = "Unknown error"; //$NON-NLS-1$
+                    }
                     exception[0] = new GitAPIException(errorMessage) {};
                 }
             }
@@ -150,29 +153,5 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             getRepository().setRemote(null);
             throw exception[0];
         }
-    }
-    
-    /**
-     * Get any errors in Push Results
-     */
-    private String getPushResultErrorMessage(Iterable<PushResult> pushResult) {
-        StringBuilder sb = new StringBuilder();
-        
-        pushResult.forEach(result -> {
-            result.getRemoteUpdates().stream()
-                    .filter(update -> update.getStatus() != RemoteRefUpdate.Status.OK)
-                    .filter(update -> update.getStatus() != RemoteRefUpdate.Status.UP_TO_DATE)
-                    .forEach(update -> {
-                        if(StringUtils.isSet(result.getMessages())) {
-                            sb.append(result.getMessages() + "\n"); //$NON-NLS-1$
-                        }
-                        else {
-                            sb.append(update.getStatus().toString() + "\n"); //$NON-NLS-1$
-                        }
-                    });
-            
-        });
-        
-        return sb.toString();
     }
 }

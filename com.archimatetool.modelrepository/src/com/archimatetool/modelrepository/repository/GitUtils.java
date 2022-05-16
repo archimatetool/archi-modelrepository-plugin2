@@ -111,35 +111,56 @@ public class GitUtils implements AutoCloseable {
 
     /**
      * Push to Remote
+     * @return The first PushResult from the call.
+     *         As we're only pushing to one remote URI there should only be one PushResult
      */
-    public Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
+    public PushResult pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
         PushCommand pushCommand = git.push();
         pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         pushCommand.setProgressMonitor(monitor);
-        Iterable<PushResult> result = pushCommand.call();
+        Iterable<PushResult> results = pushCommand.call();
+        PushResult pushResult = results.iterator().next(); // Get the first one
         
         // If successful, ensure we are tracking the current branch
         // Do this *after* a push attempt in case of failure
-        RemoteRefUpdate.Status status = getPushResultStatus(result);
+        RemoteRefUpdate.Status status = getPushResultStatus(pushResult);
         if(status == RemoteRefUpdate.Status.OK || status == RemoteRefUpdate.Status.UP_TO_DATE) {
             setTrackedBranch(git.getRepository().getBranch());
         }
         
-        return result;
+        return pushResult;
     }
     
     /**
      * @return a PushResult Status or null if there isn't one
      */
-    public static RemoteRefUpdate.Status getPushResultStatus(Iterable<PushResult> pushResult) {
-        // As we're only pushing one Ref there should only be one PushResult and one RemoteRefUpdate
-        for(PushResult result : pushResult) {
-            for(RemoteRefUpdate refUpdate : result.getRemoteUpdates()) {
-                return refUpdate.getStatus();
-            }
+    public static RemoteRefUpdate.Status getPushResultStatus(PushResult pushResult) {
+        // As we're only pushing one Ref to one remote URI there should only be one RemoteRefUpdate
+        for(RemoteRefUpdate refUpdate : pushResult.getRemoteUpdates()) {
+            return refUpdate.getStatus();
         }
 
         return null;
+    }
+    
+    /**
+     * Get an error message from a PushResult or null
+     */
+    public static String getPushResultErrorMessage(PushResult pushResult) {
+        StringBuilder sb = new StringBuilder();
+        
+        pushResult.getRemoteUpdates().stream()
+                  .filter(refUpdate -> refUpdate.getStatus() != RemoteRefUpdate.Status.OK)           // Ignore OK
+                  .filter(refUpdate -> refUpdate.getStatus() != RemoteRefUpdate.Status.UP_TO_DATE)   // Ignore Up to date
+                  .forEach(refUpdate -> {
+                      if(StringUtils.isSet(pushResult.getMessages())) {
+                          sb.append(pushResult.getMessages() + "\n");
+                      }
+                      sb.append(refUpdate.getStatus().name() + "\n"); // Status enum name
+                  });
+            
+        
+        return sb.length() > 1 ?  sb.toString() : null; // 1 character == "\n"
     }
     
     /**

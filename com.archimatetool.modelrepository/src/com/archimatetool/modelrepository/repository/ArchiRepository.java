@@ -96,7 +96,7 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
+    public PushResult pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.pushToRemote(npw, monitor);
         }

@@ -47,8 +47,10 @@ public interface IArchiRepository {
 
     /**
      * Push to Remote
+     * @return the single PushResult
+     *         As we're only pushing to one remote URI there should only be one PushResult
      */
-    Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException;
+    PushResult pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException;
 
     /**
      * Pull from Remote
