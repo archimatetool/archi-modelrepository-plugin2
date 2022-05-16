@@ -29,6 +29,7 @@ import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CommitDialog;
 import com.archimatetool.modelrepository.dialogs.UserNamePasswordDialog;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 
 /**
@@ -179,10 +180,22 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
         try {
             if(getRepository().hasChangesToCommit()) {
                 int response = openYesNoCancelDialog(Messages.AbstractModelAction_3, Messages.AbstractModelAction_4);
-                // Cancel / Yes
-                if(response == SWT.CANCEL || (response == SWT.YES && !commitChanges())) { // Commit dialog
-                    // Commit cancelled
+                // Cancel
+                if(response == SWT.CANCEL) {
+                    // Cancel
                     return false;
+                }
+                // Yes
+                else if(response == SWT.YES) {
+                    // Commit Dialog
+                    boolean didCommit = commitChanges();
+                    if(didCommit) {
+                        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                    }
+                    // Commit Dialog cancel
+                    else {
+                        return false;
+                    }
                 }
                 // No. Discard changes by resetting to HEAD before merging
                 else if(response == SWT.NO) {
