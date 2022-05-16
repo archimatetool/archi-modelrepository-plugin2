@@ -338,7 +338,7 @@
          <propertyTab
                category="main.category"
                id="info.tab"
-               label="Information">
+               label="Repository">
          </propertyTab>
          <propertyTab
                afterTab="info.tab"
@@ -369,6 +369,18 @@
                filter="com.archimatetool.modelrepository.propertysections.GroupSection$Filter"
                id="groupSection"
                tab="info.tab">
+         </propertySection>
+         <propertySection
+               class="com.archimatetool.modelrepository.propertysections.UserDetailsSection"
+               filter="com.archimatetool.modelrepository.propertysections.UserDetailsSection$Filter"
+               id="userSection"
+               tab="user.tab">
+         </propertySection>
+         <propertySection
+               class="com.archimatetool.modelrepository.propertysections.AuthSection"
+               filter="com.archimatetool.modelrepository.propertysections.AuthSection$Filter"
+               id="authSection"
+               tab="auth.tab">
          </propertySection>
       </propertySections>
    </extension>

@@ -10,11 +10,15 @@ import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
@@ -50,11 +54,15 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
 
     @Override
     protected void createControls(Composite parent) {
-        createLabel(parent, Messages.RepoInfoSection_0, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textFile = createSingleTextControl(parent, SWT.READ_ONLY);
+        Group group = getWidgetFactory().createGroup(parent, Messages.RepoInfoSection_3);
+        group.setLayout(new GridLayout(2, false));
+        GridDataFactory.create(GridData.FILL_BOTH).span(2, 1).applyTo(group);
+        
+        createLabel(group, Messages.RepoInfoSection_0, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        textFile = createSingleTextControl(group, SWT.READ_ONLY);
 
-        createLabel(parent, Messages.RepoInfoSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textURL = new UpdatingTextControl(createSingleTextControl(parent, SWT.NONE)) {
+        createLabel(group, Messages.RepoInfoSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        textURL = new UpdatingTextControl(createSingleTextControl(group, SWT.NONE)) {
             @Override
             protected void textChanged(String newText) {
                 if(fRepository != null) {
@@ -69,8 +77,8 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
             }
         };
         
-        createLabel(parent, Messages.RepoInfoSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textCurrentBranch = createSingleTextControl(parent, SWT.READ_ONLY);
+        createLabel(group, Messages.RepoInfoSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        textCurrentBranch = createSingleTextControl(group, SWT.READ_ONLY);
     }
 
     @Override
