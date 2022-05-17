@@ -175,21 +175,6 @@ public class GitUtils implements AutoCloseable {
     }
     
     /**
-     * Return the remote URL of the Git repo (or null if not found)
-     * We assume that there is only one remote per repo, and its name is "origin"
-     */
-    public String getRemoteURL() throws GitAPIException {
-        List<RemoteConfig> remotes = git.remoteList().call();
-        if(!remotes.isEmpty()) {
-            List<URIish> uris = remotes.get(0).getURIs();
-            if(!uris.isEmpty()) {
-                return uris.get(0).toASCIIString();
-            }
-        }
-        return null;
-    }
-    
-    /**
      * @return User name and email from config file. This is either local or global.
      */
     public PersonIdent getUserDetails() {
@@ -285,6 +270,25 @@ public class GitUtils implements AutoCloseable {
         }
         
         return config;
+    }
+    
+    /**
+     * Return the remote URL of the Git repo (or null if not found)
+     * We assume that there is only one remote per repo, and its name is "origin"
+     */
+    public String getRemoteURL() throws GitAPIException {
+        // Could do it this way:
+        // return git.getRepository().getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION,
+        //        Constants.DEFAULT_REMOTE_NAME, ConfigConstants.CONFIG_KEY_URL);
+        
+        List<RemoteConfig> remotes = git.remoteList().call();
+        if(!remotes.isEmpty()) {
+            List<URIish> uris = remotes.get(0).getURIs();
+            if(!uris.isEmpty()) {
+                return uris.get(0).toASCIIString();
+            }
+        }
+        return null;
     }
 
     /**

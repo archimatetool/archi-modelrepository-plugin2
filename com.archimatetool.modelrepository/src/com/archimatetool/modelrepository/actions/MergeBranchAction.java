@@ -206,7 +206,8 @@ public class MergeBranchAction extends AbstractModelAction {
                 if(utils.hasChangesToCommit()) {
                     mergeMessage = NLS.bind("Merge branch ''{0}'' into ''{1}'' with conflicts solved", branchToMerge.getShortName(), currentBranchName); //$NON-NLS-1$
                     
-                    // IMPORTANT!!! "amend" has to be false after a merge conflict or else the commit will be orphaned
+                    // Set "amend" has to false after a merge conflict or else the commit will be orphaned
+                    // TODO: I'm not really clear about the consequences of setting it to true, there may be an advantage
                     utils.commitChanges(mergeMessage, false);
                 }
                 
