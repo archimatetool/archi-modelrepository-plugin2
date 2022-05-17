@@ -56,15 +56,20 @@ public class DeleteBranchAction extends AbstractModelAction {
         // Keep a local reference in case of a notification event changing the current branch selection in the UI
         BranchInfo branchInfo = fBranchInfo;
 
+        // If the branch has a remote ref of the same name (tracked or untracked) or is a remote branch
+        boolean deleteRemoteBranch = branchInfo.hasRemoteRef() || branchInfo.isRemote();
+        
+        // Check that there is a repository URL set
+        if(deleteRemoteBranch && !checkRemoteSet()) {
+            return;
+        }
+
         // Confirm
         if(!MessageDialog.openConfirm(fWindow.getShell(),
                 Messages.DeleteBranchAction_0,
                 NLS.bind(Messages.DeleteBranchAction_1, branchInfo.getShortName()))) {
             return;
         }
-        
-        // If the branch has a remote ref of the same name (tracked or untracked) or is a remote branch
-        boolean deleteRemoteBranch = branchInfo.hasRemoteRef() || branchInfo.isRemote();
         
         // Delete remote (and local) branch
         if(deleteRemoteBranch) {
@@ -78,7 +83,7 @@ public class DeleteBranchAction extends AbstractModelAction {
                     }
                 }
                 
-                deleteRemoteBranch(branchInfo, npw);
+                deleteLocalAndRemoteBranch(branchInfo, npw);
             }
             catch(Exception ex) {
                 logger.log(Level.SEVERE, "Delete Branch", ex); //$NON-NLS-1$
@@ -103,9 +108,7 @@ public class DeleteBranchAction extends AbstractModelAction {
     /**
      * Delete the local and remote refs and push to the remote deleting the remote branch
      */
-    private void deleteRemoteBranch(BranchInfo branchInfo, UsernamePassword npw) throws Exception {
-        logger.info("Deleting remote branch: " + branchInfo.getShortName()); //$NON-NLS-1$
-
+    private void deleteLocalAndRemoteBranch(BranchInfo branchInfo, UsernamePassword npw) throws Exception {
         // Store exception
         Exception[] exception = new Exception[1];
 
@@ -113,9 +116,11 @@ public class DeleteBranchAction extends AbstractModelAction {
         PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
             try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
                 // Delete the remote branch first in case of error
+                logger.info("Deleting remote branch: " + branchInfo.getLocalBranchNameFor()); //$NON-NLS-1$
                 utils.deleteRemoteBranch(branchInfo.getLocalBranchNameFor(), npw, new ProgressMonitorWrapper(monitor));
 
                 // Then delete local and tracked branch
+                logger.info("Deleting local branch: " + branchInfo.getShortName()); //$NON-NLS-1$
                 utils.deleteBranch(true, // force the delete even if the branch hasn't been merged
                                    branchInfo.getLocalBranchNameFor(),
                                    branchInfo.getRemoteBranchNameFor());
