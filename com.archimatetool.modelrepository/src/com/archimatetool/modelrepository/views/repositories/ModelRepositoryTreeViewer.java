@@ -195,13 +195,18 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         switch(eventName) {
             case IRepositoryListener.REPOSITORY_CHANGED:
             case IRepositoryListener.BRANCHES_CHANGED:
+            case IRepositoryListener.HISTORY_CHANGED:
                 RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(repository.getWorkingFolder());
                 if(ref != null) {
                     updateStatusCache(ref.getArchiRepository());
                     update(ref, null);
+                    setSelection(getSelection()); // This will update the selection and the status bar
                 }
                 break;
                 
+            case IRepositoryListener.REPOSITORY_DELETED:
+                statusCache.remove(repository);
+                // fall through
             default:
                 refresh();
         }
