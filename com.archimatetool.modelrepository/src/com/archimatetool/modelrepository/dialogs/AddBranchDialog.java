@@ -11,8 +11,6 @@ import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -61,34 +59,34 @@ public class AddBranchDialog extends TitleAreaDialog {
 
         txtBranch = createTextField(container, Messages.AddBranchDialog_3, SWT.NONE);
         
-        txtBranch.addVerifyListener(new VerifyListener() {
-            @Override
-            public void verifyText(VerifyEvent e) {
-                String currentText = ((Text)e.widget).getText();
-                String newText = (currentText.substring(0, e.start) + e.text + currentText.substring(e.end));
-                
-                setMessage(Messages.AddBranchDialog_2, IMessageProvider.INFORMATION);
-                
-                boolean isValidRefName = !newText.isEmpty();
-                
-                if(isValidRefName) {
-                    isValidRefName = Repository.isValidRefName(Constants.R_HEADS + newText);
-                    if(!isValidRefName) {
-                        if(newText.startsWith(".") || newText.endsWith(".")) { //$NON-NLS-1$ //$NON-NLS-2$
-                            setMessage(Messages.AddBranchDialog_4, IMessageProvider.ERROR);
-                        }
-                        else if(newText.startsWith("/") || newText.endsWith("/")) { //$NON-NLS-1$ //$NON-NLS-2$
-                            setMessage(Messages.AddBranchDialog_5, IMessageProvider.ERROR);
-                        }
-                        else {
-                            setMessage(Messages.AddBranchDialog_6, IMessageProvider.ERROR);
-                        }
+        txtBranch.addVerifyListener(event -> {
+            // Replace space ^ ~ * ? [ \ 
+            event.text = event.text.replaceAll("[ :^~*\\?\\[\\\\]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
+            
+            String currentText = ((Text)event.widget).getText();
+            String newText = (currentText.substring(0, event.start) + event.text + currentText.substring(event.end));
+            
+            setMessage(Messages.AddBranchDialog_2, IMessageProvider.INFORMATION);
+            
+            boolean isValidRefName = !newText.isEmpty();
+            
+            if(isValidRefName) {
+                isValidRefName = Repository.isValidRefName(Constants.R_HEADS + newText);
+                if(!isValidRefName) {
+                    if(newText.startsWith(".") || newText.endsWith(".")) { //$NON-NLS-1$ //$NON-NLS-2$
+                        setMessage(Messages.AddBranchDialog_4, IMessageProvider.ERROR);
+                    }
+                    else if(newText.startsWith("/") || newText.endsWith("/")) { //$NON-NLS-1$ //$NON-NLS-2$
+                        setMessage(Messages.AddBranchDialog_5, IMessageProvider.ERROR);
+                    }
+                    else {
+                        setMessage(Messages.AddBranchDialog_6, IMessageProvider.ERROR);
                     }
                 }
-                
-                getButton(ADD_BRANCH).setEnabled(isValidRefName);
-                getButton(ADD_BRANCH_CHECKOUT).setEnabled(isValidRefName);
             }
+            
+            getButton(ADD_BRANCH).setEnabled(isValidRefName);
+            getButton(ADD_BRANCH_CHECKOUT).setEnabled(isValidRefName);
         });
         
         return area;
