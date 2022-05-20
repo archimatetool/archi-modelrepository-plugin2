@@ -20,6 +20,7 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
@@ -41,6 +42,7 @@ public class MergeBranchAction extends AbstractModelAction {
     private static final int MERGE_STATUS_MERGED_OK = 0;
     private static final int MERGE_STATUS_MERGED_WITH_CONFLICTS_RESOLVED = 1;
     private static final int MERGE_STATUS_ALREADY_UP_TO_DATE = 2;
+    private static final int MERGE_STATUS_ABORTED = 3;
 
     private BranchInfo fBranchInfo;
 	
@@ -133,6 +135,10 @@ public class MergeBranchAction extends AbstractModelAction {
         // Close and open model last
         OpenModelState modelState = closeModel(false);
         restoreModel(modelState);
+        
+        if(result == MERGE_STATUS_ABORTED) {
+            MessageDialog.openError(fWindow.getShell(), Messages.MergeBranchAction_1, "Unsuccessful merge. Aborted!"); //$NON-NLS-1$
+        }
     }
     
     /**
@@ -150,17 +156,15 @@ public class MergeBranchAction extends AbstractModelAction {
             Git git = utils.getGit();
             
             String currentBranchName = git.getRepository().getBranch();
-            String mergeMessage = NLS.bind(Messages.MergeBranchAction_6, branchToMerge.getShortName(), currentBranchName);
             logger.info(NLS.bind("Merging {0} into {1}", branchToMerge.getShortName(), currentBranchName)); //$NON-NLS-1$
             
             // Do the merge
             MergeResult mergeResult = git.merge()
                     .include(branchToMerge.getRef())
-                    .setCommit(true)
+                    .setCommit(false) // Don't commit the merge until we've checked the model
                     .setFastForward(FastForwardMode.FF)
                     .setStrategy(MergeStrategy.RESOLVE)
                     .setSquash(false)
-                    .setMessage(mergeMessage)
                     .call();
             
             // Get the merge status
@@ -172,16 +176,15 @@ public class MergeBranchAction extends AbstractModelAction {
                 return MERGE_STATUS_ALREADY_UP_TO_DATE;
             }
 
-            // Conflict
+            // The following is temporary code.
+            // TODO: Handle conflicts and model integrity in a dialog and show logical diff
+            
+            // Conflicting - take ours or theirs
             if(mergeStatus == MergeStatus.CONFLICTING) {
                 // Conflicting files
                 for(String path : mergeResult.getConflicts().keySet()) {
                     logger.warning("Conflicting file: " + path); //$NON-NLS-1$
                 }
-                
-                // The following is temporary code.
-                // We can take ours, theirs or cancel
-                // TODO: Handle conflicts in a dialog and show logical diff
                 
                 int response = MessageDialog.open(MessageDialog.QUESTION,
                         fWindow.getShell(),
@@ -201,21 +204,33 @@ public class MergeBranchAction extends AbstractModelAction {
                 
                 // Take ours or theirs
                 checkout(git, response == 0 ? Stage.OURS : Stage.THEIRS, new ArrayList<>(mergeResult.getConflicts().keySet()));
-                
+
                 // Commit
-                if(utils.hasChangesToCommit()) {
-                    mergeMessage = NLS.bind("Merge branch ''{0}'' into ''{1}'' with conflicts solved", branchToMerge.getShortName(), currentBranchName); //$NON-NLS-1$
-                    
-                    // Set "amend" has to false after a merge conflict or else the commit will be orphaned
-                    // TODO: I'm not really clear about the consequences of setting it to true, there may be an advantage
-                    utils.commitChanges(mergeMessage, false);
-                }
+                commitMergedChanges(utils, NLS.bind("Merge branch ''{0}'' into ''{1}'' with conflicts solved", branchToMerge.getShortName(), currentBranchName)); //$NON-NLS-1$
                 
                 return MERGE_STATUS_MERGED_WITH_CONFLICTS_RESOLVED;
             }
+            
+            // Successful git merge, but is it a successful logical merge?
+            if(!isModelIntegral()) {
+                // Reset to HEAD
+                utils.resetToRef(Constants.HEAD);
+                return MERGE_STATUS_ABORTED;
+            }
+            
+            // Commit any changes from a successful merge
+            commitMergedChanges(utils, NLS.bind(Messages.MergeBranchAction_6, branchToMerge.getShortName(), currentBranchName));
         }
         
         return MERGE_STATUS_MERGED_OK;
+    }
+    
+    private void commitMergedChanges(GitUtils utils, String message) throws GitAPIException {
+        if(utils.hasChangesToCommit()) {
+            // Set "amend" has to be false after a merge conflict or else the commit will be orphaned.
+            // I'm not really clear about the consequences of setting it to true, there may be an advantage
+            utils.commitChanges(message, false);
+        }
     }
     
     /**

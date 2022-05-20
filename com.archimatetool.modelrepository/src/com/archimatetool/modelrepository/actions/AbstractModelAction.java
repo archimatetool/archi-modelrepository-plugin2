@@ -321,6 +321,22 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
     protected IArchimateModel restoreModel(OpenModelState modelState) {
         return modelState != null ? modelState.restoreModel(getRepository().getModelFile()) : null;
     }
+    
+    /**
+     * Try to load the model after a merge.
+     * If an exception is thrown we'll assume that the model is not integral
+     * TODO: This is a temporary measure until we implement proper checking by actaully loading the model even if broken
+     */
+    protected boolean isModelIntegral() {
+        try {
+            IEditorModelManager.INSTANCE.load(getRepository().getModelFile());
+        }
+        catch(IOException ex) {
+            return false;
+        }
+
+        return true;
+    }
 
     @Override
     public void dispose() {

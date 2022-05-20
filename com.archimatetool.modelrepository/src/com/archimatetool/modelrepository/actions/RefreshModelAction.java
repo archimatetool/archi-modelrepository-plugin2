@@ -191,8 +191,25 @@ public class RefreshModelAction extends AbstractModelAction {
         // Notify listeners
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED); // This will also update Branches View
         
-        // Close and open model last
+        // Close model
         OpenModelState modelState = closeModel(false);
+
+        // Successful git merge on Pull, but is it a successful logical merge?
+        
+        // At this point the remote branch will have been merged and will consist of one or more commits.
+        // So we need to actually load the broken model (ignoring any load exceptions) and see what's missing/unresolved.
+        
+        // A side-effect of pulling a broken model and it being in the git history is that "Extact Model from this Commit"
+        // and "Restore to this Commit" and "Undo Last Commit" will extract a corrupt model.
+        
+        // TODO: Resolve this
+        // For now we'll leave it up to you to sort out manually...
+        if(!isModelIntegral()) {
+            MessageDialog.openError(fWindow.getShell(), Messages.RefreshModelAction_0, "Model is not integral! You need to fix this manually."); //$NON-NLS-1$
+            return;
+        }
+        
+        // Open model
         restoreModel(modelState);
         
         // Show good vibes
