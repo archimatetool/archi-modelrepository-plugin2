@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 import org.eclipse.jgit.api.CommitCommand;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
@@ -30,6 +31,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
@@ -172,6 +174,17 @@ public class GitUtils implements AutoCloseable {
         pullCommand.setRebase(false); // Merge, not rebase
         pullCommand.setProgressMonitor(monitor);
         return pullCommand.call();
+    }
+    
+    /**
+     * Fetch from Remote
+     */
+    public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws GitAPIException {
+        FetchCommand fetchCommand = git.fetch();
+        fetchCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
+        fetchCommand.setProgressMonitor(monitor);
+        fetchCommand.setDryRun(isDryrun);
+        return fetchCommand.call();
     }
     
     /**

@@ -23,6 +23,7 @@ import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteConfig;
 
@@ -116,6 +117,13 @@ public class ArchiRepository implements IArchiRepository {
         }
     }
     
+    @Override
+    public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
+            return utils.fetchFromRemote(npw, monitor, isDryrun);
+        }
+    }
+
     @Override
     public void resetToRef(String ref) throws IOException, GitAPIException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {

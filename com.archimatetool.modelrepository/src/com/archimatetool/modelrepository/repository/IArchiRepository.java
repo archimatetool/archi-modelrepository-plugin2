@@ -9,6 +9,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteConfig;
 
@@ -63,6 +64,11 @@ public interface IArchiRepository {
      */
     RemoteConfig setRemote(String URL) throws IOException, GitAPIException, URISyntaxException;
     
+    /**
+     * Fetch from Remote
+     */
+    FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException;
+
     /**
      * Do a HARD reset to the given ref
      * @param ref can be "refs/heads/main" for local, or "origin/main" for remote ref
