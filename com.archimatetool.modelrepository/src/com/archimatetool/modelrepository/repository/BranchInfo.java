@@ -47,7 +47,7 @@ public class BranchInfo {
     private File repoDir; 
     
     /**
-     * Get Current Local BranchInfo.
+     * Get Current Local BranchInfo
      * @param fullStatus if true all BranchInfo status info is calculated. Setting this to false can mean a more lightweight instance.
      */
     public static BranchInfo currentLocalBranchInfo(File repoDir, boolean fullStatus) throws IOException, GitAPIException {
@@ -56,6 +56,17 @@ public class BranchInfo {
         }
     }
     
+    /**
+     * Get Current Remote BranchInfo or null if the current brnach is not tracking a remote branch
+     * @param fullStatus if true all BranchInfo status info is calculated. Setting this to false can mean a more lightweight instance.
+     */
+    public static BranchInfo currentRemoteBranchInfo(File repoDir, boolean fullStatus) throws IOException, GitAPIException {
+        try(Repository repository = Git.open(repoDir).getRepository()) {
+            Ref remoteRef = repository.exactRef(REMOTE_PREFIX + repository.getBranch());
+            return remoteRef != null ? new BranchInfo(repository, remoteRef.getTarget(), fullStatus) : null;
+        }
+    }
+
     BranchInfo(Repository repository, Ref ref, boolean fullStatus) throws IOException, GitAPIException {
         repoDir = repository.getWorkTree();
         init(repository, ref, fullStatus);
