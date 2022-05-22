@@ -5,7 +5,9 @@
  */
 package com.archimatetool.modelrepository.merge;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -20,13 +22,17 @@ import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.utils.FileUtils;
+import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.IRepositoryConstants;
 
 /**
  * Handle merging of branches
@@ -190,5 +196,60 @@ public class MergeHandler {
         checkoutCommand.setStage(stage);
         checkoutCommand.addPaths(paths);
         checkoutCommand.call();
+    }
+    
+    
+    
+    // ===================================================================================================
+    // The following code is for the future.
+    // Instead of merging and handling the merge result we will load 3 models - ours, theirs and the common ancestor.
+    // Then we will show changes and resolve them before committing and merging.
+    // ===================================================================================================
+    
+    /**
+     * Compare 3 models - ours, theirs and base
+     */
+    @SuppressWarnings("unused")
+    private void compareModels(IArchiRepository repo, BranchInfo branchToMerge) throws IOException {
+        IArchimateModel ourModel = null;
+        IArchimateModel theirModel = null;
+        IArchimateModel baseModel = null;
+        
+        // Load the three models...
+        try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
+            ourModel = loadModel(utils, Constants.HEAD);
+            theirModel = loadModel(utils, branchToMerge.getFullName());
+            baseModel = loadBaseModel(utils, branchToMerge.getFullName());
+        }
+        
+        // Now draw the rest of the owl...
+        // https://knowyourmeme.com/memes/how-to-draw-an-owl
+    }
+    
+    /**
+     * Load the model at the base commit (common ancestor between HEAD and the branch to merge)
+     */
+    private IArchimateModel loadBaseModel(GitUtils utils, String revStr) throws IOException {
+        RevCommit mergeBase = utils.getBaseCommit(Constants.HEAD, revStr);
+        return mergeBase != null ? loadModel(utils, mergeBase.getName()) : null;
+    }
+    
+    /**
+     * Load a model from a revStr
+     * revStr could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
+     */
+    private IArchimateModel loadModel(GitUtils utils, String revStr) throws IOException {
+        File tempFolder = Files.createTempDirectory("archi-").toFile(); //$NON-NLS-1$
+        
+        try {
+            utils.extractCommit(revStr, tempFolder);
+            
+            // Load it
+            File modelFile = new File(tempFolder, IRepositoryConstants.MODEL_FILENAME);
+            return modelFile.exists() ? IEditorModelManager.INSTANCE.load(modelFile) : null;
+        }
+        finally {
+            FileUtils.deleteFolder(tempFolder);
+        }
     }
 }
