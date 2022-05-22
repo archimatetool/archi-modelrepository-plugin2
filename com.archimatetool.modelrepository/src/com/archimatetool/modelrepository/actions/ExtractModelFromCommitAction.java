@@ -7,6 +7,7 @@ package com.archimatetool.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,11 +57,9 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
             return;
         }
         
-        File tempFolder = null;
-        
         try {
             // Create a temporary folder to extract to
-            tempFolder = createTempFolder();
+            File tempFolder = Files.createTempDirectory("archi-").toFile(); //$NON-NLS-1$
             
             // Extract the commit
             logger.info("Extracting the oommit"); //$NON-NLS-1$
@@ -80,30 +79,17 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
             else {
                 logger.warning("Model does not exist!"); //$NON-NLS-1$
             }
+            
+            FileUtils.deleteFolder(tempFolder);
         }
         catch(IOException ex) {
             logger.log(Level.SEVERE, "Extract Model", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.ExtractModelFromCommitAction_1, ex);
-        }
-        finally {
-            try {
-                FileUtils.deleteFolder(tempFolder);
-            }
-            catch(IOException ex) {
-                logger.log(Level.SEVERE, "Delete folder", ex); //$NON-NLS-1$
-            }
         }
     }
     
     @Override
     protected boolean shouldBeEnabled() {
         return fCommit != null && super.shouldBeEnabled();
-    }
-    
-    private File createTempFolder() throws IOException {
-        File folder = new File(System.getProperty("java.io.tmpdir"), "com.archimatetool.modelrepository.tmp"); //$NON-NLS-1$ //$NON-NLS-2$
-        FileUtils.deleteFolder(folder); // Clear it
-        folder.mkdirs();
-        return folder;
     }
 }
