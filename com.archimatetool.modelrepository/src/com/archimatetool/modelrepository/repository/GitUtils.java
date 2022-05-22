@@ -30,7 +30,9 @@ import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
@@ -38,6 +40,7 @@ import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.authentication.CredentialsAuthenticator;
@@ -386,6 +389,29 @@ public class GitUtils implements AutoCloseable {
 
     /**
      * Extract the contents of a commit to a folder
+     * @param revStr The id of the commit to extract from.
+     *               This could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
+     * @param folder The folder to extract the commit's contents to
+     */
+    public void extractCommit(String revStr, File folder) throws IOException {
+        // Get the ObjectId of revStr
+        ObjectId commitId = git.getRepository().resolve(revStr);
+        if(commitId == null) {
+            return;
+        }
+        
+        // Find the commit in the RevWalk
+        try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+            RevCommit commit = revWalk.parseCommit(commitId);
+            if(commit != null) {
+                // Extract commit contents
+                extractCommit(commit, folder);
+            }
+        }
+    }
+    
+    /**
+     * Extract the contents of a commit to a folder
      * @param commit The commit to extract from
      * @param folder The folder to extract the commit's contents to
      */
@@ -407,6 +433,70 @@ public class GitUtils implements AutoCloseable {
                 }
             }
         }
+    }
+    
+    /**
+     * Return a common ancestor base commit from two points in the repository
+     * revStr1 and revStr2 could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
+     */
+    public RevCommit getBaseCommit(String revStr1, String revStr2) throws IOException {
+        // Walk the repository to find a common ancestor commit and extract the model from that
+        try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+            revWalk.setRetainBody(false); // no need for this
+            revWalk.setRevFilter(RevFilter.MERGE_BASE); // Merge Base = Common Ancestor
+
+            ObjectId id1 = git.getRepository().resolve(revStr1);
+            if(id1 != null) {
+                revWalk.markStart(revWalk.parseCommit(id1));
+            }
+
+            ObjectId id2 = git.getRepository().resolve(revStr2);
+            if(id2 != null) {
+                revWalk.markStart(revWalk.parseCommit(id2));
+            }
+
+            return revWalk.next();
+        }
+    }
+    
+    /**
+     * Return the contents of a file in the repo given its ref
+     * path is the path to the file
+     * revStr could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
+     * @return The file contents or null if not found
+     */
+    public byte[] getFileContents(String path, String revStr) throws IOException {
+        byte[] bytes = null;
+
+        ObjectId commitId = git.getRepository().resolve(revStr);
+        if(commitId == null) {
+            return null;
+        }
+
+        try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+            RevCommit commit = revWalk.parseCommit(commitId);
+            RevTree tree = commit.getTree();
+
+            // now try to find a specific file
+            try(TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
+                treeWalk.addTree(tree);
+                treeWalk.setRecursive(true);
+                treeWalk.setFilter(PathFilter.create(path));
+
+                // Not found, return null
+                if(!treeWalk.next()) {
+                    return null;
+                }
+
+                ObjectId objectId = treeWalk.getObjectId(0);
+                ObjectLoader loader = git.getRepository().open(objectId);
+                bytes = loader.getBytes();
+            }
+
+            revWalk.dispose();
+        }
+        
+        return bytes;
     }
     
     @Override
