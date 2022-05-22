@@ -132,6 +132,7 @@ public class RefreshModelAction extends AbstractModelAction {
             closeModel(false); // Safety precaution
             logger.log(Level.SEVERE, "Merge", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.RefreshModelAction_0, ex);
+            return;
         }
         
         // User cancelled
