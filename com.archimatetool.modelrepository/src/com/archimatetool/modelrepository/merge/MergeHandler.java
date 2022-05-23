@@ -45,6 +45,9 @@ public class MergeHandler {
 
     private static Logger logger = Logger.getLogger(MergeHandler.class.getName());
     
+    // Set true for development
+    private static boolean USE_3WAY_MERGE = false;
+    
     private static MergeHandler instance = new MergeHandler();
     
     public static MergeHandler getInstance() {
@@ -67,6 +70,18 @@ public class MergeHandler {
      * The branch can be local or remote as a result of a Fetch
      */
     public MergeHandlerResult merge(IArchiRepository repo, BranchInfo branchToMerge) throws IOException, GitAPIException {
+        if(USE_3WAY_MERGE) {
+            return do3WayMerge(repo, branchToMerge);
+        }
+        
+        return doMerge(repo, branchToMerge);
+    }
+    
+    /**
+     * This is placeholder code so we can at least work with coArchi 2 until we implement 3-way merge.
+     * We do a git merge and offer some limited options.
+     */
+    private MergeHandlerResult doMerge(IArchiRepository repo, BranchInfo branchToMerge) throws IOException, GitAPIException {
         try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
             Git git = utils.getGit();
             
@@ -91,9 +106,6 @@ public class MergeHandler {
                 return MergeHandlerResult.ALREADY_UP_TO_DATE;
             }
 
-            // The following is temporary code.
-            // TODO: Handle conflicts and model integrity in a dialog and show logical diff
-            
             // Conflicting - take ours or theirs
             if(mergeStatus == MergeStatus.CONFLICTING) {
                 // Conflicting files
@@ -209,8 +221,7 @@ public class MergeHandler {
     /**
      * Compare 3 models - ours, theirs and base
      */
-    @SuppressWarnings("unused")
-    private void compareModels(IArchiRepository repo, BranchInfo branchToMerge) throws IOException {
+    private MergeHandlerResult do3WayMerge(IArchiRepository repo, BranchInfo branchToMerge) throws IOException {
         IArchimateModel ourModel = null;
         IArchimateModel theirModel = null;
         IArchimateModel baseModel = null;
@@ -222,8 +233,14 @@ public class MergeHandler {
             baseModel = loadBaseModel(utils, branchToMerge.getFullName());
         }
         
+        System.out.println(ourModel);
+        System.out.println(theirModel);
+        System.out.println(baseModel);
+        
         // Now draw the rest of the owl...
         // https://knowyourmeme.com/memes/how-to-draw-an-owl
+        
+        return MergeHandlerResult.CANCELLED;
     }
     
     /**
