@@ -229,6 +229,8 @@ public class MergeHandler {
         // Load the three models...
         try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
             ourModel = loadModel(utils, Constants.HEAD);
+            // Or just load the file in the working dir
+            //ourModel = IEditorModelManager.INSTANCE.loadModel(repo.getModelFile());
             theirModel = loadModel(utils, branchToMerge.getFullName());
             baseModel = loadBaseModel(utils, branchToMerge.getFullName());
         }
