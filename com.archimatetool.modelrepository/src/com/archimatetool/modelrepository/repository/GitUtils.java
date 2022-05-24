@@ -82,18 +82,12 @@ public class GitUtils implements AutoCloseable {
      * @return RevCommit
      */
     public RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException {
-        Status status = git.status().call();
-        
-        // Nothing changed
-        if(status.isClean()) {
-            return null;
-        }
-        
         // Add modified files to index
         git.add().addFilepattern(".").call();
         //git.add().addFilepattern(IRepositoryConstants.MODEL_FILENAME).addFilepattern(IRepositoryConstants.IMAGES_FOLDER).call();
         
         // Add missing files to index
+        Status status = git.status().call();
         for(String s : status.getMissing()) {
             git.rm().addFilepattern(s).call();
         }
