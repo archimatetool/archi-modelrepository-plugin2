@@ -126,6 +126,8 @@ public interface IArchiRepository {
      * Extract the contents of a commit to a folder
      * @param commit The commit to extract from
      * @param folder The folder to extract the commit's contents to
+     * @param preserveEol if true EOL characters in text files are set according to the repo's "autocrlf" setting.
+     *                    On Windows this will be CRLF, else LF
      */
-    void extractCommit(RevCommit commit, File folder) throws IOException;
+    void extractCommit(RevCommit commit, File folder, boolean preserveEol) throws IOException;
 }

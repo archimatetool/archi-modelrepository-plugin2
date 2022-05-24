@@ -261,7 +261,7 @@ public class MergeHandler {
         File tempFolder = Files.createTempDirectory("archi-").toFile(); //$NON-NLS-1$
         
         try {
-            utils.extractCommit(revStr, tempFolder);
+            utils.extractCommit(revStr, tempFolder, false);
             
             // Load it
             File modelFile = new File(tempFolder, IRepositoryConstants.MODEL_FILENAME);

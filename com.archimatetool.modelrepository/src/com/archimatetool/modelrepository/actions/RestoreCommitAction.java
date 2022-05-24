@@ -77,7 +77,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         // Extract the contents of the commit
         try {
             logger.info("Extracting the oommit"); //$NON-NLS-1$
-            getRepository().extractCommit(fCommit, getRepository().getWorkingFolder());
+            getRepository().extractCommit(fCommit, getRepository().getWorkingFolder(), false);
         }
         catch(IOException ex) {
             logger.log(Level.SEVERE, "Extract commit", ex); //$NON-NLS-1$

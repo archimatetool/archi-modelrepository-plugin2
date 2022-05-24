@@ -219,9 +219,9 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
-    public void extractCommit(RevCommit commit, File folder) throws IOException {
+    public void extractCommit(RevCommit commit, File folder, boolean preserveEol) throws IOException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            utils.extractCommit(commit, folder);
+            utils.extractCommit(commit, folder, preserveEol);
         }
     }
 
@@ -245,7 +245,17 @@ public class ArchiRepository implements IArchiRepository {
     private void setDefaultConfigSettings(Repository repository) throws IOException {
         StoredConfig config = repository.getConfig();
 
-        // Set line endings depending on platform
+        /*
+         * Set line endings depending on platform
+         * 
+         * Windows autocrlf=true
+         *         Checked out files will be CRLF, checked in files will be LF
+         *         Eclipse saves as CRLF so git Status will ignore EOLs
+         * 
+         * Mac/Linux autocrlf=input   
+         *           Checked out files will be LF, checked in files will be LF
+         *           Eclipse saves as LF so git Status will ignore EOLs
+         */
         config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, PlatformUtils.isWindows() ? "true" : "input");
 
         // Set ignore case on Mac/Windows

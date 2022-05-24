@@ -5,9 +5,11 @@
  */
 package com.archimatetool.modelrepository.repository;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -23,6 +25,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.CoreConfig.EolStreamType;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -40,7 +43,9 @@ import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.TreeWalk.OperationType;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.util.io.EolStreamTypeUtil;
 
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.authentication.CredentialsAuthenticator;
@@ -382,54 +387,6 @@ public class GitUtils implements AutoCloseable {
     }
 
     /**
-     * Extract the contents of a commit to a folder
-     * @param revStr The id of the commit to extract from.
-     *               This could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
-     * @param folder The folder to extract the commit's contents to
-     */
-    public void extractCommit(String revStr, File folder) throws IOException {
-        // Get the ObjectId of revStr
-        ObjectId commitId = git.getRepository().resolve(revStr);
-        if(commitId == null) {
-            return;
-        }
-        
-        // Find the commit in the RevWalk
-        try(RevWalk revWalk = new RevWalk(git.getRepository())) {
-            RevCommit commit = revWalk.parseCommit(commitId);
-            if(commit != null) {
-                // Extract commit contents
-                extractCommit(commit, folder);
-            }
-        }
-    }
-    
-    /**
-     * Extract the contents of a commit to a folder
-     * @param commit The commit to extract from
-     * @param folder The folder to extract the commit's contents to
-     */
-    public void extractCommit(RevCommit commit, File folder) throws IOException {
-        // Walk the tree and extract the contents of the commit
-        try(TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
-            treeWalk.addTree(commit.getTree());
-            treeWalk.setRecursive(true);
-
-            while(treeWalk.next()) {
-                ObjectId objectId = treeWalk.getObjectId(0);
-                ObjectLoader loader = git.getRepository().open(objectId);
-                
-                File file = new File(folder, treeWalk.getPathString());
-                file.getParentFile().mkdirs();
-                
-                try(FileOutputStream out = new FileOutputStream(file)) {
-                    loader.copyTo(out);
-                }
-            }
-        }
-    }
-    
-    /**
      * Return a common ancestor base commit from two points in the repository
      * revStr1 and revStr2 could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
      */
@@ -454,14 +411,75 @@ public class GitUtils implements AutoCloseable {
     }
     
     /**
-     * Return the contents of a file in the repo given its ref
-     * path is the path to the file
-     * revStr could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
+     * Extract the contents of a commit to a folder
+     * @param revStr The id of the commit to extract from.
+     *               This could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
+     * @param folder The folder to extract the commit's contents to
+     * @param preserveEol if true EOL characters in text files are set according to the repo's "autocrlf" setting.
+     *                    On Windows this will be CRLF, else LF
+     */
+    public void extractCommit(String revStr, File folder, boolean preserveEol) throws IOException {
+        // Get the ObjectId of revStr
+        ObjectId commitId = git.getRepository().resolve(revStr);
+        if(commitId == null) {
+            return;
+        }
+        
+        // Find the commit in the RevWalk
+        try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+            RevCommit commit = revWalk.parseCommit(commitId);
+            if(commit != null) {
+                // Extract commit contents
+                extractCommit(commit, folder, preserveEol);
+            }
+        }
+    }
+    
+    /**
+     * Extract the contents of a commit to a folder
+     * @param commit The commit to extract from
+     * @param folder The folder to extract the commit's contents to
+     * @param preserveEol if true EOL characters in text files are set according to the repo's "autocrlf" setting.
+     *                    On Windows this will be CRLF, else LF
+     */
+    public void extractCommit(RevCommit commit, File folder, boolean preserveEol) throws IOException {
+        // Walk the tree and extract the contents of the commit
+        try(TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
+            treeWalk.addTree(commit.getTree());
+            treeWalk.setRecursive(true);
+
+            while(treeWalk.next()) {
+                ObjectId objectId = treeWalk.getObjectId(0);
+                ObjectLoader loader = git.getRepository().open(objectId);
+                
+                File file = new File(folder, treeWalk.getPathString());
+                file.getParentFile().mkdirs();
+                
+                try(FileOutputStream fos = new FileOutputStream(file)) {
+                    // Wrap the output stream in another stream to respect the line ending setting
+                    if(preserveEol) {
+                        EolStreamType eolStreamType = treeWalk.getEolStreamType(OperationType.CHECKOUT_OP);
+                        try(OutputStream out = EolStreamTypeUtil.wrapOutputStream(fos, eolStreamType)) {
+                            loader.copyTo(out);
+                        }
+                    }
+                    else {
+                        loader.copyTo(fos);
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Return the contents of a file as a byte stream in the repo given its ref
+     * @param path is the path to the file
+     * @param revStr could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
+     * @param preserveEol if true EOL characters in text files are set according to the repo's "autocrlf" setting.
+     *                    On Windows this will be CRLF, else LF
      * @return The file contents or null if not found
      */
-    public byte[] getFileContents(String path, String revStr) throws IOException {
-        byte[] bytes = null;
-
+    public byte[] getFileContents(String path, String revStr, boolean preserveEol) throws IOException {
         ObjectId commitId = git.getRepository().resolve(revStr);
         if(commitId == null) {
             return null;
@@ -484,13 +502,24 @@ public class GitUtils implements AutoCloseable {
 
                 ObjectId objectId = treeWalk.getObjectId(0);
                 ObjectLoader loader = git.getRepository().open(objectId);
-                bytes = loader.getBytes();
+                
+                // Use a stream in case ObjectLoader.isLarge
+                try(ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                    // Wrap the output stream in another stream to respect the line ending setting
+                    if(preserveEol) {
+                        EolStreamType eolStreamType = treeWalk.getEolStreamType(OperationType.CHECKOUT_OP);
+                        try(OutputStream out = EolStreamTypeUtil.wrapOutputStream(baos, eolStreamType)) {
+                            loader.copyTo(out);
+                        }
+                    }
+                    else {
+                        loader.copyTo(baos);
+                    }
+                    
+                    return baos.toByteArray();
+                }
             }
-
-            revWalk.dispose();
         }
-        
-        return bytes;
     }
     
     @Override
