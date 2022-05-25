@@ -116,13 +116,9 @@ public class MergeBranchAction extends AbstractModelAction {
         // Notify
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         
-        // Close model
+        // Close and open model
         OpenModelState modelState = closeModel(false);
-        
-        // Don't open a corrupt model
-        if(mergeHandlerResult != MergeHandlerResult.MERGED_WITH_MODEL_CORRUPT) {
-            restoreModel(modelState);
-        }
+        restoreModel(modelState);
     }
     
     /**

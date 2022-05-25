@@ -8,25 +8,25 @@ package com.archimatetool.modelrepository.merge;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CheckoutCommand.Stage;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 
+import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.model.ModelChecker;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.repository.BranchInfo;
@@ -46,7 +46,7 @@ public class MergeHandler {
     private static Logger logger = Logger.getLogger(MergeHandler.class.getName());
     
     // Set true for development
-    private static boolean USE_3WAY_MERGE = false;
+    private boolean USE_3WAY_MERGE = false;
     
     private static MergeHandler instance = new MergeHandler();
     
@@ -58,8 +58,7 @@ public class MergeHandler {
         MERGED_OK,
         ALREADY_UP_TO_DATE,
         MERGED_WITH_CONFLICTS_RESOLVED,
-        CANCELLED,
-        MERGED_WITH_MODEL_CORRUPT
+        CANCELLED
     }
     
     private MergeHandler() {
@@ -70,30 +69,15 @@ public class MergeHandler {
      * The branch can be local or remote as a result of a Fetch
      */
     public MergeHandlerResult merge(IArchiRepository repo, BranchInfo branchToMerge) throws IOException, GitAPIException {
-        if(USE_3WAY_MERGE) {
-            return do3WayMerge(repo, branchToMerge);
-        }
+        logger.info("Merging " + branchToMerge.getFullName()); //$NON-NLS-1$
         
-        return doMerge(repo, branchToMerge);
-    }
-    
-    /**
-     * This is placeholder code so we can at least work with coArchi 2 until we implement 3-way merge.
-     * We do a git merge and offer some limited options.
-     */
-    private MergeHandlerResult doMerge(IArchiRepository repo, BranchInfo branchToMerge) throws IOException, GitAPIException {
         try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
-            Git git = utils.getGit();
-            
-            String currentBranchName = git.getRepository().getBranch();
-            logger.info(NLS.bind("Merging {0} into {1}", branchToMerge.getShortName(), currentBranchName)); //$NON-NLS-1$
-            
             // Do the merge
-            MergeResult mergeResult = git.merge()
+            MergeResult mergeResult = utils.getGit().merge()
                     .include(branchToMerge.getRef())
                     .setCommit(false) // Don't commit the merge until we've checked the model
-                    .setFastForward(FastForwardMode.FF)
-                    .setStrategy(MergeStrategy.RESOLVE)
+                    .setFastForward(FastForwardMode.NO_FF) // Don't FF because we still need to check the model
+                    .setStrategy(MergeStrategy.RECURSIVE)  // This strategy is used in JGit's PullCommand
                     .setSquash(false)
                     .call();
             
@@ -102,147 +86,139 @@ public class MergeHandler {
             
             // Already up to date
             if(mergeStatus == MergeStatus.ALREADY_UP_TO_DATE) {
-                logger.info("Merge is already up to date, nothing to do."); //$NON-NLS-1$
+                logger.info("Merge up to date"); //$NON-NLS-1$
                 return MergeHandlerResult.ALREADY_UP_TO_DATE;
             }
-
-            // Conflicting - take ours or theirs
-            if(mergeStatus == MergeStatus.CONFLICTING) {
-                // Conflicting files
-                for(String path : mergeResult.getConflicts().keySet()) {
-                    logger.warning("Conflicting file: " + path); //$NON-NLS-1$
-                }
-                
-                int response = MessageDialog.open(MessageDialog.QUESTION,
-                        null,
-                        "Merge Branch", //$NON-NLS-1$
-                        "Bummer, there's a conflict. What do you want from life?", //$NON-NLS-1$
-                        SWT.NONE,
-                        "My stuff", //$NON-NLS-1$
-                        "Their stuff", //$NON-NLS-1$
-                        "Cancel"); //$NON-NLS-1$
-
-                // Cancel
-                if(response == -1 || response == 2) {
-                    // Reset and clear
-                    utils.resetToRef(Constants.HEAD);
-                    return MergeHandlerResult.CANCELLED;
-                }
-                
-                // Take ours or theirs
-                checkout(git, response == 0 ? Stage.OURS : Stage.THEIRS, new ArrayList<>(mergeResult.getConflicts().keySet()));
-
-                // Commit
-                commitMergedChanges(utils, NLS.bind("Merge branch {0} ''{1}'' into ''{2}'' with conflicts solved", //$NON-NLS-1$
-                        new Object[] { branchToMerge.isRemote() ? "remote" : "",  branchToMerge.getShortName(), currentBranchName} ));  //$NON-NLS-1$//$NON-NLS-2$
-                
-                return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
-            }
             
-            // Successful git merge, but is it a successful logical merge?
-            if(!isModelIntegral(repo)) {
-                int response = MessageDialog.open(MessageDialog.QUESTION,
-                        null,
-                        "Merge Branch", //$NON-NLS-1$
-                        "Bummer, the model is corrupt. What do you want to do?", //$NON-NLS-1$
-                        SWT.NONE,
-                        "Commit anyway, I'll sort it out", //$NON-NLS-1$
-                        "Abort the merge"); //$NON-NLS-1$
-                
-                // Cancel / Abort
-                if(response == -1 || response == 1) {
-                    // Reset and clear
-                    utils.resetToRef(Constants.HEAD);
-                    return MergeHandlerResult.CANCELLED;
-                }
-                
-                commitMergedChanges(utils, NLS.bind("Merge {0} branch ''{1}'' into ''{2}'' - MODEL CORRUPT!", //$NON-NLS-1$
-                        new Object[] { branchToMerge.isRemote() ? "remote" : "",  branchToMerge.getShortName(), currentBranchName} ));  //$NON-NLS-1$//$NON-NLS-2$
-                
-                return MergeHandlerResult.MERGED_WITH_MODEL_CORRUPT;
+            // Conflicting or model corrupt (successful git merge but model broken)
+            if(mergeStatus == MergeStatus.CONFLICTING || !isModelIntegral(repo.getModelFile())) {
+                logger.info("Conflicting merge"); //$NON-NLS-1$
+                return USE_3WAY_MERGE ? handle3WayMerge(utils, branchToMerge) : handleConflictingMerge(utils, branchToMerge);
             }
-            
-            // Commit any changes from a successful merge
-            commitMergedChanges(utils, NLS.bind("Merge {0} branch ''{1}'' into ''{2}''", //$NON-NLS-1$
-                    new Object[] { branchToMerge.isRemote() ? "remote" : "",  branchToMerge.getShortName(), currentBranchName} ));  //$NON-NLS-1$//$NON-NLS-2$
+
+            // Successful git merge and the model is OK!
+
+            // If FF merge is possible just move HEAD to the target branch ref
+            if(canFastForward(utils.getGit().getRepository(), branchToMerge.getFullName())) {
+                logger.info("Doing a FastForward merge"); //$NON-NLS-1$
+                utils.resetToRef(branchToMerge.getFullName());
+            }
+            // Else commit the merge if we have something to commit
+            else if(mergeStatus == MergeStatus.MERGED_NOT_COMMITTED) {
+                commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}''", branchToMerge); //$NON-NLS-1$
+            }
         }
-        
+
         return MergeHandlerResult.MERGED_OK;
     }
     
     /**
-     * Try to load the model after a merge.
-     * If an exception is thrown we'll assume that the model is not integral
-     * This is temporary until we implement proper checking by actually loading the model even if broken
+     * This is placeholder code.
+     * It means we can at least work with the code until we implement 3-way merge.
+     * We offer to cancel the merge or take our or their branch
      */
-    private boolean isModelIntegral(IArchiRepository repo) {
-        try {
-            IEditorModelManager.INSTANCE.load(repo.getModelFile());
-        }
-        catch(IOException ex) {
-            return false;
-        }
+    private MergeHandlerResult handleConflictingMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
+        int response = MessageDialog.open(MessageDialog.QUESTION,
+                null,
+                "Merge Branch", //$NON-NLS-1$
+                "There's a conflict. What do you want from life?", //$NON-NLS-1$
+                SWT.NONE,
+                "My stuff", //$NON-NLS-1$
+                "Their stuff", //$NON-NLS-1$
+                "Cancel"); //$NON-NLS-1$
 
-        return true;
-    }
-
-    /**
-     * Commit any merged changes, if any
-     */
-    private boolean commitMergedChanges(GitUtils utils, String message) throws GitAPIException {
-        if(utils.hasChangesToCommit()) {
-            // Set "amend" has to be false after a merge conflict or else the commit will be orphaned.
-            // I'm not really clear about the consequences of setting it to true, there may be an advantage
-            utils.commitChanges(message, false);
-            return true;
+        // Cancel
+        if(response == -1 || response == 2) {
+            // Reset and clear
+            utils.resetToRef(Constants.HEAD);
+            return MergeHandlerResult.CANCELLED;
         }
         
-        return false;
-    }
+        // Check out either the current or the other branch
+        utils.getGit().checkout()
+             .setAllPaths(true)
+             .setStartPoint(response == 0 ? utils.getCurrentLocalBranchName() : branchToMerge.getFullName())
+             .call();
 
-    /**
-     * Check out conflicting files either from us or them
-     */
-    private void checkout(Git git, Stage stage, List<String> paths) throws GitAPIException {
-        CheckoutCommand checkoutCommand = git.checkout();
-        checkoutCommand.setStage(stage);
-        checkoutCommand.addPaths(paths);
-        checkoutCommand.call();
+        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge); //$NON-NLS-1$
+        
+        return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
     }
     
-    
-    
-    // ===================================================================================================
-    // The following code is for the future.
-    // Instead of merging and handling the merge result we will load 3 models - ours, theirs and the common ancestor.
-    // Then we will show changes and resolve them before committing and merging.
-    // ===================================================================================================
-    
     /**
-     * Compare 3 models - ours, theirs and base
+     * The following code is for the future.
+     * Instead of merging we will load 3 models - ours, theirs and the common ancestor.
+     * Then we will show changes and resolve them before merging and committing
      */
-    private MergeHandlerResult do3WayMerge(IArchiRepository repo, BranchInfo branchToMerge) throws IOException {
-        IArchimateModel ourModel = null;
-        IArchimateModel theirModel = null;
-        IArchimateModel baseModel = null;
+    private MergeHandlerResult handle3WayMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
+        // Reset to HEAD
+        utils.resetToRef(Constants.HEAD);
         
         // Load the three models...
-        try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
-            ourModel = loadModel(utils, Constants.HEAD);
-            // Or just load the file in the working dir
-            //ourModel = IEditorModelManager.INSTANCE.loadModel(repo.getModelFile());
-            theirModel = loadModel(utils, branchToMerge.getFullName());
-            baseModel = loadBaseModel(utils, branchToMerge.getFullName());
-        }
+        IArchimateModel ourModel = loadModel(utils, Constants.HEAD);
+        // Or just load the file in the working dir?
+        //ourModel = IEditorModelManager.INSTANCE.loadModel(repo.getModelFile());
+        IArchimateModel theirModel = loadModel(utils, branchToMerge.getFullName());
+        IArchimateModel baseModel = loadBaseModel(utils, branchToMerge.getFullName());
+        
+        // Now draw the rest of the owl...
+        // https://knowyourmeme.com/memes/how-to-draw-an-owl
         
         System.out.println(ourModel);
         System.out.println(theirModel);
         System.out.println(baseModel);
         
-        // Now draw the rest of the owl...
-        // https://knowyourmeme.com/memes/how-to-draw-an-owl
-        
         return MergeHandlerResult.CANCELLED;
+    }
+    
+    /**
+     * Commit any changes from a merge
+     */
+    private void commitChanges(GitUtils utils, String message, BranchInfo branchToMerge) throws IOException, GitAPIException {
+        String fullMessage = NLS.bind(message,
+                new Object[] { branchToMerge.isRemote() ? " remote " : " ",  //$NON-NLS-1$ //$NON-NLS-2$
+                        branchToMerge.getShortName(), utils.getCurrentLocalBranchName()} );
+        
+        logger.info("Committing merge " + fullMessage); //$NON-NLS-1$
+        utils.commitChanges(fullMessage, false);
+    }
+    
+    /**
+     * Try to load the model after a merge.
+     * @return false if an exception is thrown when loading, an image is missing, or the ModelChecker fails
+     */
+    private boolean isModelIntegral(File modelFile) {
+        try {
+            IArchimateModel model = IEditorModelManager.INSTANCE.load(modelFile);
+            
+            // Check that all referenced images are present (they might have deleted image while we are still using it)
+            IArchiveManager archiveManager = (IArchiveManager)model.getAdapter(IArchiveManager.class);
+            for(String imagePath : archiveManager.getImagePaths()) {
+                if(archiveManager.getBytesFromEntry(imagePath) == null) {
+                    return false;
+                }
+            }
+            
+            return new ModelChecker(model).checkAll();
+        }
+        catch(IOException ex) {
+            return false;
+        }
+    }
+    
+    /**
+     * Return true if we are able to do a FF merge between HEAD and the branch to merge
+     */
+    private boolean canFastForward(Repository repo, String revStr) throws IOException {
+        try(RevWalk revWalk = new RevWalk(repo)) {
+            Ref head = repo.exactRef(Constants.HEAD);
+            RevCommit headCommit = revWalk.lookupCommit(head.getObjectId());
+            
+            Ref tip = repo.exactRef(revStr);
+            RevCommit tipCommit = revWalk.lookupCommit(tip.getObjectId());
+            
+            return revWalk.isMergedInto(headCommit, tipCommit);
+        }
     }
     
     /**

@@ -152,22 +152,18 @@ public class RefreshModelAction extends AbstractModelAction {
             return;
         }
         
-        // MERGED_OK or MERGED_WITH_CONFLICTS_RESOLVED or MERGED_WITH_MODEL_CORRUPT
+        // MERGED_OK or MERGED_WITH_CONFLICTS_RESOLVED
         
         // Notify
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         
-        // Close model
+        // Close and re-open model
         OpenModelState modelState = closeModel(false);
-        
-        // Don't open a corrupt model
-        if(mergeHandlerResult == MergeHandlerResult.MERGED_WITH_MODEL_CORRUPT) {
-            return;
-        }
-
         restoreModel(modelState);
         
-        MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_5);
+        if(mergeHandlerResult == MergeHandlerResult.MERGED_OK) {
+            MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_5);
+        }
     }
     
     private FetchResult fetch(UsernamePassword npw) throws Exception {
