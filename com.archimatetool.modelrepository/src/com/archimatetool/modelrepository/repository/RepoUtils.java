@@ -19,7 +19,6 @@ import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.util.FS;
 import org.eclipse.jgit.util.SystemReader;
 
 import com.archimatetool.editor.utils.StringUtils;
@@ -137,8 +136,7 @@ public class RepoUtils implements IRepositoryConstants {
      * @throws ConfigInvalidException
      */
     public static PersonIdent getGitConfigUserDetails() throws IOException, ConfigInvalidException {
-        StoredConfig config = SystemReader.getInstance().openUserConfig(null, FS.detect());
-        config.load();
+        StoredConfig config = SystemReader.getInstance().getUserConfig();
 
         String name = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME));
         String email = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL));
@@ -154,8 +152,7 @@ public class RepoUtils implements IRepositoryConstants {
      * @throws ConfigInvalidException
      */
     public static void saveGitConfigUserDetails(String name, String email) throws IOException, ConfigInvalidException {
-        StoredConfig config = SystemReader.getInstance().openUserConfig(null, FS.detect());
-        config.load(); // It seems we have to load before save
+        StoredConfig config = SystemReader.getInstance().getUserConfig();
 
         config.setString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME, name);
         config.setString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL, email);
