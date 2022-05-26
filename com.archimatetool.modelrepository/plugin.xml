@@ -323,6 +323,14 @@
       </initializer>
    </extension>
    <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="com.archimatetool.modelrepository.preferences.ModelRepositoryPreferencePage"
+            id="com.archimatetool.com.modelrepository.preferences.ModelRepositoryPreferencePage"
+            name="Collaboration">
+      </page>
+   </extension>
+   <extension
          point="org.eclipse.ui.views.properties.tabbed.propertyContributor">
       <propertyContributor
             contributorId="com.archimatetool.editor">

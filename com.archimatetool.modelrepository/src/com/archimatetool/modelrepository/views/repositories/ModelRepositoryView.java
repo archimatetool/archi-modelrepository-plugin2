@@ -478,6 +478,12 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
      * Make Any Local Bar Menu Actions
      */
     private void makeLocalMenuActions() {
+        // TODO: Enable this if we are implementing Fetch in Background
+        boolean localMenuDisabled = true;
+        if(localMenuDisabled) {
+            return;
+        }
+        
         IActionBars actionBars = getViewSite().getActionBars();
 
         // Local menu items go here
