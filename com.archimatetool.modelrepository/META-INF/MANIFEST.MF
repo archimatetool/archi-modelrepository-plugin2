@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Archi Collaboration (coArchi)
 Bundle-SymbolicName: com.archimatetool.modelrepository;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.1.0.qualifier
+Bundle-Version: 0.5.0.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
  com.archimatetool.editor;bundle-version="4.9.3",
