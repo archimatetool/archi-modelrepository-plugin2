@@ -31,6 +31,7 @@ import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -52,34 +53,22 @@ import com.archimatetool.modelrepository.authentication.CredentialsAuthenticator
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 
 /**
- * Git Utils
- * 
- * This is a wrapper around a JGit Git instance
- * It means we can call several git operations while the Git instance is open and close it when finished
+ * Extends JGit's Git class to offer some convenience methods.
+ * It means we can call several Git and GitUtils operations while the Git instance is open
  * 
  * @author Phillip Beauvoir
  */
 @SuppressWarnings("nls")
-public class GitUtils implements AutoCloseable {
-    
-    private Git git;
+public class GitUtils extends Git {
     
     public static GitUtils open(File repoFolder) throws IOException {
-        return new GitUtils(repoFolder);
+        return new GitUtils(Git.open(repoFolder).getRepository());
     }
     
-    /**
-     * @return The Git instance which can be used for more git operations
-     *         It's advised to not close this instance but rather to close the GitUtils instance
-     */
-    public Git getGit() {
-        return git;
+    private GitUtils(Repository repository) {
+        super(repository);
     }
-    
-    private GitUtils(File repoFolder) throws IOException {
-        git = Git.open(repoFolder);
-    }
-    
+
     /**
      * Commit any changes
      * @param commitMessage
@@ -88,17 +77,17 @@ public class GitUtils implements AutoCloseable {
      */
     public RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException {
         // Add modified files to index
-        git.add().addFilepattern(".").call();
+        add().addFilepattern(".").call();
         //git.add().addFilepattern(IRepositoryConstants.MODEL_FILENAME).addFilepattern(IRepositoryConstants.IMAGES_FOLDER).call();
         
-        // Add missing files to index
-        Status status = git.status().call();
+        // Add missing (deleted) files to the index
+        Status status = status().call();
         for(String s : status.getMissing()) {
-            git.rm().addFilepattern(s).call();
+            rm().addFilepattern(s).call();
         }
         
         // Commit
-        CommitCommand commitCommand = git.commit();
+        CommitCommand commitCommand = commit();
         PersonIdent userDetails = getUserDetails();
         commitCommand.setAuthor(userDetails);
         commitCommand.setMessage(commitMessage);
@@ -110,7 +99,7 @@ public class GitUtils implements AutoCloseable {
      * @return true if there are changes to commit in the working tree
      */
     public boolean hasChangesToCommit() throws GitAPIException {
-        return !git.status().call().isClean();
+        return !status().call().isClean();
     }
 
     /**
@@ -119,7 +108,7 @@ public class GitUtils implements AutoCloseable {
      *         As we're only pushing to one remote URI there should only be one PushResult
      */
     public PushResult pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
-        PushCommand pushCommand = git.push();
+        PushCommand pushCommand = push();
         pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         pushCommand.setProgressMonitor(monitor);
         Iterable<PushResult> results = pushCommand.call();
@@ -129,7 +118,7 @@ public class GitUtils implements AutoCloseable {
         // Do this *after* a push attempt in case of failure
         RemoteRefUpdate.Status status = getPushResultStatus(pushResult);
         if(status == RemoteRefUpdate.Status.OK || status == RemoteRefUpdate.Status.UP_TO_DATE) {
-            setTrackedBranch(git.getRepository().getBranch());
+            setTrackedBranch(getRepository().getBranch());
         }
         
         return pushResult;
@@ -171,7 +160,7 @@ public class GitUtils implements AutoCloseable {
      * Pull from Remote
      */
     public PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException {
-        PullCommand pullCommand = git.pull();
+        PullCommand pullCommand = pull();
         pullCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         pullCommand.setRebase(false); // Merge, not rebase
         pullCommand.setProgressMonitor(monitor);
@@ -182,7 +171,7 @@ public class GitUtils implements AutoCloseable {
      * Fetch from Remote
      */
     public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws GitAPIException {
-        FetchCommand fetchCommand = git.fetch();
+        FetchCommand fetchCommand = fetch();
         fetchCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         fetchCommand.setProgressMonitor(monitor);
         fetchCommand.setDryRun(isDryrun);
@@ -193,7 +182,7 @@ public class GitUtils implements AutoCloseable {
      * @return User name and email from config file. This is either local or global.
      */
     public PersonIdent getUserDetails() {
-        StoredConfig config = git.getRepository().getConfig();
+        StoredConfig config = getRepository().getConfig();
         String name = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME));
         String email = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL));
         return new PersonIdent(name, email);
@@ -214,7 +203,7 @@ public class GitUtils implements AutoCloseable {
         }
         
         // Save to local config
-        StoredConfig config = git.getRepository().getConfig();
+        StoredConfig config = getRepository().getConfig();
 
         // If global name == local name or blank then unset
         if(!StringUtils.isSet(name) || global.getName().equals(name)) {
@@ -240,7 +229,7 @@ public class GitUtils implements AutoCloseable {
      * Return the current local branch name that HEAD points to
      */
     public String getCurrentLocalBranchName() throws IOException {
-        return git.getRepository().getBranch();
+        return getRepository().getBranch();
     }
     
     /**
@@ -252,7 +241,7 @@ public class GitUtils implements AutoCloseable {
      */
     public List<String> deleteBranch(boolean force, String... branchNames) throws GitAPIException {
         // Delete local and remote branch refs
-        return git.branchDelete().setBranchNames(branchNames).setForce(force).call();
+        return branchDelete().setBranchNames(branchNames).setForce(force).call();
     }
     
     /**
@@ -260,7 +249,7 @@ public class GitUtils implements AutoCloseable {
      * @param branchName Local type ref like "refs/heads/branch"
      */
     public Iterable<PushResult> deleteRemoteBranch(String branchName, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException {
-        PushCommand pushCommand = git.push();
+        PushCommand pushCommand = push();
         pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         RefSpec refSpec = new RefSpec(":" + branchName);
         pushCommand.setRefSpecs(refSpec);
@@ -277,11 +266,11 @@ public class GitUtils implements AutoCloseable {
         RemoteConfig config;
         
         // Remove existing remote
-        config = git.remoteRemove().setRemoteName(IRepositoryConstants.ORIGIN).call();
+        config = remoteRemove().setRemoteName(IRepositoryConstants.ORIGIN).call();
         
         // Add new one
         if(StringUtils.isSetAfterTrim(URL)) {
-            config = git.remoteAdd().setName(IRepositoryConstants.ORIGIN).setUri(new URIish(URL)).call();
+            config = remoteAdd().setName(IRepositoryConstants.ORIGIN).setUri(new URIish(URL)).call();
         }
         
         return config;
@@ -296,7 +285,7 @@ public class GitUtils implements AutoCloseable {
         // return git.getRepository().getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION,
         //        Constants.DEFAULT_REMOTE_NAME, ConfigConstants.CONFIG_KEY_URL);
         
-        List<RemoteConfig> remotes = git.remoteList().call();
+        List<RemoteConfig> remotes = remoteList().call();
         if(!remotes.isEmpty()) {
             List<URIish> uris = remotes.get(0).getURIs();
             if(!uris.isEmpty()) {
@@ -312,17 +301,17 @@ public class GitUtils implements AutoCloseable {
      */
     public void resetToRef(String ref) throws GitAPIException {
         // Reset
-        git.reset().setRef(ref).setMode(ResetType.HARD).call();
+        reset().setRef(ref).setMode(ResetType.HARD).call();
         
         // Clean extra files
-        git.clean().setCleanDirectories(true).call();
+        clean().setCleanDirectories(true).call();
     }
 
     /**
      * Return true if the given RevCommit is at HEAD
      */
     public boolean isCommitAtHead(RevCommit commit) throws IOException {
-        ObjectId headID = git.getRepository().resolve(Constants.HEAD);
+        ObjectId headID = getRepository().resolve(Constants.HEAD);
         ObjectId commitID = commit.getId();
         return headID != null && commitID != null && headID.equals(commitID);
     }
@@ -331,7 +320,7 @@ public class GitUtils implements AutoCloseable {
      * Return true if the given Ref is at HEAD
      */
     public boolean isRefAtHead(Ref ref) throws IOException {
-        ObjectId headID = git.getRepository().resolve(Constants.HEAD);
+        ObjectId headID = getRepository().resolve(Constants.HEAD);
         return headID != null && ref != null && headID.equals(ref.getObjectId());
     }
 
@@ -350,7 +339,7 @@ public class GitUtils implements AutoCloseable {
      * Return the remote Ref for the current branch that HEAD points to, or null if there is no remote ref
      */
     public Ref getRemoteRefForCurrentBranch() throws IOException {
-        return git.getRepository().findRef(getRemoteRefNameForCurrentBranch());
+        return getRepository().findRef(getRemoteRefNameForCurrentBranch());
     }
     
     /**
@@ -358,7 +347,7 @@ public class GitUtils implements AutoCloseable {
      * This does not mean that the remote Ref exists. For that, call {@link #getRemoteRefForCurrentBranch()}
      */
     public String getRemoteRefNameForCurrentBranch() throws IOException {
-        return IRepositoryConstants.ORIGIN + "/" + git.getRepository().getBranch();
+        return IRepositoryConstants.ORIGIN + "/" + getRepository().getBranch();
     }
     
     /**
@@ -367,7 +356,7 @@ public class GitUtils implements AutoCloseable {
     public boolean hasMoreThanOneCommit() throws IOException, GitAPIException {
         int count = 0;
         
-        try(RevWalk revWalk = (RevWalk)git.log().setMaxCount(2).call()) {
+        try(RevWalk revWalk = (RevWalk)log().setMaxCount(2).call()) {
             revWalk.setRetainBody(false);
             while(revWalk.next() != null) {
                 count++;
@@ -382,8 +371,8 @@ public class GitUtils implements AutoCloseable {
      * Return the number of parent commits for the commit at revision revstr (HEAD, ref name, etc)
      */
     public int getCommitParentCount(String revstr) throws IOException {
-        ObjectId objectID = git.getRepository().resolve(revstr);
-        return objectID != null ? git.getRepository().parseCommit(objectID).getParentCount() : 0;
+        ObjectId objectID = getRepository().resolve(revstr);
+        return objectID != null ? getRepository().parseCommit(objectID).getParentCount() : 0;
     }
 
     /**
@@ -392,16 +381,16 @@ public class GitUtils implements AutoCloseable {
      */
     public RevCommit getBaseCommit(String revStr1, String revStr2) throws IOException {
         // Walk the repository to find a common ancestor commit and extract the model from that
-        try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+        try(RevWalk revWalk = new RevWalk(getRepository())) {
             revWalk.setRetainBody(false); // no need for this
             revWalk.setRevFilter(RevFilter.MERGE_BASE); // Merge Base = Common Ancestor
 
-            ObjectId id1 = git.getRepository().resolve(revStr1);
+            ObjectId id1 = getRepository().resolve(revStr1);
             if(id1 != null) {
                 revWalk.markStart(revWalk.parseCommit(id1));
             }
 
-            ObjectId id2 = git.getRepository().resolve(revStr2);
+            ObjectId id2 = getRepository().resolve(revStr2);
             if(id2 != null) {
                 revWalk.markStart(revWalk.parseCommit(id2));
             }
@@ -420,13 +409,13 @@ public class GitUtils implements AutoCloseable {
      */
     public void extractCommit(String revStr, File folder, boolean preserveEol) throws IOException {
         // Get the ObjectId of revStr
-        ObjectId commitId = git.getRepository().resolve(revStr);
+        ObjectId commitId = getRepository().resolve(revStr);
         if(commitId == null) {
             return;
         }
         
         // Find the commit in the RevWalk
-        try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+        try(RevWalk revWalk = new RevWalk(getRepository())) {
             RevCommit commit = revWalk.parseCommit(commitId);
             if(commit != null) {
                 // Extract commit contents
@@ -444,13 +433,13 @@ public class GitUtils implements AutoCloseable {
      */
     public void extractCommit(RevCommit commit, File folder, boolean preserveEol) throws IOException {
         // Walk the tree and extract the contents of the commit
-        try(TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
+        try(TreeWalk treeWalk = new TreeWalk(getRepository())) {
             treeWalk.addTree(commit.getTree());
             treeWalk.setRecursive(true);
 
             while(treeWalk.next()) {
                 ObjectId objectId = treeWalk.getObjectId(0);
-                ObjectLoader loader = git.getRepository().open(objectId);
+                ObjectLoader loader = getRepository().open(objectId);
                 
                 File file = new File(folder, treeWalk.getPathString());
                 file.getParentFile().mkdirs();
@@ -480,17 +469,17 @@ public class GitUtils implements AutoCloseable {
      * @return The file contents or null if not found
      */
     public byte[] getFileContents(String path, String revStr, boolean preserveEol) throws IOException {
-        ObjectId commitId = git.getRepository().resolve(revStr);
+        ObjectId commitId = getRepository().resolve(revStr);
         if(commitId == null) {
             return null;
         }
 
-        try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+        try(RevWalk revWalk = new RevWalk(getRepository())) {
             RevCommit commit = revWalk.parseCommit(commitId);
             RevTree tree = commit.getTree();
 
             // now try to find a specific file
-            try(TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
+            try(TreeWalk treeWalk = new TreeWalk(getRepository())) {
                 treeWalk.addTree(tree);
                 treeWalk.setRecursive(true);
                 treeWalk.setFilter(PathFilter.create(path));
@@ -501,7 +490,7 @@ public class GitUtils implements AutoCloseable {
                 }
 
                 ObjectId objectId = treeWalk.getObjectId(0);
-                ObjectLoader loader = git.getRepository().open(objectId);
+                ObjectLoader loader = getRepository().open(objectId);
                 
                 // Use a stream in case ObjectLoader.isLarge
                 try(ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -524,7 +513,8 @@ public class GitUtils implements AutoCloseable {
     
     @Override
     public void close() {
-        git.close();
+        // we have to close the repository
+        getRepository().close();
     }
     
     /**
@@ -535,7 +525,7 @@ public class GitUtils implements AutoCloseable {
             return;
         }
         
-        StoredConfig config = git.getRepository().getConfig();
+        StoredConfig config = getRepository().getConfig();
         
         if(!IRepositoryConstants.ORIGIN.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, IRepositoryConstants.ORIGIN);

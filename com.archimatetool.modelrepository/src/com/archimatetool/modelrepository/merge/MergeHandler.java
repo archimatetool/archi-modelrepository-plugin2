@@ -73,7 +73,7 @@ public class MergeHandler {
         
         try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
             // Do the merge
-            MergeResult mergeResult = utils.getGit().merge()
+            MergeResult mergeResult = utils.merge()
                     .include(branchToMerge.getRef())
                     .setCommit(false) // Don't commit the merge until we've checked the model
                     .setFastForward(FastForwardMode.NO_FF) // Don't FF because we still need to check the model
@@ -99,7 +99,7 @@ public class MergeHandler {
             // Successful git merge and the model is OK!
 
             // If FF merge is possible just move HEAD to the target branch ref
-            if(canFastForward(utils.getGit().getRepository(), branchToMerge.getFullName())) {
+            if(canFastForward(utils.getRepository(), branchToMerge.getFullName())) {
                 logger.info("Doing a FastForward merge"); //$NON-NLS-1$
                 utils.resetToRef(branchToMerge.getFullName());
             }
@@ -135,7 +135,7 @@ public class MergeHandler {
         }
         
         // Check out either the current or the other branch
-        utils.getGit().checkout()
+        utils.checkout()
              .setAllPaths(true)
              .setStartPoint(response == 0 ? utils.getCurrentLocalBranchName() : branchToMerge.getFullName())
              .call();

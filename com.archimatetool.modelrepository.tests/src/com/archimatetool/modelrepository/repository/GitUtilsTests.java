@@ -108,7 +108,7 @@ public class GitUtilsTests {
             assertEquals(url, config.getURIs().get(0).toASCIIString());
             
             // Zero remotes
-            List<RemoteConfig> remotes = utils.getGit().remoteList().call();
+            List<RemoteConfig> remotes = utils.remoteList().call();
             assertEquals(0, remotes.size());
         }
     }
