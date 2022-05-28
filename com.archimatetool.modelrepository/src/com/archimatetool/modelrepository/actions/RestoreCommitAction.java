@@ -6,18 +6,15 @@
 package com.archimatetool.modelrepository.actions;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.revwalk.RevWalkUtils;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
@@ -113,13 +110,23 @@ public class RestoreCommitAction extends AbstractModelAction {
             return false;
         }
         
-        // Don't restore if the commit is at HEAD
         try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
-            return !utils.isCommitAtHead(fCommit);
+            // Don't restore if the commit is at HEAD
+            if(utils.isCommitAtHead(fCommit)) {
+                return false;
+            }
+            
+            // Or don't restore if the selected commit is not part of the local branch's history
+            try(RevWalk revWalk = new RevWalk(utils.getRepository())) {
+                Ref head = utils.getRepository().exactRef(Constants.HEAD);
+                RevCommit headCommit = revWalk.lookupCommit(head.getObjectId());
+                RevCommit otherCommit = revWalk.lookupCommit(fCommit.getId());
+                return revWalk.isMergedInto(otherCommit, headCommit);
+            }
         }
         catch(IOException ex) {
             ex.printStackTrace();
-            logger.log(Level.SEVERE, "Is Commit at Head", ex); //$NON-NLS-1$
+            logger.log(Level.SEVERE, "Enabled state", ex); //$NON-NLS-1$
         }
         
         return false;
