@@ -56,67 +56,41 @@ public class RestoreCommitAction extends AbstractModelAction {
             return;
         }
         
-        // Close the model if it's open in the tree
-        OpenModelState modelState = closeModel(true);
-        if(modelState.cancelled()) {
-            return;
-        }
-        
-        // Delete the working directory
-        logger.info("Deleting contents of working directory"); //$NON-NLS-1$
-        
         try {
+            // Delete the contents of the working directory
+            logger.info("Deleting contents of working directory"); //$NON-NLS-1$
             RepoUtils.deleteContentsOfGitRepository(getRepository().getWorkingFolder());
-        }
-        catch(IOException ex) {
-            logger.log(Level.SEVERE, "Delete files", ex); //$NON-NLS-1$
-            displayErrorDialog(Messages.RestoreCommitAction_0, ex);
-            return;
-        }
-        
-        // Extract the contents of the commit
-        try {
+            
+            // Extract the contents of the commit
             logger.info("Extracting the oommit"); //$NON-NLS-1$
             getRepository().extractCommit(fCommit, getRepository().getWorkingFolder(), false);
-        }
-        catch(IOException ex) {
-            logger.log(Level.SEVERE, "Extract commit", ex); //$NON-NLS-1$
-            displayErrorDialog(Messages.RestoreCommitAction_0, ex);
-            return;
-        }
-        
-        // Check that we actually restored the model in case there is no model file in this commit
-        if(!getRepository().getModelFile().exists()) {
-            try {
-                displayErrorDialog(Messages.RestoreCommitAction_0, Messages.RestoreCommitAction_2);
-                // Reset to HEAD
-                getRepository().resetToRef(Constants.HEAD);
-            }
-            catch(IOException | GitAPIException ex) {
-                logger.log(Level.SEVERE, "Reset to HEAD", ex); //$NON-NLS-1$
+            
+            // Check that we actually restored the model in case there is no model file in this commit
+            if(!getRepository().getModelFile().exists()) {
+                throw new IOException(Messages.RestoreCommitAction_2);
             }
             
-            // And reload the model
-            restoreModel(modelState);
-            
-            return;
-        }
-        
-        // Reload the model
-        restoreModel(modelState);
-        
-        // Commit changes
-        logger.info("Committing changes..."); //$NON-NLS-1$
-        
-        try {
+            // Commit changes
+            logger.info("Committing changes..."); //$NON-NLS-1$
             getRepository().commitChanges(Messages.RestoreCommitAction_3 + " '" + fCommit.getShortMessage() + "'", false); //$NON-NLS-1$ //$NON-NLS-2$
+            
+            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         }
         catch(IOException | GitAPIException ex) {
-            logger.log(Level.SEVERE, "Commit", ex); //$NON-NLS-1$
-            displayErrorDialog(Messages.RestoreCommitAction_4, ex);
+            logger.log(Level.SEVERE, "Restore to Commit", ex); //$NON-NLS-1$
+            try {
+                getRepository().resetToRef(Constants.HEAD);
+            }
+            catch(IOException | GitAPIException ex1) {
+                logger.log(Level.SEVERE, "Reset to HEAD", ex1); //$NON-NLS-1$
+            }
+            displayErrorDialog(Messages.RestoreCommitAction_0, ex);
         }
-        
-        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+        finally {
+            // Close and re-open model
+            OpenModelState modelState = closeModel(false);
+            restoreModel(modelState);
+        }
     }
     
     @Override
