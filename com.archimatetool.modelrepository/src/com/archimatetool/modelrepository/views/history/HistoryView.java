@@ -336,17 +336,17 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             // Set label text
             fRepoLabel.setText(Messages.HistoryView_0 + " " + selectedRepository.getName()); //$NON-NLS-1$
             
-            // Set History first
-            getHistoryViewer().doSetInput(selectedRepository);
-            
-            // Set Branches
-            getBranchesViewer().doSetInput(selectedRepository);
-
-            // Update actions
+            // Set repository in actions *first*
             fActionExtractCommit.setRepository(selectedRepository);
             fActionUndoLastCommit.setRepository(selectedRepository);
             fActionRestoreCommit.setRepository(selectedRepository);
             fActionResetToRemoteCommit.setRepository(selectedRepository);
+
+            // Set History
+            getHistoryViewer().doSetInput(selectedRepository);
+            
+            // Set Branches
+            getBranchesViewer().doSetInput(selectedRepository);
         }
     }
     

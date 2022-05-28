@@ -6,17 +6,23 @@
 package com.archimatetool.modelrepository.actions;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.RevWalkUtils;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.GitUtils;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 
@@ -37,8 +43,16 @@ public class RestoreCommitAction extends AbstractModelAction {
     }
 
     public void setCommit(RevCommit commit) {
-        fCommit = commit;
-        setEnabled(shouldBeEnabled());
+        if(fCommit != commit) {
+            fCommit = commit;
+            setEnabled(shouldBeEnabled());
+        }
+    }
+    
+    @Override
+    public void setRepository(IArchiRepository repository) {
+        fCommit = null;
+        super.setRepository(repository);
     }
     
     @Override

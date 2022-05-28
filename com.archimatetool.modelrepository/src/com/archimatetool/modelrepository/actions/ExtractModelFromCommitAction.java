@@ -19,6 +19,7 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryConstants;
 
 /**
@@ -36,10 +37,18 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
         setText(Messages.ExtractModelFromCommitAction_0);
         setToolTipText(Messages.ExtractModelFromCommitAction_0);
     }
+    
+    @Override
+    public void setRepository(IArchiRepository repository) {
+        fCommit = null;
+        super.setRepository(repository);
+    }
 
     public void setCommit(RevCommit commit) {
-        fCommit = commit;
-        setEnabled(shouldBeEnabled());
+        if(fCommit != commit) {
+            fCommit = commit;
+            setEnabled(shouldBeEnabled());
+        }
     }
     
     @Override
