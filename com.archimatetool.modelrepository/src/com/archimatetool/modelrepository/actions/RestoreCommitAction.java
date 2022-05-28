@@ -95,7 +95,7 @@ public class RestoreCommitAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        if(!super.shouldBeEnabled() || fCommit == null) {
+        if(fCommit == null || !super.shouldBeEnabled()) {
             return false;
         }
         

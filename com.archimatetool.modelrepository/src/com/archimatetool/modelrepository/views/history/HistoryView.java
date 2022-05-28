@@ -37,7 +37,6 @@ import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.ExtractModelFromCommitAction;
-import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
 import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
 import com.archimatetool.modelrepository.actions.RestoreCommitAction;
 import com.archimatetool.modelrepository.actions.UndoLastCommitAction;
@@ -69,7 +68,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     /*
      * Actions
      */
-    private IModelRepositoryAction fActionUndoLastCommit;
+    private UndoLastCommitAction fActionUndoLastCommit;
     private ExtractModelFromCommitAction fActionExtractCommit;
     private RestoreCommitAction fActionRestoreCommit;
     private ResetToRemoteCommitAction fActionResetToRemoteCommit;
@@ -261,22 +260,21 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private void updateActions() {
         RevCommit commit = (RevCommit)getHistoryViewer().getStructuredSelection().getFirstElement();
         
-        // Set commit in these actions
-        fActionExtractCommit.setCommit(commit);
-        fActionRestoreCommit.setCommit(commit);
-
         // Set the commit in the Comment Viewer
         fCommentViewer.setCommit(commit);
         
-        // Disable these actions if our selected branch in the combo is not actually the current branch
+        fActionExtractCommit.setCommit(commit);
+        
+        // Enable these actions if our selected branch in the combo is the current branch
         BranchInfo selectedBranch = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
         if(selectedBranch != null && selectedBranch.isCurrentBranch()) {
-            fActionRestoreCommit.update();
+            fActionRestoreCommit.setCommit(commit);
             fActionUndoLastCommit.update();
             fActionResetToRemoteCommit.update();
         }
+        // Else disable
         else {
-            fActionRestoreCommit.setEnabled(false);
+            fActionRestoreCommit.setCommit(null);
             fActionUndoLastCommit.setEnabled(false);
             fActionResetToRemoteCommit.setEnabled(false);
         }
