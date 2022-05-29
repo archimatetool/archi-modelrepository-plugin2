@@ -38,6 +38,7 @@ public class BranchInfo {
     private boolean isCurrentBranch;
     private boolean hasLocalRef;
     private boolean hasRemoteRef;
+    private boolean isRefAtHead;
     private boolean hasUnpushedCommits;
     private boolean hasRemoteCommits;
     private boolean isMerged;
@@ -45,6 +46,8 @@ public class BranchInfo {
     private RevCommit latestCommit;
     
     private File repoDir; 
+    
+    private boolean hasFullStatus;
     
     /**
      * Get Current Local BranchInfo
@@ -88,9 +91,12 @@ public class BranchInfo {
     private void init(Repository repository, Ref ref, boolean fullStatus) throws IOException, GitAPIException {
         this.ref = ref;
         
+        hasFullStatus = fullStatus;
+        
         hasLocalRef = repository.findRef(getLocalBranchNameFor()) != null;
         hasRemoteRef = repository.findRef(getRemoteBranchNameFor()) != null;
         isCurrentBranch = getFullName().equals(repository.getFullBranch());
+        isRefAtHead = GitUtils.wrap(repository).isRefAtHead(ref);
 
         // If fullStatus is true get this information
         if(fullStatus) {
@@ -98,6 +104,13 @@ public class BranchInfo {
             getIsRemoteDeleted(repository);
             getRevWalkStatus(repository);
         }
+    }
+    
+    /**
+     * @return True if this BranchInfo has all status info calculated
+     */
+    public boolean getFullStatus() {
+        return hasFullStatus;
     }
     
     public Ref getRef() {
@@ -135,6 +148,13 @@ public class BranchInfo {
 
     public boolean hasRemoteRef() {
         return hasRemoteRef;
+    }
+    
+    /**
+     * @return true if the Ref of this branch is equal to the HEAD position
+     */
+    public boolean isRefAtHead() {
+        return isRefAtHead;
     }
 
     public boolean isCurrentBranch() {

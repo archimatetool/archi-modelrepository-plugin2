@@ -16,7 +16,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
-import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 
@@ -64,15 +63,9 @@ public class SwitchBranchAction extends AbstractModelAction {
         logger.info("Switching branch to: " + branchInfo.getShortName()); //$NON-NLS-1$
         
         // If switched branch Ref == current HEAD Ref (i.e current branch and switched branch are same Ref) just switch branch
-        try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
-            if(utils.isRefAtHead(branchInfo.getRef())) {
-                switchBranch(branchInfo);
-                notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
-                return;
-            }
-        }
-        catch(IOException ex) {
-            logger.log(Level.SEVERE, "Ref at Head", ex); //$NON-NLS-1$
+        if(branchInfo.isRefAtHead()) {
+            switchBranch(branchInfo);
+            notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
             return;
         }
         

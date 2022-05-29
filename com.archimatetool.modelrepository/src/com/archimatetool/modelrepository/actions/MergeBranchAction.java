@@ -18,7 +18,6 @@ import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.merge.MergeHandler;
 import com.archimatetool.modelrepository.merge.MergeHandler.MergeHandlerResult;
 import com.archimatetool.modelrepository.repository.BranchInfo;
-import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 
@@ -139,22 +138,9 @@ public class MergeBranchAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        if(fBranchInfo == null) {
-            return false;
-        }
-        
-        boolean branchRefIsSameAsCurrentRef = true;
-        
-        try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
-            branchRefIsSameAsCurrentRef = utils.isRefAtHead(fBranchInfo.getRef());
-        }
-        catch(IOException ex) {
-            ex.printStackTrace();
-            logger.log(Level.SEVERE, "Get Ref", ex); //$NON-NLS-1$
-        }
-        
-        return fBranchInfo.isLocal()             // Has to be local
-               && !branchRefIsSameAsCurrentRef   // Not same ref
-               && super.shouldBeEnabled();
+        return fBranchInfo != null
+                && fBranchInfo.isLocal()          // Has to be local
+                && !fBranchInfo.isRefAtHead()     // Not same ref as HEAD ref (ie. at the same commit)
+                && super.shouldBeEnabled();
     }
 }

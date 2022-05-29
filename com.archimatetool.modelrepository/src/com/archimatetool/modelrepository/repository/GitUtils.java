@@ -312,7 +312,7 @@ public class GitUtils extends Git {
     }
 
     /**
-     * Return true if the given RevCommit is at HEAD
+     * Return true if the given RevCommit is equal to the HEAD position
      */
     public boolean isCommitAtHead(RevCommit commit) throws IOException {
         ObjectId headID = getRepository().resolve(Constants.HEAD);
@@ -321,7 +321,7 @@ public class GitUtils extends Git {
     }
 
     /**
-     * Return true if the given Ref is at HEAD
+     * Return true if the given Ref is equal to the HEAD position
      */
     public boolean isRefAtHead(Ref ref) throws IOException {
         ObjectId headID = getRepository().resolve(Constants.HEAD);
@@ -329,7 +329,7 @@ public class GitUtils extends Git {
     }
 
     /**
-     * Return true if the remote Ref for the current branch exists and is at HEAD
+     * Return true if the remote Ref for the current branch exists and is equal to the HEAD position
      * 
      * Note that if the remote Ref does not exist (is null) this will return false,
      * so callers might need to check {@link #getRemoteRefForCurrentBranch()} as well.
