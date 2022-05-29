@@ -21,6 +21,7 @@ import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.dialogs.AddBranchDialog;
 import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 
 /**
@@ -40,8 +41,16 @@ public class AddBranchAction extends AbstractModelAction {
     }
 
     public void setBranch(BranchInfo branchInfo) {
-        fBranchInfo = branchInfo;
-        setEnabled(shouldBeEnabled());
+        if(fBranchInfo != branchInfo) {
+            fBranchInfo = branchInfo;
+            setEnabled(shouldBeEnabled());
+        }
+    }
+    
+    @Override
+    public void setRepository(IArchiRepository repository) {
+        fBranchInfo = null;
+        super.setRepository(repository);
     }
     
     @Override
@@ -92,6 +101,6 @@ public class AddBranchAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        return super.shouldBeEnabled() && fBranchInfo != null && fBranchInfo.isCurrentBranch();
+        return fBranchInfo != null && fBranchInfo.isCurrentBranch() && super.shouldBeEnabled();
     }
 }

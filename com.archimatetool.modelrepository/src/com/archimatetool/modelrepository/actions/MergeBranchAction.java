@@ -19,6 +19,7 @@ import com.archimatetool.modelrepository.merge.MergeHandler;
 import com.archimatetool.modelrepository.merge.MergeHandler.MergeHandlerResult;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.GitUtils;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 
 /**
@@ -38,8 +39,16 @@ public class MergeBranchAction extends AbstractModelAction {
     }
 
     public void setBranch(BranchInfo branchInfo) {
-        fBranchInfo = branchInfo;
-        setEnabled(shouldBeEnabled());
+        if(fBranchInfo != branchInfo) {
+            fBranchInfo = branchInfo;
+            setEnabled(shouldBeEnabled());
+        }
+    }
+
+    @Override
+    public void setRepository(IArchiRepository repository) {
+        fBranchInfo = null;
+        super.setRepository(repository);
     }
     
     @Override
@@ -130,21 +139,22 @@ public class MergeBranchAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        boolean branchRefIsSameAsCurrentRef = true;
-        
-        if(fBranchInfo != null) {
-            try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
-                branchRefIsSameAsCurrentRef = utils.isRefAtHead(fBranchInfo.getRef());
-            }
-            catch(IOException ex) {
-                ex.printStackTrace();
-                logger.log(Level.SEVERE, "Get Ref", ex); //$NON-NLS-1$
-            }
+        if(fBranchInfo == null) {
+            return false;
         }
         
-        return fBranchInfo != null
-                && fBranchInfo.isLocal()          // Has to be local
-                && !branchRefIsSameAsCurrentRef   // Not same ref
-                && super.shouldBeEnabled();
+        boolean branchRefIsSameAsCurrentRef = true;
+        
+        try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
+            branchRefIsSameAsCurrentRef = utils.isRefAtHead(fBranchInfo.getRef());
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Get Ref", ex); //$NON-NLS-1$
+        }
+        
+        return fBranchInfo.isLocal()             // Has to be local
+               && !branchRefIsSameAsCurrentRef   // Not same ref
+               && super.shouldBeEnabled();
     }
 }

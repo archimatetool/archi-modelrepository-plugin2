@@ -19,6 +19,7 @@ import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.GitUtils;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryConstants;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
@@ -42,8 +43,16 @@ public class DeleteBranchAction extends AbstractModelAction {
     }
 
     public void setBranch(BranchInfo branchInfo) {
-        fBranchInfo = branchInfo;
-        setEnabled(shouldBeEnabled());
+        if(fBranchInfo != branchInfo) {
+            fBranchInfo = branchInfo;
+            setEnabled(shouldBeEnabled());
+        }
+    }
+
+    @Override
+    public void setRepository(IArchiRepository repository) {
+        fBranchInfo = null;
+        super.setRepository(repository);
     }
 
     @Override
