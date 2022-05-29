@@ -65,6 +65,10 @@ public class GitUtils extends Git {
         return new GitUtils(Git.open(repoFolder).getRepository());
     }
     
+    public static GitUtils wrap(Repository repository) {
+        return new GitUtils(repository);
+    }
+    
     private GitUtils(Repository repository) {
         super(repository);
     }
