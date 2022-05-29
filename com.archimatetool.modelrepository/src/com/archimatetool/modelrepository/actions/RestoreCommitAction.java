@@ -12,9 +12,7 @@ import java.util.logging.Logger;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
@@ -111,18 +109,8 @@ public class RestoreCommitAction extends AbstractModelAction {
         }
         
         try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
-            // Don't restore if the commit is at HEAD
-            if(utils.isCommitAtHead(fCommit)) {
-                return false;
-            }
-            
-            // Or don't restore if the selected commit is not part of the local branch's history
-            try(RevWalk revWalk = new RevWalk(utils.getRepository())) {
-                Ref head = utils.getRepository().exactRef(Constants.HEAD);
-                RevCommit headCommit = revWalk.lookupCommit(head.getObjectId());
-                RevCommit otherCommit = revWalk.lookupCommit(fCommit.getId());
-                return revWalk.isMergedInto(otherCommit, headCommit);
-            }
+            // Commit is not at HEAD and is part of the local branch's history (HEAD)
+            return !utils.isCommitAtHead(fCommit) && utils.isMergedInto(fCommit.getName(), Constants.HEAD);
         }
         catch(IOException ex) {
             ex.printStackTrace();

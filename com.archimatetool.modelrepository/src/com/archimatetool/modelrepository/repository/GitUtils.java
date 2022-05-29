@@ -404,6 +404,26 @@ public class GitUtils extends Git {
     }
     
     /**
+     * Determine if a commit is reachable from another commit.
+     * revStr1 and revStr2 could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
+     * 
+     * @param baseRevStr commit the caller thinks is reachable from tipRevStr
+     * @param tipRevStr  commit to start iteration from, and which is most likely a descendant (child) of baseRevStr
+     * @return if there is a path directly from tipRevStr to baseRevStr (and thus baseRevStr is fully merged into tipRevStr; false otherwise.
+     */
+    public boolean isMergedInto(String baseRevStr, String tipRevStr) throws IOException {
+        try(RevWalk revWalk = new RevWalk(getRepository())) {
+            ObjectId baseID = getRepository().resolve(baseRevStr);
+            RevCommit baseCommit = revWalk.lookupCommit(baseID);
+            
+            ObjectId tipID = getRepository().resolve(tipRevStr);
+            RevCommit tipCommit = revWalk.lookupCommit(tipID);
+            
+            return revWalk.isMergedInto(baseCommit, tipCommit);
+        }
+    }
+    
+    /**
      * Extract the contents of a commit to a folder
      * @param revStr The id of the commit to extract from.
      *               This could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()

@@ -16,11 +16,8 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 
@@ -98,8 +95,8 @@ public class MergeHandler {
 
             // Successful git merge and the model is OK!
 
-            // If FF merge is possible just move HEAD to the target branch ref
-            if(canFastForward(utils.getRepository(), branchToMerge.getFullName())) {
+            // If FF merge is possible (head is reachable from the branch to merge) just move HEAD to the target branch ref
+            if(utils.isMergedInto(Constants.HEAD, branchToMerge.getFullName())) {
                 logger.info("Doing a FastForward merge"); //$NON-NLS-1$
                 utils.resetToRef(branchToMerge.getFullName());
             }
@@ -203,21 +200,6 @@ public class MergeHandler {
         }
         catch(IOException ex) {
             return false;
-        }
-    }
-    
-    /**
-     * Return true if we are able to do a FF merge between HEAD and the branch to merge
-     */
-    private boolean canFastForward(Repository repo, String revStr) throws IOException {
-        try(RevWalk revWalk = new RevWalk(repo)) {
-            Ref head = repo.exactRef(Constants.HEAD);
-            RevCommit headCommit = revWalk.lookupCommit(head.getObjectId());
-            
-            Ref tip = repo.exactRef(revStr);
-            RevCommit tipCommit = revWalk.lookupCommit(tip.getObjectId());
-            
-            return revWalk.isMergedInto(headCommit, tipCommit);
         }
     }
     
