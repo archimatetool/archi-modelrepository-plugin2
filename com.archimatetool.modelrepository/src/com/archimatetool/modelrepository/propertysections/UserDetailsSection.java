@@ -73,7 +73,7 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
         UserText(Composite parent, String field) {
             this.field = field;
             
-            text = createSingleTextControl(parent, SWT.NONE);
+            text = createSingleTextControl(parent, SWT.BORDER);
             
             text.addListener(SWT.DefaultSelection, listener);
             text.addListener(SWT.FocusOut, listener);

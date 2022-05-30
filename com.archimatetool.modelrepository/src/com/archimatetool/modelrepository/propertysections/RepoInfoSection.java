@@ -63,10 +63,10 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         GridDataFactory.create(GridData.FILL_BOTH).span(2, 1).applyTo(group);
         
         createLabel(group, Messages.RepoInfoSection_0, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textFile = createSingleTextControl(group, SWT.READ_ONLY);
+        textFile = createSingleTextControl(group, SWT.READ_ONLY | SWT.BORDER);
 
         createLabel(group, Messages.RepoInfoSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textURL = new UpdatingTextControl(createSingleTextControl(group, SWT.NONE)) {
+        textURL = new UpdatingTextControl(createSingleTextControl(group, SWT.BORDER)) {
             @Override
             protected void textChanged(String newText) {
                 if(fRepository != null) {
@@ -82,7 +82,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         };
         
         createLabel(group, Messages.RepoInfoSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textCurrentBranch = createSingleTextControl(group, SWT.READ_ONLY);
+        textCurrentBranch = createSingleTextControl(group, SWT.READ_ONLY | SWT.BORDER);
     }
 
     @Override

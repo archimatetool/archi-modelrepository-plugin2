@@ -69,7 +69,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         
         // User name
         createLabel(group, Messages.AuthSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textUserName = new UpdatingTextControl(createSingleTextControl(group, SWT.NONE)) {
+        textUserName = new UpdatingTextControl(createSingleTextControl(group, SWT.BORDER)) {
             @Override
             protected void textChanged(String newText) {
                 storeUserName(newText);
@@ -78,7 +78,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         
         // Password
         createLabel(group, Messages.AuthSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textPassword = new UpdatingTextControl(createSingleTextControl(group, SWT.PASSWORD)) {
+        textPassword = new UpdatingTextControl(createSingleTextControl(group, SWT.PASSWORD | SWT.BORDER)) {
             @Override
             protected void textChanged(String newText) {
                 setNotifications(false); // Setting the password might invoke the primary password dialog and cause a focus out event
