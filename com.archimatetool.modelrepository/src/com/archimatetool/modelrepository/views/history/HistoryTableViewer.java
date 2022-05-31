@@ -58,6 +58,7 @@ public class HistoryTableViewer extends TableViewer {
     private Set<RevCommit> unmergedCommits;
     
     private Color unmergedColor = new Color(0, 124, 250);
+    private Color mergedColor = new Color(0, 0, 0);
     
     public HistoryTableViewer(Composite parent) {
         super(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
@@ -82,20 +83,20 @@ public class HistoryTableViewer extends TableViewer {
         TableColumnLayout tableLayout = (TableColumnLayout)parent.getLayout();
         
         TableViewerColumn column = new TableViewerColumn(this, SWT.NONE, 0);
-        column.getColumn().setText(Messages.HistoryTableViewer_0);
-        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
-        
-        column = new TableViewerColumn(this, SWT.NONE, 1);
         column.getColumn().setText(Messages.HistoryTableViewer_1);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(50, false));
 
-        column = new TableViewerColumn(this, SWT.NONE, 2);
+        column = new TableViewerColumn(this, SWT.NONE, 1);
         column.getColumn().setText(Messages.HistoryTableViewer_2);
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
+
+        column = new TableViewerColumn(this, SWT.NONE, 2);
+        column.getColumn().setText(Messages.HistoryTableViewer_3);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
     
         column = new TableViewerColumn(this, SWT.NONE, 3);
-        column.getColumn().setText(Messages.HistoryTableViewer_3);
-        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
+        column.getColumn().setText(Messages.HistoryTableViewer_0);
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
     }
     
     void doSetInput(IArchiRepository archiRepo) {
@@ -281,16 +282,16 @@ public class HistoryTableViewer extends TableViewer {
         public String getColumnText(RevCommit commit, int columnIndex) {
             switch(columnIndex) {
                 case 0:
-                    return commit.getName().substring(0, 8);
-                    
-                case 1:
                     return commit.getShortMessage();
                     
-                case 2:
+                case 1:
                     return commit.getAuthorIdent().getName();
+                    
+                case 2:
+                    return dateFormat.format(new Date(commit.getCommitTime() * 1000L));
                 
                 case 3:
-                    return dateFormat.format(new Date(commit.getCommitTime() * 1000L));
+                    return commit.getName().substring(0, 8);
                     
                 default:
                     return null;
@@ -304,8 +305,8 @@ public class HistoryTableViewer extends TableViewer {
             cell.setForeground(null);
             cell.setText(getColumnText(commit, cell.getColumnIndex()));
             
-            if(cell.getColumnIndex() == 1) {
-                Image image = null;
+            if(cell.getColumnIndex() == 0) {
+                Image image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_BLANK); // Need a blank icon for indent on Mac/Linux
 
                 // Local/Remote are same commit
                 if(commit.equals(fLocalCommit) && commit.equals(fRemoteCommit)) {
@@ -318,11 +319,9 @@ public class HistoryTableViewer extends TableViewer {
                 // Remote commit
                 else if(commit.equals(fRemoteCommit)) {
                     image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_REMOTE);
-                    cell.setForeground(unmergedColor);
                 }
-                // Unmerged commit (part of remote's history)
-                else if(isUnmerged(commit)) {
-                    image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_BLANK); // Need a blank icon for indent
+                
+                if(isUnmerged(commit)) {
                     cell.setForeground(unmergedColor);
                 }
 
@@ -336,12 +335,30 @@ public class HistoryTableViewer extends TableViewer {
             
             // Draw a line denoting a branch for unmerged commits (i.e remote commits)
             RevCommit commit = (RevCommit)element;
-            if(event.index == 1 && !commit.equals(fRemoteCommit) && isUnmerged(commit)) {
-                // Each OS has a different image indent
-                final int imageGap = PlatformUtils.isWindows() ? 8 : PlatformUtils.isMac() ? 11 : 10;
-                event.gc.setForeground(unmergedColor);
-                event.gc.setLineWidth(2);
-                event.gc.drawLine(event.x + imageGap, event.y, event.x + imageGap, event.y + event.height);
+            
+            // Each OS has a different image indent
+            final int imageGap = PlatformUtils.isWindows() ? 8 : PlatformUtils.isMac() ? 11 : 10;
+            final int cWidth = 8;
+            
+            if(event.index == 0) {
+                if(!(commit.equals(fRemoteCommit) || commit.equals(fLocalCommit))) {
+                    event.gc.setAntialias(SWT.ON);
+                    event.gc.setLineWidth(2);
+                    
+                    event.gc.setForeground(isUnmerged(commit) ? unmergedColor : mergedColor);
+                    event.gc.setBackground(isUnmerged(commit) ? unmergedColor : mergedColor);
+                    
+                    // circle
+                    event.gc.drawOval(event.x + imageGap - (cWidth / 2), event.y + (event.height - cWidth) / 2, cWidth, cWidth);
+
+                    // top line
+                    event.gc.drawLine(event.x + imageGap, event.y, event.x + imageGap, event.y + (event.height - cWidth) / 2);
+                    
+                    // bottom line
+                    if(commit.getParentCount() > 0) {
+                        event.gc.drawLine(event.x + imageGap, event.y + (event.height + cWidth) / 2, event.x + imageGap, event.y + event.height);
+                    }
+                }
             }
         }
         
