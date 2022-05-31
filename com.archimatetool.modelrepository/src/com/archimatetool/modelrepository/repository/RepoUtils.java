@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Set;
-import java.util.UUID;
 
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -77,7 +76,7 @@ public class RepoUtils implements IRepositoryConstants {
         File newFolder;
         
         do {
-            newFolder = new File(rootFolder, UUID.randomUUID().toString().split("-")[0]);
+            newFolder = new File(rootFolder, Long.valueOf(System.currentTimeMillis()).toString());
         }
         while(newFolder.exists()); // just in case
         
