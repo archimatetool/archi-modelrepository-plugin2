@@ -369,7 +369,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             if(cell.getElement() instanceof RepositoryRef) {
                 IArchiRepository repo = ((RepositoryRef)cell.getElement()).getArchiRepository();
                 
-                // Local repo was perhaps deleted
+                // Local repo was perhaps deleted or the commit doesn;t contain a model file
                 if(!repo.getModelFile().exists()) {
                     cell.setImage(IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL));
                     cell.setText(Messages.ModelRepositoryTreeViewer_4);
