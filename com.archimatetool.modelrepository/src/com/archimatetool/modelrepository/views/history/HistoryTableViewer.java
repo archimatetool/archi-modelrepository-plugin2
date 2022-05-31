@@ -9,16 +9,18 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.layout.TableColumnLayout;
-import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ILazyContentProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -30,11 +32,14 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 
 import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
+import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -47,8 +52,12 @@ public class HistoryTableViewer extends TableViewer {
     
     private static Logger logger = Logger.getLogger(HistoryTableViewer.class.getName());
     
-    private RevCommit fLocalCommit, fOriginCommit;
+    private RevCommit fLocalCommit, fRemoteCommit;
     private BranchInfo fSelectedBranch;
+    
+    private Set<RevCommit> unmergedCommits;
+    
+    private Color unmergedColor = new Color(0, 124, 250);
     
     public HistoryTableViewer(Composite parent) {
         super(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
@@ -134,6 +143,22 @@ public class HistoryTableViewer extends TableViewer {
     // ===================================== Table Model =============================================
     // ===============================================================================================
     
+    private boolean isUnmerged(RevCommit commit) {
+        return unmergedCommits.contains(commit);
+    }
+    
+    private void addUnmerged(RevCommit commit, Repository repository) throws IOException {
+        if(fRemoteCommit != null && fLocalCommit != null) { // There will only be unmerged (remote) commits if we have a tracked remote branch
+            try(RevWalk walk = new RevWalk(repository)) {
+                RevCommit c1 = walk.lookupCommit(commit.getId());
+                RevCommit c2 = walk.lookupCommit(fLocalCommit.getId());
+                if(!walk.isMergedInto(c1, c2)) {
+                    unmergedCommits.add(commit);
+                }
+            }
+        }
+    }
+    
     /**
      * The Model for the Table
      */
@@ -157,6 +182,8 @@ public class HistoryTableViewer extends TableViewer {
             }
             
             commits = new ArrayList<>();
+            unmergedCommits = new HashSet<>();
+            
             loadCommits((IArchiRepository)newInput, -1);
         }
         
@@ -178,8 +205,8 @@ public class HistoryTableViewer extends TableViewer {
                     // Set the remote branch commit start
                     ObjectId remoteCommitID = repository.resolve(fSelectedBranch.getRemoteBranchNameFor());
                     if(remoteCommitID != null) {
-                        fOriginCommit = revWalk.parseCommit(remoteCommitID);
-                        revWalk.markStart(fOriginCommit);
+                        fRemoteCommit = revWalk.parseCommit(remoteCommitID);
+                        revWalk.markStart(fRemoteCommit);
                     }
 
                     int count = 0;
@@ -194,6 +221,7 @@ public class HistoryTableViewer extends TableViewer {
                             if(count <= PRELOAD_SIZE) {
                                 revWalk.parseBody(commit);
                                 commits.add(commit);
+                                addUnmerged(commit, repository);
                             }
                         }
 
@@ -205,6 +233,7 @@ public class HistoryTableViewer extends TableViewer {
                             if(count >= commits.size()) {  // We've reached the current commit size so add the next one
                                 revWalk.parseBody(commit);
                                 commits.add(commit);
+                                addUnmerged(commit, repository);
                             }
                             
                             if(++count > index + PRELOAD_SIZE - 1) { // Don't load more than PRELOAD_SIZE
@@ -235,8 +264,9 @@ public class HistoryTableViewer extends TableViewer {
         @Override
         public void dispose() {
             commits = null;
+            unmergedCommits = null;
             fLocalCommit = null;
-            fOriginCommit = null;
+            fRemoteCommit = null;
         }
     }
     
@@ -244,7 +274,7 @@ public class HistoryTableViewer extends TableViewer {
 	// ===================================== Label Model =============================================
 	// ===============================================================================================
 
-    private class HistoryLabelProvider extends CellLabelProvider {
+    private class HistoryLabelProvider extends StyledCellLabelProvider {
         
         DateFormat dateFormat = DateFormat.getDateTimeInstance();
         
@@ -269,52 +299,73 @@ public class HistoryTableViewer extends TableViewer {
 
         @Override
         public void update(ViewerCell cell) {
-            if(cell.getElement() instanceof RevCommit) {
-                RevCommit commit = (RevCommit)cell.getElement();
-                
-                cell.setText(getColumnText(commit, cell.getColumnIndex()));
-                
-                if(cell.getColumnIndex() == 1) {
-                    Image image = null;
-                    
-                    if(commit.equals(fLocalCommit) && commit.equals(fOriginCommit)) {
-                        image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_HISTORY_VIEW);
-                    }
-                    else if(commit.equals(fOriginCommit)) {
-                        image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_REMOTE);
-                    }
-                    else if(commit.equals(fLocalCommit)) {
-                        image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_LOCAL);
-                    }
-                    
-                    cell.setImage(image);
+            RevCommit commit = (RevCommit)cell.getElement();
+            
+            cell.setForeground(null);
+            cell.setText(getColumnText(commit, cell.getColumnIndex()));
+            
+            if(cell.getColumnIndex() == 1) {
+                Image image = null;
+
+                // Local/Remote are same commit
+                if(commit.equals(fLocalCommit) && commit.equals(fRemoteCommit)) {
+                    image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_HISTORY_VIEW);
                 }
+                // Local commit
+                else if(commit.equals(fLocalCommit)) {
+                    image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_LOCAL);
+                }
+                // Remote commit
+                else if(commit.equals(fRemoteCommit)) {
+                    image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_REMOTE);
+                    cell.setForeground(unmergedColor);
+                }
+                // Unmerged commit (part of remote's history)
+                else if(isUnmerged(commit)) {
+                    image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_BLANK); // Need a blank icon for indent
+                    cell.setForeground(unmergedColor);
+                }
+
+                cell.setImage(image);
+            }
+        }
+        
+        @Override
+        protected void paint(Event event, Object element) {
+            super.paint(event, element);
+            
+            // Draw a line denoting a branch for unmerged commits (i.e remote commits)
+            RevCommit commit = (RevCommit)element;
+            if(event.index == 1 && !commit.equals(fRemoteCommit) && isUnmerged(commit)) {
+                // Each OS has a different image indent
+                final int imageGap = PlatformUtils.isWindows() ? 8 : PlatformUtils.isMac() ? 11 : 10;
+                event.gc.setForeground(unmergedColor);
+                event.gc.setLineWidth(2);
+                event.gc.drawLine(event.x + imageGap, event.y, event.x + imageGap, event.y + event.height);
             }
         }
         
         @Override
         public String getToolTipText(Object element) {
-            if(element instanceof RevCommit) {
-                RevCommit commit = (RevCommit)element;
-                
-                String s = ""; //$NON-NLS-1$
-                
-                if(commit.equals(fLocalCommit) && commit.equals(fOriginCommit)) {
-                    s += Messages.HistoryTableViewer_4 + " "; //$NON-NLS-1$
-                }
-                else if(commit.equals(fLocalCommit)) {
-                    s += Messages.HistoryTableViewer_5 + " "; //$NON-NLS-1$
-                }
-                else if(commit.equals(fOriginCommit)) {
-                    s += Messages.HistoryTableViewer_6 + " "; //$NON-NLS-1$
-                }
-                
-                s += commit.getShortMessage().trim();
-                
-                return s;
+            RevCommit commit = (RevCommit)element;
+            String s = ""; //$NON-NLS-1$
+
+            // Local/Remote are same commit
+            if(commit.equals(fLocalCommit) && commit.equals(fRemoteCommit)) {
+                s += Messages.HistoryTableViewer_4 + " "; //$NON-NLS-1$
             }
-            
-            return null;
+            // Local commit
+            else if(commit.equals(fLocalCommit)) {
+                s += Messages.HistoryTableViewer_5 + " "; //$NON-NLS-1$
+            }
+            // Remote commit
+            else if(commit.equals(fRemoteCommit)) {
+                s += Messages.HistoryTableViewer_6 + " "; //$NON-NLS-1$
+            }
+
+            s += commit.getShortMessage().trim();
+
+            return s;
         }
     }
 }
