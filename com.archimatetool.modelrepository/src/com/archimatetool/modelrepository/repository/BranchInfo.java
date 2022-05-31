@@ -19,7 +19,6 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.revwalk.RevWalkUtils;
 
 /**
  * BranchInfo
@@ -80,7 +79,7 @@ public class BranchInfo {
      */
     public void refresh() throws IOException, GitAPIException {
         try(Repository repository = Git.open(repoDir).getRepository()) {
-            Ref ref = repository.findRef(getFullName());  // Ref will be a different object with a new Repository instance so renew it
+            Ref ref = repository.exactRef(getFullName());  // Ref will be a different object with a new Repository instance so renew it
             init(repository, ref, true);
         }
     }
@@ -89,12 +88,12 @@ public class BranchInfo {
      * Initialise this BranchInfo from Ref and the Repository
      */
     private void init(Repository repository, Ref ref, boolean fullStatus) throws IOException, GitAPIException {
-        this.ref = ref;
+        this.ref = ref.getTarget(); // Important! Get the target in case it's a symbolic Ref
         
         hasFullStatus = fullStatus;
         
-        hasLocalRef = repository.findRef(getLocalBranchNameFor()) != null;
-        hasRemoteRef = repository.findRef(getRemoteBranchNameFor()) != null;
+        hasLocalRef = repository.exactRef(getLocalBranchNameFor()) != null;
+        hasRemoteRef = repository.exactRef(getRemoteBranchNameFor()) != null;
         isCurrentBranch = getFullName().equals(repository.getFullBranch());
         isRefAtHead = GitUtils.wrap(repository).isRefAtHead(ref);
 
@@ -232,43 +231,28 @@ public class BranchInfo {
      * and whether this branch is merged into another
      */
     private void getRevWalkStatus(Repository repository) throws GitAPIException, IOException {
+        // Get the latest commit for this branch
         try(RevWalk revWalk = new RevWalk(repository)) {
-            // Get the latest commit for this branch
             latestCommit = revWalk.parseCommit(ref.getObjectId());
-
-            // If this is the master branch isMerged is true
-            if(isMainBranch()) {
-                isMerged = true;
-            }
-            // Else this is another branch
-            else {
-                // Get ALL other branch refs
-                List<Ref> otherRefs = Git.wrap(repository).branchList().setListMode(ListMode.ALL).call();
-                otherRefs.remove(ref); // remove this one
-
-                // Don't need this for the general RevWalk
-                revWalk.setRetainBody(false);
-                
-                // In-built method
-                List<Ref> refs = RevWalkUtils.findBranchesReachableFrom(latestCommit, revWalk, otherRefs);
-                isMerged = !refs.isEmpty(); // If there are other reachable branches then this is merged
-
-                /* Another way to do this...
-                for(Ref otherRef : otherRefs) {
-                    // Get the other branch's latest commit
-                    RevCommit otherHead = revWalk.parseCommit(otherRef.getObjectId());
-
-                    // If this head is an ancestor of, or the same as, the other head then this is merged
-                    if(revWalk.isMergedInto(latestCommit, otherHead)) {
-                        isMerged = true;
-                        break;
-                    }
-                }
-                */
-            }
-
-            revWalk.dispose();
-        } // close the RevWalk in all cases
+        }
+        
+        // If this is the master branch isMerged is true
+        if(isMainBranch()) {
+            isMerged = true;
+        }
+        // Else this is another branch...
+        else {
+            // Get ALL other branch refs
+            List<Ref> otherRefs = Git.wrap(repository).branchList()
+                                                      .setContains(ref.getName()) // only the branches that contain this Ref an ancestor are returned
+                                                      .setListMode(ListMode.ALL)  // Remote and Local
+                                                      .call();
+            // Remove this Ref
+            otherRefs.remove(ref);
+            
+            // If there are other reachable branches then this is merged
+            isMerged = !otherRefs.isEmpty();
+        }
     }
     
     private void getCommitStatus(Repository repository) throws IOException {
