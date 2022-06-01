@@ -30,7 +30,7 @@ import com.archimatetool.modelrepository.ModelRepositoryPlugin;
  * @author Phillip Beauvoir
  */
 @SuppressWarnings("nls")
-public class RepoUtils implements IRepositoryConstants {
+public class RepoUtils {
     
     private static Set<String> sshSchemeNames = Set.of("ssh", "ssh+git", "git+ssh");
 
@@ -93,7 +93,7 @@ public class RepoUtils implements IRepositoryConstants {
         }
         
         File gitFolder = new File(folder, ".git");
-        File modelFile = new File(folder, MODEL_FILENAME);
+        File modelFile = new File(folder, RepoConstants.MODEL_FILENAME);
         return gitFolder.isDirectory() && modelFile.exists();
     }
     

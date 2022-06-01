@@ -83,7 +83,7 @@ public class GitUtilsTests {
             List<RemoteConfig> remotes = git.remoteList().call();
             assertEquals(1, remotes.size());
             RemoteConfig config = remotes.get(0);
-            assertEquals(IRepositoryConstants.ORIGIN, config.getName());
+            assertEquals(RepoConstants.ORIGIN, config.getName());
             assertEquals(1, config.getURIs().size());
             assertEquals(url, config.getURIs().get(0).toASCIIString());
         }
@@ -103,7 +103,7 @@ public class GitUtilsTests {
             RemoteConfig config = utils.setRemote(null);
             
             // Returned RemoteConfig will have old values 
-            assertEquals(IRepositoryConstants.ORIGIN, config.getName());
+            assertEquals(RepoConstants.ORIGIN, config.getName());
             assertEquals(1, config.getURIs().size());
             assertEquals(url, config.getURIs().get(0).toASCIIString());
             
@@ -134,7 +134,7 @@ public class GitUtilsTests {
         repo.init();
         
         try(GitUtils utils = GitUtils.open(repoFolder)) {
-            assertEquals(IRepositoryConstants.MAIN, utils.getCurrentLocalBranchName());
+            assertEquals(RepoConstants.MAIN, utils.getCurrentLocalBranchName());
         }
     }
 

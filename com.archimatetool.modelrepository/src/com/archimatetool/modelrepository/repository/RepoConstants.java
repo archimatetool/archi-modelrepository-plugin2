@@ -13,40 +13,40 @@ import org.eclipse.jgit.lib.Constants;
  * @author Phillip Beauvoir
  */
 @SuppressWarnings("nls")
-public interface IRepositoryConstants {
+public final class RepoConstants {
     
     /**
      * Filename for model.archimate file in working folder
      */
-    String MODEL_FILENAME = "model.archimate";
+    public static final String MODEL_FILENAME = "model.archimate";
     
     /**
      * Folder for storing images
      */
-    String IMAGES_FOLDER = "images";
+    public static final String IMAGES_FOLDER = "images";
 
     /**
      * Remote git name, assumed that the repo is called "origin"
      */
-    String ORIGIN = "origin";
+    public static final String ORIGIN = "origin";
 
     /**
      * "main" branch
      */
-    String MAIN = "main";
+    public static final String MAIN = "main";
 
     /**
      * "master" branch
      */
-    String MASTER = "master";
+    public static final String MASTER = "master";
     
     /**
      * Prefix for local branch Refs
      */
-    String LOCAL_PREFIX = Constants.R_HEADS;
+    public static final String LOCAL_PREFIX = Constants.R_HEADS;
     
     /**
      * Prefix for remote branch Refs
      */
-    String REMOTE_PREFIX = Constants.R_REMOTES + IRepositoryConstants.ORIGIN + "/";
+    public static final String REMOTE_PREFIX = Constants.R_REMOTES + ORIGIN + "/";
 }

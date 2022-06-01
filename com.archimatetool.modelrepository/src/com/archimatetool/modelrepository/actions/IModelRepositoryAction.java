@@ -8,14 +8,13 @@ package com.archimatetool.modelrepository.actions;
 import org.eclipse.jface.action.IAction;
 
 import com.archimatetool.modelrepository.repository.IArchiRepository;
-import com.archimatetool.modelrepository.repository.IRepositoryConstants;
 
 /**
  * Interface for Actions
  * 
  * @author Phillip Beauvoir
  */
-public interface IModelRepositoryAction extends IAction, IRepositoryConstants {
+public interface IModelRepositoryAction extends IAction {
 
     /**
      * Set the repository

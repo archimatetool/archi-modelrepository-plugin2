@@ -20,7 +20,7 @@ import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
-import com.archimatetool.modelrepository.repository.IRepositoryConstants;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Checkout a commit and extract the .archimate file from it
@@ -75,7 +75,7 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
             getRepository().extractCommit(fCommit, tempFolder, false);
             
             // If the model file exists, open it
-            File modelFile = new File(tempFolder, IRepositoryConstants.MODEL_FILENAME);
+            File modelFile = new File(tempFolder, RepoConstants.MODEL_FILENAME);
             if(modelFile.exists()) {
                 IArchimateModel model = IEditorModelManager.INSTANCE.openModel(modelFile);
                 if(model != null) {

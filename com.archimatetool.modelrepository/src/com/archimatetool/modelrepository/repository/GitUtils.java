@@ -85,7 +85,7 @@ public class GitUtils extends Git {
     public RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException {
         // Add modified files to index
         add().addFilepattern(".").call();
-        //git.add().addFilepattern(IRepositoryConstants.MODEL_FILENAME).addFilepattern(IRepositoryConstants.IMAGES_FOLDER).call();
+        //git.add().addFilepattern(RepoConstants.MODEL_FILENAME).addFilepattern(RepoConstants.IMAGES_FOLDER).call();
         
         // Add missing (deleted) files to the index
         Status status = status().call();
@@ -244,15 +244,15 @@ public class GitUtils extends Git {
      */
     public String getPrimaryBranch() throws IOException {
         // "main" takes priority
-        if(getRepository().exactRef(IRepositoryConstants.LOCAL_PREFIX + IRepositoryConstants.MAIN) != null
-                || getRepository().exactRef(IRepositoryConstants.REMOTE_PREFIX + IRepositoryConstants.MAIN) != null) {
-            return IRepositoryConstants.MAIN;
+        if(getRepository().exactRef(RepoConstants.LOCAL_PREFIX + RepoConstants.MAIN) != null
+                || getRepository().exactRef(RepoConstants.REMOTE_PREFIX + RepoConstants.MAIN) != null) {
+            return RepoConstants.MAIN;
         }
         
         // then "master"
-        if(getRepository().exactRef(IRepositoryConstants.LOCAL_PREFIX + IRepositoryConstants.MASTER) != null
-                || getRepository().exactRef(IRepositoryConstants.REMOTE_PREFIX + IRepositoryConstants.MASTER) != null) {
-            return IRepositoryConstants.MASTER;
+        if(getRepository().exactRef(RepoConstants.LOCAL_PREFIX + RepoConstants.MASTER) != null
+                || getRepository().exactRef(RepoConstants.REMOTE_PREFIX + RepoConstants.MASTER) != null) {
+            return RepoConstants.MASTER;
         }
         
         // no primary branch
@@ -280,7 +280,7 @@ public class GitUtils extends Git {
         pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         RefSpec refSpec = new RefSpec(":" + branchName);
         pushCommand.setRefSpecs(refSpec);
-        pushCommand.setRemote(IRepositoryConstants.ORIGIN);
+        pushCommand.setRemote(RepoConstants.ORIGIN);
         pushCommand.setProgressMonitor(monitor);
         return pushCommand.call();
     }
@@ -293,11 +293,11 @@ public class GitUtils extends Git {
         RemoteConfig config;
         
         // Remove existing remote
-        config = remoteRemove().setRemoteName(IRepositoryConstants.ORIGIN).call();
+        config = remoteRemove().setRemoteName(RepoConstants.ORIGIN).call();
         
         // Add new one
         if(StringUtils.isSetAfterTrim(URL)) {
-            config = remoteAdd().setName(IRepositoryConstants.ORIGIN).setUri(new URIish(URL)).call();
+            config = remoteAdd().setName(RepoConstants.ORIGIN).setUri(new URIish(URL)).call();
         }
         
         return config;
@@ -374,7 +374,7 @@ public class GitUtils extends Git {
      * This does not mean that the remote Ref exists. For that, call {@link #getRemoteRefForCurrentBranch()}
      */
     public String getRemoteRefNameForCurrentBranch() throws IOException {
-        return IRepositoryConstants.ORIGIN + "/" + getRepository().getBranch();
+        return RepoConstants.ORIGIN + "/" + getRepository().getBranch();
     }
     
     /**
@@ -579,8 +579,8 @@ public class GitUtils extends Git {
         
         StoredConfig config = getRepository().getConfig();
         
-        if(!IRepositoryConstants.ORIGIN.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
-            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, IRepositoryConstants.ORIGIN);
+        if(!RepoConstants.ORIGIN.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
+            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, RepoConstants.ORIGIN);
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
             config.save();
         }

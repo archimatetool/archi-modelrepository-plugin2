@@ -29,7 +29,7 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
-import com.archimatetool.modelrepository.repository.IRepositoryConstants;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Handle merging of branches
@@ -222,7 +222,7 @@ public class MergeHandler {
             utils.extractCommit(revStr, tempFolder, false);
             
             // Load it
-            File modelFile = new File(tempFolder, IRepositoryConstants.MODEL_FILENAME);
+            File modelFile = new File(tempFolder, RepoConstants.MODEL_FILENAME);
             return modelFile.exists() ? IEditorModelManager.INSTANCE.load(modelFile) : null;
         }
         finally {

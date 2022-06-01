@@ -61,7 +61,7 @@ public class BranchInfo {
      */
     public static BranchInfo currentRemoteBranchInfo(File repoDir, boolean fullStatus) throws IOException, GitAPIException {
         try(Repository repository = Git.open(repoDir).getRepository()) {
-            Ref remoteRef = repository.exactRef(IRepositoryConstants.REMOTE_PREFIX + repository.getBranch());
+            Ref remoteRef = repository.exactRef(RepoConstants.REMOTE_PREFIX + repository.getBranch());
             return remoteRef != null ? new BranchInfo(repository, remoteRef.getTarget(), fullStatus) : null;
         }
     }
@@ -121,22 +121,22 @@ public class BranchInfo {
     public String getShortName() {
         String branchName = getFullName();
         
-        if(branchName.startsWith(IRepositoryConstants.LOCAL_PREFIX)) {
-            return branchName.substring(IRepositoryConstants.LOCAL_PREFIX.length());
+        if(branchName.startsWith(RepoConstants.LOCAL_PREFIX)) {
+            return branchName.substring(RepoConstants.LOCAL_PREFIX.length());
         }
-        if(branchName.startsWith(IRepositoryConstants.REMOTE_PREFIX)) {
-            return branchName.substring(IRepositoryConstants.REMOTE_PREFIX.length());
+        if(branchName.startsWith(RepoConstants.REMOTE_PREFIX)) {
+            return branchName.substring(RepoConstants.REMOTE_PREFIX.length());
         }
         
         return branchName;
     }
     
     public boolean isLocal() {
-        return getFullName().startsWith(IRepositoryConstants.LOCAL_PREFIX);
+        return getFullName().startsWith(RepoConstants.LOCAL_PREFIX);
     }
 
     public boolean isRemote() {
-        return getFullName().startsWith(IRepositoryConstants.REMOTE_PREFIX);
+        return getFullName().startsWith(RepoConstants.REMOTE_PREFIX);
     }
 
     public boolean hasLocalRef() {
@@ -159,11 +159,11 @@ public class BranchInfo {
     }
     
     public String getRemoteBranchNameFor() {
-        return IRepositoryConstants.REMOTE_PREFIX + getShortName();
+        return RepoConstants.REMOTE_PREFIX + getShortName();
     }
     
     public String getLocalBranchNameFor() {
-        return IRepositoryConstants.LOCAL_PREFIX + getShortName();
+        return RepoConstants.LOCAL_PREFIX + getShortName();
     }
     
     @Override
@@ -179,7 +179,7 @@ public class BranchInfo {
     
     public boolean isPrimaryBranch() {
         // If this is "main" then return true
-        if(IRepositoryConstants.MAIN.equals(getShortName())) {
+        if(RepoConstants.MAIN.equals(getShortName())) {
             return true;
         }
 
@@ -208,8 +208,8 @@ public class BranchInfo {
     
     private void getIsPrimaryBranch(Repository repository) throws IOException {
         // If this is "master" then determine it it is the primary branch
-        if(IRepositoryConstants.MASTER.equals(getShortName())) {
-            isPrimaryBranch = IRepositoryConstants.MASTER.equals(GitUtils.wrap(repository).getPrimaryBranch());
+        if(RepoConstants.MASTER.equals(getShortName())) {
+            isPrimaryBranch = RepoConstants.MASTER.equals(GitUtils.wrap(repository).getPrimaryBranch());
         }
     }
     

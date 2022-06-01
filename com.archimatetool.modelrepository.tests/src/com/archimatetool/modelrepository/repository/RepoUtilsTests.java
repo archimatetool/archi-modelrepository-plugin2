@@ -101,7 +101,7 @@ public class RepoUtilsTests {
         File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
         File gitFolder = new File(tmpFolder, ".git");
         gitFolder.mkdirs();
-        new File(tmpFolder, IRepositoryConstants.MODEL_FILENAME).createNewFile();
+        new File(tmpFolder, RepoConstants.MODEL_FILENAME).createNewFile();
         
         assertTrue(RepoUtils.isArchiGitRepository(tmpFolder));
     }
@@ -113,7 +113,7 @@ public class RepoUtilsTests {
         gitFolder.mkdirs();
         
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
-        File modelFile = new File(tmpFolder, IRepositoryConstants.MODEL_FILENAME);
+        File modelFile = new File(tmpFolder, RepoConstants.MODEL_FILENAME);
         modelFile.createNewFile();
         model.setFile(modelFile);
         assertTrue(RepoUtils.isModelInArchiRepository(model));
@@ -126,7 +126,7 @@ public class RepoUtilsTests {
         gitFolder.mkdirs();
         
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
-        File modelFile = new File(tmpFolder, IRepositoryConstants.MODEL_FILENAME);
+        File modelFile = new File(tmpFolder, RepoConstants.MODEL_FILENAME);
         modelFile.createNewFile();
         model.setFile(modelFile);
         assertEquals(tmpFolder, RepoUtils.getWorkingFolderForModel(model));
@@ -137,7 +137,7 @@ public class RepoUtilsTests {
         File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
         
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
-        File modelFile = new File(tmpFolder, IRepositoryConstants.MODEL_FILENAME);
+        File modelFile = new File(tmpFolder, RepoConstants.MODEL_FILENAME);
         model.setFile(modelFile);
         assertNull(RepoUtils.getWorkingFolderForModel(model));
     }

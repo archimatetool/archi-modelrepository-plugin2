@@ -52,7 +52,7 @@ public class ArchiRepositoryTests {
         try(Git git = Git.open(repoFolder)) {
             assertEquals(repoFolder, git.getRepository().getWorkTree());
             assertFalse(git.getRepository().isBare());
-            assertEquals(IRepositoryConstants.MAIN, git.getRepository().getBranch());
+            assertEquals(RepoConstants.MAIN, git.getRepository().getBranch());
         }
     }
     
@@ -73,7 +73,7 @@ public class ArchiRepositoryTests {
     @Test
     public void getName() throws IOException {
         File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
-        File modelFile = new File(tmpFolder, IRepositoryConstants.MODEL_FILENAME);
+        File modelFile = new File(tmpFolder, RepoConstants.MODEL_FILENAME);
         
         IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
         model.setName("Test Model");
@@ -94,7 +94,7 @@ public class ArchiRepositoryTests {
     public void getModelFile() {
         File repoFolder = new File("/temp/folder");
         IArchiRepository repo = new ArchiRepository(repoFolder);
-        assertEquals(new File(repoFolder, IRepositoryConstants.MODEL_FILENAME), repo.getModelFile());
+        assertEquals(new File(repoFolder, RepoConstants.MODEL_FILENAME), repo.getModelFile());
     }
     
     @Test

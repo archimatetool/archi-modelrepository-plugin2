@@ -58,7 +58,7 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public void init() throws GitAPIException, IOException {
         // Init
-        try(Git git = Git.init().setInitialBranch(IRepositoryConstants.MAIN).setDirectory(getWorkingFolder()).call()) {
+        try(Git git = Git.init().setInitialBranch(RepoConstants.MAIN).setDirectory(getWorkingFolder()).call()) {
             // Config Defaults
             setDefaultConfigSettings(git.getRepository());
             
@@ -193,7 +193,7 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public File getModelFile() {
-        return new File(getWorkingFolder(), IRepositoryConstants.MODEL_FILENAME);
+        return new File(getWorkingFolder(), RepoConstants.MODEL_FILENAME);
     }
     
     @Override
