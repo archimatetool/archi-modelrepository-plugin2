@@ -61,16 +61,19 @@ import com.archimatetool.modelrepository.authentication.UsernamePassword;
 @SuppressWarnings("nls")
 public class GitUtils extends Git {
     
+    private final boolean closeRepo;
+    
     public static GitUtils open(File repoFolder) throws IOException {
-        return new GitUtils(Git.open(repoFolder).getRepository());
+        return new GitUtils(Git.open(repoFolder).getRepository(), true);
     }
     
     public static GitUtils wrap(Repository repository) {
-        return new GitUtils(repository);
+        return new GitUtils(repository, false);
     }
     
-    private GitUtils(Repository repository) {
+    private GitUtils(Repository repository, boolean closeRepo) {
         super(repository);
+        this.closeRepo = closeRepo;
     }
 
     /**
@@ -538,7 +541,12 @@ public class GitUtils extends Git {
     @Override
     public void close() {
         // we have to close the repository
-        getRepository().close();
+        if(closeRepo) {
+            getRepository().close();
+        }
+        else {
+            new Error("Closing GitUtils is not necessary.").printStackTrace();
+        }
     }
     
     /**
