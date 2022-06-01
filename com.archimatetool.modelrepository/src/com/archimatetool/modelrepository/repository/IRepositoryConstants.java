@@ -5,6 +5,7 @@
  */
 package com.archimatetool.modelrepository.repository;
 
+import org.eclipse.jgit.lib.Constants;
 
 /**
  * Repository Constants
@@ -30,7 +31,22 @@ public interface IRepositoryConstants {
     String ORIGIN = "origin";
 
     /**
-     * Main branch
+     * "main" branch
      */
     String MAIN = "main";
+
+    /**
+     * "master" branch
+     */
+    String MASTER = "master";
+    
+    /**
+     * Prefix for local branch Refs
+     */
+    String LOCAL_PREFIX = Constants.R_HEADS;
+    
+    /**
+     * Prefix for remote branch Refs
+     */
+    String REMOTE_PREFIX = Constants.R_REMOTES + IRepositoryConstants.ORIGIN + "/";
 }

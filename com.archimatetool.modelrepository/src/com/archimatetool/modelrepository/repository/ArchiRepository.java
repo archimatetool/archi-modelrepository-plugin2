@@ -18,8 +18,10 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -79,6 +81,16 @@ public class ArchiRepository implements IArchiRepository {
             
             // Exclude file
             createExcludeFile();
+            
+            // If this is an empty repository, ensure that we have HEAD pointing to "main"
+            Ref refHead = git.getRepository().exactRef(Constants.HEAD); // What's HEAD referencing?
+            // This is an empty repo because HEAD file points to an unborn branch
+            if(refHead != null && refHead.getTarget().getObjectId() == null) {
+                // So write this ref to the HEAD file
+                String ref = "ref: refs/heads/main";
+                File headFile = new File(getGitFolder(), "HEAD");
+                Files.write(headFile.toPath(), ref.getBytes());
+            }
         }
     }
 

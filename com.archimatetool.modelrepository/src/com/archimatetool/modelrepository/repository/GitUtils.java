@@ -240,6 +240,26 @@ public class GitUtils extends Git {
     }
     
     /**
+     * @return The primary branch, either "main" or "master" or null if either of these are not present
+     */
+    public String getPrimaryBranch() throws IOException {
+        // "main" takes priority
+        if(getRepository().exactRef(IRepositoryConstants.LOCAL_PREFIX + IRepositoryConstants.MAIN) != null
+                || getRepository().exactRef(IRepositoryConstants.REMOTE_PREFIX + IRepositoryConstants.MAIN) != null) {
+            return IRepositoryConstants.MAIN;
+        }
+        
+        // then "master"
+        if(getRepository().exactRef(IRepositoryConstants.LOCAL_PREFIX + IRepositoryConstants.MASTER) != null
+                || getRepository().exactRef(IRepositoryConstants.REMOTE_PREFIX + IRepositoryConstants.MASTER) != null) {
+            return IRepositoryConstants.MASTER;
+        }
+        
+        // no primary branch
+        return null;
+    }
+    
+    /**
      * Delete branches
      * @param force if false a check will be performed whether the branch to be deleted
      *              is already merged into the current branch and deletion will be refused if not merged

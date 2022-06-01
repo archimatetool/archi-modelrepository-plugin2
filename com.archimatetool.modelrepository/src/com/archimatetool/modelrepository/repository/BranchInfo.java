@@ -25,12 +25,8 @@ import org.eclipse.jgit.revwalk.RevWalk;
  * 
  * @author Phillip Beauvoir
  */
-@SuppressWarnings("nls")
 public class BranchInfo {
     
-    private final static String LOCAL_PREFIX = Constants.R_HEADS;
-    private final static String REMOTE_PREFIX = Constants.R_REMOTES + IRepositoryConstants.ORIGIN + "/";
-
     private Ref ref;
     
     private boolean isRemoteDeleted;
@@ -41,6 +37,7 @@ public class BranchInfo {
     private boolean hasUnpushedCommits;
     private boolean hasRemoteCommits;
     private boolean isMerged;
+    private boolean isPrimaryBranch;
     
     private RevCommit latestCommit;
     
@@ -64,7 +61,7 @@ public class BranchInfo {
      */
     public static BranchInfo currentRemoteBranchInfo(File repoDir, boolean fullStatus) throws IOException, GitAPIException {
         try(Repository repository = Git.open(repoDir).getRepository()) {
-            Ref remoteRef = repository.exactRef(REMOTE_PREFIX + repository.getBranch());
+            Ref remoteRef = repository.exactRef(IRepositoryConstants.REMOTE_PREFIX + repository.getBranch());
             return remoteRef != null ? new BranchInfo(repository, remoteRef.getTarget(), fullStatus) : null;
         }
     }
@@ -99,6 +96,7 @@ public class BranchInfo {
 
         // If fullStatus is true get this information
         if(fullStatus) {
+            getIsPrimaryBranch(repository);
             getCommitStatus(repository);
             getIsRemoteDeleted(repository);
             getRevWalkStatus(repository);
@@ -123,22 +121,22 @@ public class BranchInfo {
     public String getShortName() {
         String branchName = getFullName();
         
-        if(branchName.startsWith(LOCAL_PREFIX)) {
-            return branchName.substring(LOCAL_PREFIX.length());
+        if(branchName.startsWith(IRepositoryConstants.LOCAL_PREFIX)) {
+            return branchName.substring(IRepositoryConstants.LOCAL_PREFIX.length());
         }
-        if(branchName.startsWith(REMOTE_PREFIX)) {
-            return branchName.substring(REMOTE_PREFIX.length());
+        if(branchName.startsWith(IRepositoryConstants.REMOTE_PREFIX)) {
+            return branchName.substring(IRepositoryConstants.REMOTE_PREFIX.length());
         }
         
         return branchName;
     }
     
     public boolean isLocal() {
-        return getFullName().startsWith(LOCAL_PREFIX);
+        return getFullName().startsWith(IRepositoryConstants.LOCAL_PREFIX);
     }
 
     public boolean isRemote() {
-        return getFullName().startsWith(REMOTE_PREFIX);
+        return getFullName().startsWith(IRepositoryConstants.REMOTE_PREFIX);
     }
 
     public boolean hasLocalRef() {
@@ -161,15 +159,11 @@ public class BranchInfo {
     }
     
     public String getRemoteBranchNameFor() {
-        return REMOTE_PREFIX + getShortName();
+        return IRepositoryConstants.REMOTE_PREFIX + getShortName();
     }
     
     public String getLocalBranchNameFor() {
-        return LOCAL_PREFIX + getShortName();
-    }
-    
-    public boolean isMainBranch() {
-        return IRepositoryConstants.MAIN.equals(getShortName());
+        return IRepositoryConstants.LOCAL_PREFIX + getShortName();
     }
     
     @Override
@@ -182,6 +176,15 @@ public class BranchInfo {
     // ======================================================================================
     // These status methods are a little expensive so are only called when fullStatus is true
     // ======================================================================================
+    
+    public boolean isPrimaryBranch() {
+        // If this is "main" then return true
+        if(IRepositoryConstants.MAIN.equals(getShortName())) {
+            return true;
+        }
+
+        return isPrimaryBranch;
+    }
     
     public RevCommit getLatestCommit() {
         return latestCommit;
@@ -202,7 +205,14 @@ public class BranchInfo {
     public boolean hasUnpushedCommits() {
         return hasUnpushedCommits;
     }
-
+    
+    private void getIsPrimaryBranch(Repository repository) throws IOException {
+        // If this is "master" then determine it it is the primary branch
+        if(IRepositoryConstants.MASTER.equals(getShortName())) {
+            isPrimaryBranch = IRepositoryConstants.MASTER.equals(GitUtils.wrap(repository).getPrimaryBranch());
+        }
+    }
+    
     /*
      * Figure out whether the remote branch has been deleted
      * 1. We have a local branch ref
@@ -236,8 +246,8 @@ public class BranchInfo {
             latestCommit = revWalk.parseCommit(ref.getObjectId());
         }
         
-        // If this is the master branch isMerged is true
-        if(isMainBranch()) {
+        // If this is the primary branch isMerged is true
+        if(isPrimaryBranch()) {
             isMerged = true;
         }
         // Else this is another branch...
