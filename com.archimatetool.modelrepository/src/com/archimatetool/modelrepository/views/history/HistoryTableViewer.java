@@ -37,6 +37,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 
+import com.archimatetool.editor.ui.ThemeUtils;
 import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.editor.utils.PlatformUtils;
@@ -58,7 +59,7 @@ public class HistoryTableViewer extends TableViewer {
     private Set<RevCommit> unmergedCommits;
     
     private Color unmergedColor = new Color(0, 124, 250);
-    private Color mergedColor = new Color(0, 0, 0);
+    private Color mergedColor = ThemeUtils.isDarkTheme() ? new Color(250, 250, 250) : new Color(0, 0, 0);
     
     public HistoryTableViewer(Composite parent) {
         super(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
