@@ -15,7 +15,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
-import com.archimatetool.modelrepository.repository.IRepositoryListener;
 
 /**
  * Commit Model Action
@@ -60,9 +59,7 @@ public class CommitModelAction extends AbstractModelAction {
         
         try {
             if(getRepository().hasChangesToCommit()) {
-                if(commitChanges()) {
-                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-                }
+                commitChanges();
             }
             else {
                 MessageDialog.openInformation(fWindow.getShell(),

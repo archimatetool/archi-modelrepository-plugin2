@@ -188,14 +188,7 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
                 // Yes
                 else if(response == SWT.YES) {
                     // Commit Dialog
-                    boolean didCommit = commitChanges();
-                    if(didCommit) {
-                        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-                    }
-                    // Commit Dialog cancel
-                    else {
-                        return false;
-                    }
+                    return commitChanges();
                 }
                 // No. Discard changes by resetting to HEAD before merging
                 else if(response == SWT.NO) {
@@ -234,6 +227,9 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
                 logger.log(Level.SEVERE, "Commit Exception", ex); //$NON-NLS-1$
                 displayErrorDialog(Messages.AbstractModelAction_3, ex);
                 return false;
+            }
+            finally {
+                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
             }
             
             return true;
