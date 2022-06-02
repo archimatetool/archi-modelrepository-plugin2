@@ -177,12 +177,19 @@ public class GitUtils extends Git {
     /**
      * Fetch from Remote
      */
-    public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws GitAPIException {
+    public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws GitAPIException, IOException {
         FetchCommand fetchCommand = fetch();
         fetchCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         fetchCommand.setProgressMonitor(monitor);
         fetchCommand.setDryRun(isDryrun);
-        return fetchCommand.call();
+        FetchResult fetchResult = fetchCommand.call();
+        
+        // Ensure that the current branch is tracking its remote (if there is one) in case the remote ref was deleted and is fetched again
+        if(fetchResult.getTrackingRefUpdate(RepoConstants.REMOTE_PREFIX + getRepository().getBranch()) != null) {
+            setTrackedBranch(getRepository().getBranch());
+        }
+        
+        return fetchResult;
     }
     
     /**
