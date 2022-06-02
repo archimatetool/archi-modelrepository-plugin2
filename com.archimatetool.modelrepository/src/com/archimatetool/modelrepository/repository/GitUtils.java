@@ -16,8 +16,6 @@ import java.util.List;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
@@ -161,17 +159,6 @@ public class GitUtils extends Git {
             
         
         return sb.length() > 1 ?  sb.toString() : null; // 1 character == "\n"
-    }
-    
-    /**
-     * Pull from Remote
-     */
-    public PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException {
-        PullCommand pullCommand = pull();
-        pullCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
-        pullCommand.setRebase(false); // Merge, not rebase
-        pullCommand.setProgressMonitor(monitor);
-        return pullCommand.call();
     }
     
     /**

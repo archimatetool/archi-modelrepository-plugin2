@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
@@ -52,11 +51,6 @@ public interface IArchiRepository {
      *         As we're only pushing to one remote URI there should only be one PushResult
      */
     PushResult pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException;
-
-    /**
-     * Pull from Remote
-     */
-    PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException;
 
     /**
      * Set the default "origin" remote to the given URL

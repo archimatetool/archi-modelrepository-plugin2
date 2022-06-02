@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
@@ -115,13 +114,6 @@ public class ArchiRepository implements IArchiRepository {
         }
     }
     
-    @Override
-    public PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.pullFromRemote(npw, monitor);
-        }
-    }
-
     @Override
     public RemoteConfig setRemote(String URL) throws IOException, GitAPIException, URISyntaxException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
