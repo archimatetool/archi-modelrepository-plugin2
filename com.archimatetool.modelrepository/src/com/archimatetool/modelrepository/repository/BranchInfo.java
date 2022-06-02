@@ -222,6 +222,7 @@ public class BranchInfo {
     private void getIsRemoteDeleted(Repository repository) throws IOException {
         if(isRemote()) {
             isRemoteDeleted = false;
+            return;
         }
         
         // Is it being tracked?
