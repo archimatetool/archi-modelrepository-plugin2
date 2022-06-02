@@ -229,7 +229,7 @@ public class BranchInfo {
         boolean isBeingTracked = branchConfig.getRemoteTrackingBranch() != null;
         
         // Does it have a remote ref?
-        boolean hasNoRemoteBranchFor = repository.findRef(getRemoteBranchNameFor()) == null;
+        boolean hasNoRemoteBranchFor = repository.exactRef(getRemoteBranchNameFor()) == null;
         
         // Is being tracked but no remote ref
         isRemoteDeleted = isBeingTracked && hasNoRemoteBranchFor;
