@@ -14,7 +14,8 @@ package com.archimatetool.modelrepository.repository;
 @SuppressWarnings("nls")
 public interface IRepositoryListener {
     
-    String REPOSITORY_CHANGED = "repository_changed";
+    String MODEL_SAVED = "model_saved";
+    String MODEL_RENAMED = "model_renamed";
     String REPOSITORY_DELETED = "repository_deleted";
     String HISTORY_CHANGED = "history_changed";
     String BRANCHES_CHANGED = "branches_changed";

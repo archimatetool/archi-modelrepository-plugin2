@@ -63,15 +63,15 @@ public class RepositoryListenerManager {
      * EditorModelManager Property Change listener
      */
     private void modelPropertyChanged(PropertyChangeEvent evt) {
-        // Notify on Save
+        // Notify on Save because status will change that a commit is needed
         if(evt.getPropertyName().equals(IEditorModelManager.PROPERTY_MODEL_SAVED)) {
-            notifyModelChanged((IArchimateModel)evt.getNewValue());
+            notifyModelChanged((IArchimateModel)evt.getNewValue(), IRepositoryListener.MODEL_SAVED);
         }
         // Notify on model name change
         else if(evt.getPropertyName().equals(IEditorModelManager.PROPERTY_ECORE_EVENT)) {
             Notification msg = (Notification)evt.getNewValue();
             if(msg.getNotifier() instanceof IArchimateModel && msg.getFeature() == IArchimatePackage.Literals.NAMEABLE__NAME) {
-                notifyModelChanged((IArchimateModel)msg.getNotifier());
+                notifyModelChanged((IArchimateModel)msg.getNotifier(), IRepositoryListener.MODEL_RENAMED);
             }
         }
     }
@@ -79,11 +79,11 @@ public class RepositoryListenerManager {
     /**
      * If model changed and is in a repo, send notification
      */
-    private void notifyModelChanged(IArchimateModel model) {
+    private void notifyModelChanged(IArchimateModel model, String eventName) {
         File repoFolder = RepoUtils.getWorkingFolderForModel(model);
         if(repoFolder != null) {
             IArchiRepository repo = new ArchiRepository(repoFolder);
-            fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);
+            fireRepositoryChangedEvent(eventName, repo);
         }
     }
 }

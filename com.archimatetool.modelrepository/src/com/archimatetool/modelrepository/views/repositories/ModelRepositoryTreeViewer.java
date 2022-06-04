@@ -197,7 +197,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
         switch(eventName) {
-            case IRepositoryListener.REPOSITORY_CHANGED:
+            case IRepositoryListener.MODEL_RENAMED:
+            case IRepositoryListener.MODEL_SAVED:
             case IRepositoryListener.BRANCHES_CHANGED:
             case IRepositoryListener.HISTORY_CHANGED:
                 RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(repository.getWorkingFolder());

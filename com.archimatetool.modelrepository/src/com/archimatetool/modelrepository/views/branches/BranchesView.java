@@ -284,7 +284,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     fSelectedRepository = null; // Reset this
                     break;
                     
-                case IRepositoryListener.REPOSITORY_CHANGED:
+                case IRepositoryListener.MODEL_RENAMED:
                     fRepoLabel.setText(Messages.BranchesView_0 + " " + repository.getName()); //$NON-NLS-1$
                     break;
 
