@@ -190,7 +190,7 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
                     // Commit Dialog
                     return commitChanges();
                 }
-                // No. Discard changes by resetting to HEAD before merging
+                // No. Discard changes by resetting to HEAD
                 else if(response == SWT.NO) {
                     logger.info("Resetting to HEAD"); //$NON-NLS-1$
                     getRepository().resetToRef(Constants.HEAD);
@@ -200,7 +200,6 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
         catch(IOException | GitAPIException ex) {
             logger.log(Level.SEVERE, "Commit Changes", ex); //$NON-NLS-1$
             ex.printStackTrace();
-            closeModel(false); // Safety precaution
             return false;
         }
         

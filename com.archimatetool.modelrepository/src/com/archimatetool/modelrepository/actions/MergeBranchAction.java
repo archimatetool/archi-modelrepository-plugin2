@@ -105,7 +105,6 @@ public class MergeBranchAction extends AbstractModelAction {
             mergeHandlerResult = MergeHandler.getInstance().merge(getRepository(), branchToMerge);
         }
         catch(IOException | GitAPIException ex) {
-            closeModel(false); // Safety precaution
             logger.log(Level.SEVERE, "Merge", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.MergeBranchAction_1, ex);
         }

@@ -97,7 +97,6 @@ public class RefreshModelAction extends AbstractModelAction {
                 MessageDialog.openWarning(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_1);
             }
             else {
-                closeModel(false); // Safety precaution
                 displayErrorDialog(Messages.RefreshModelAction_0, ex);
                 logger.log(Level.SEVERE, "Fetch", ex); //$NON-NLS-1$
             }
@@ -129,7 +128,6 @@ public class RefreshModelAction extends AbstractModelAction {
             mergeHandlerResult = MergeHandler.getInstance().merge(getRepository(), remoteBranchInfo);
         }
         catch(IOException | GitAPIException ex) {
-            closeModel(false); // Safety precaution
             logger.log(Level.SEVERE, "Merge", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.RefreshModelAction_0, ex);
             return;
