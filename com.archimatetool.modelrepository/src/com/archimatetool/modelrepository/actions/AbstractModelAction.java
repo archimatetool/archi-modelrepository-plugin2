@@ -194,6 +194,9 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
                 else if(response == SWT.NO) {
                     logger.info("Resetting to HEAD"); //$NON-NLS-1$
                     getRepository().resetToRef(Constants.HEAD);
+                    // Close and re-open the reset model
+                    OpenModelState modelState = closeModel(false);
+                    restoreModel(modelState);
                 }
             }
         }
