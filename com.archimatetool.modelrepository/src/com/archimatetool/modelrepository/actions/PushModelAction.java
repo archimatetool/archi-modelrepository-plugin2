@@ -53,23 +53,13 @@ public class PushModelAction extends AbstractModelAction {
             return;
         }
         
-        // TODO: Pull and resolve any merge conflicts first
+        // TODO: Refresh (fetch) and resolve any merge conflicts first
         
-        // Check that there is a repository URL set
+        // TODO: This (and model dirty/needs committing) should be done in Refresh (fetch)
         if(!checkRemoteSet()) {
             return;
         }
         
-        // Check if the model is open and needs saving
-        if(!checkModelNeedsSaving()) {
-            return;
-        }
-
-        // Check if there are uncommitted changes
-        if(!checkIfCommitNeeded()) {
-            return;
-        }
-
         // Get credentials if HTTP
         UsernamePassword npw = null;
         try {
