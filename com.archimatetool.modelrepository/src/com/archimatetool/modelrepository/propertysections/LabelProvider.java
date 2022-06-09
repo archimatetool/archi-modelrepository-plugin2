@@ -28,6 +28,6 @@ public class LabelProvider implements IArchiLabelProvider {
             return ((IModelRepositoryTreeEntry)element).getName();
         }
         
-        return " "; //$NON-NLS-1$
+        return null;
     }
 }
