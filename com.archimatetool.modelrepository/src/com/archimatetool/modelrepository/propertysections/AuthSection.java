@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -20,10 +21,13 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.authentication.CredentialsStorage;
+import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
@@ -100,9 +104,6 @@ public class AuthSection extends AbstractArchiPropertySection {
 //                }
             }
         });
-        
-        // TODO: Remove this
-        enableControls(false);
     }
     
     @Override
@@ -122,15 +123,13 @@ public class AuthSection extends AbstractArchiPropertySection {
         }
 
         if(fRepository != null) {
-            // TODO: enable this
-            // updateControls();
+            updateControls();
         }
         else {
             System.err.println(getClass() + " failed to get element for " + selection.getFirstElement()); //$NON-NLS-1$
         }
     }
     
-    @SuppressWarnings("unused") // TODO: Remove this
     private void updateControls() {
         textUserName.setText(""); //$NON-NLS-1$
         textPassword.setText(""); //$NON-NLS-1$
@@ -152,19 +151,40 @@ public class AuthSection extends AbstractArchiPropertySection {
         textPassword.setEnabled(isHTTP);
         prefsButton.setEnabled(!isHTTP);
 
-        // TODO:
         // HTTP so show credentials
         if(isHTTP) {
+            try {
+                UsernamePassword npw = CredentialsStorage.getInstance().getCredentials(fRepository);
+                if(npw != null) {
+                    textUserName.setText(npw.getUsername());
 
+                    if(npw.getPassword() != null && npw.getPassword().length > 0) {
+                        textPassword.setText("********"); //$NON-NLS-1$
+                    }
+                }
+            }
+            catch(IOException ex) {
+                showError(ex);
+            }
         }
     }
     
     private void storeUserName(String userName) {
-        // TODO:
+        try {
+            CredentialsStorage.getInstance().storeUserName(fRepository, userName);
+        }
+        catch(IOException ex) {
+            showError(ex);
+        }
     }
     
     private void storePassword(char[] password) {
-        // TODO:
+        try {
+            CredentialsStorage.getInstance().storePassword(fRepository, password);
+        }
+        catch(IOException ex) {
+            showError(ex);
+        }
     }
     
     private void enableControls(boolean enable) {
@@ -172,4 +192,14 @@ public class AuthSection extends AbstractArchiPropertySection {
         textPassword.setEnabled(enable);
         prefsButton.setEnabled(enable);
     }
+    
+    private void showError(Exception ex) {
+        ex.printStackTrace();
+        MessageDialog.openError(Display.getCurrent().getActiveShell(),
+                Messages.AuthSection_4,
+                Messages.AuthSection_5 +
+                        " " + //$NON-NLS-1$
+                        ex.getMessage());
+    }
+
 }

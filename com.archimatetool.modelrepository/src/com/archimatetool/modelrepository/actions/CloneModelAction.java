@@ -20,6 +20,7 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CloneDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
@@ -121,7 +122,7 @@ public class CloneModelAction extends AbstractModelAction {
 
             // Store repo credentials if HTTP and option is set
             if(RepoUtils.isHTTP(url) && storeCredentials) {
-                // TODO: Store repo credentials if HTTP and option is set
+                CredentialsStorage.getInstance().storeCredentials(getRepository(), npw);
             }
             
             logger.info("Finished cloning model"); //$NON-NLS-1$

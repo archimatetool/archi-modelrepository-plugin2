@@ -21,6 +21,7 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.NewRepoDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
@@ -101,7 +102,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             
             // Store repo credentials if HTTP and option is set
             if(RepoUtils.isHTTP(repoURL) && storeCredentials) {
-                // TODO: Store repo credentials if HTTP and option is set 
+                CredentialsStorage.getInstance().storeCredentials(getRepository(), npw);
             }
             
             logger.info("Finished creating repository from model"); //$NON-NLS-1$

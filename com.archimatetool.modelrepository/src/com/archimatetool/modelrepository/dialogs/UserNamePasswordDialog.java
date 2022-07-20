@@ -5,7 +5,10 @@
  */
 package com.archimatetool.modelrepository.dialogs;
 
+import java.io.IOException;
+
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -19,7 +22,10 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.authentication.CredentialsStorage;
+import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 /**
  * User Name and Password Dialog
@@ -33,12 +39,15 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     
     private Button storeCredentialsButton;
 
+    private IArchiRepository fRepository;
+    
     private String username;
     private char[] password;
     
-    public UserNamePasswordDialog(Shell parentShell) {
+    public UserNamePasswordDialog(Shell parentShell, IArchiRepository repo) {
         super(parentShell);
         setTitle(Messages.UserNamePasswordDialog_0);
+        fRepository = repo;
     }
 
     @Override
@@ -93,11 +102,18 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
         username = txtUsername.getText();
         password = txtPassword.getTextChars();
         
-        boolean doStoreInCredentialsFile = storeCredentialsButton.getSelection();
-        
-        // TODO: Store Credentials
-        if(doStoreInCredentialsFile) {
-            
+        if(storeCredentialsButton.getSelection()) {
+            try {
+                CredentialsStorage.getInstance().storeCredentials(fRepository, new UsernamePassword(username, password));
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+                MessageDialog.openError(getShell(),
+                        Messages.UserNamePasswordDialog_5,
+                        Messages.UserNamePasswordDialog_6 +
+                            " " + //$NON-NLS-1$
+                            ex.getMessage());
+            }
         }
     }
 

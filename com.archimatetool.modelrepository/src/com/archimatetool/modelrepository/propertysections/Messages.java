@@ -14,6 +14,10 @@ public class Messages extends NLS {
 
     public static String AuthSection_3;
 
+    public static String AuthSection_4;
+
+    public static String AuthSection_5;
+
     public static String GroupSection_0;
 
     public static String RepoInfoSection_0;
