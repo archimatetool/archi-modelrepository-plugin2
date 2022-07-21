@@ -59,14 +59,10 @@ public class CredentialsStorage {
         
         Properties properties = getProperties();
         
-        String userName = properties.getProperty(url + ":username", null);
+        String userName = properties.getProperty(url + ":username", "");
         String pw = properties.getProperty(url + ":pw", "");
         
-        if(userName != null) {
-            return new UsernamePassword(userName, pw.toCharArray());
-        }
-        
-        return null;
+        return new UsernamePassword(userName, pw.toCharArray());
     }
     
     public void storeCredentials(IArchiRepository repo, UsernamePassword npw) throws IOException {
