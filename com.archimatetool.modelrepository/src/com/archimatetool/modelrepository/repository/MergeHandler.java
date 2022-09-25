@@ -183,20 +183,27 @@ public class MergeHandler {
     private boolean isModelIntegral(File modelFile) {
         try {
             IArchimateModel model = IEditorModelManager.INSTANCE.load(modelFile);
-            
-            // Check that all referenced images are present (they might have deleted image while we are still using it)
-            IArchiveManager archiveManager = (IArchiveManager)model.getAdapter(IArchiveManager.class);
-            for(String imagePath : archiveManager.getImagePaths()) {
-                if(archiveManager.getBytesFromEntry(imagePath) == null) {
-                    return false;
-                }
-            }
-            
-            return new ModelChecker(model).checkAll();
+            return isModelIntegral(model);
         }
         catch(IOException ex) {
             return false;
         }
+    }
+    
+    /**
+     * Check the model integroty after a merge
+     * @return false if an image is missing, or the ModelChecker fails
+     */
+    private boolean isModelIntegral(IArchimateModel model) {
+        // Check that all referenced images are present (they might have deleted image while we are still using it)
+        IArchiveManager archiveManager = (IArchiveManager)model.getAdapter(IArchiveManager.class);
+        for(String imagePath : archiveManager.getImagePaths()) {
+            if(archiveManager.getBytesFromEntry(imagePath) == null) {
+                return false;
+            }
+        }
+        
+        return new ModelChecker(model).checkAll();
     }
     
     /**
