@@ -267,6 +267,9 @@ public class ArchiRepository implements IArchiRepository {
             config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, "ignorecase", "true");
         }
         
+        // Set GPG signing false
+        config.setString(ConfigConstants.CONFIG_COMMIT_SECTION, null, ConfigConstants.CONFIG_KEY_GPGSIGN, "false");
+        
         config.save();
     }
     
