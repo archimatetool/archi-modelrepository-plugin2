@@ -35,11 +35,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 
 import com.archimatetool.editor.ui.ThemeUtils;
 import com.archimatetool.editor.ui.UIUtils;
-import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
@@ -112,9 +112,13 @@ public class HistoryTableViewer extends TableViewer {
 
         setInput(archiRepo);
         
-        // Do the Layout kludge
-        ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
-
+        // avoid bogus horizontal scrollbar cheese
+        Display.getCurrent().asyncExec(() -> {
+            if(!getTable().getParent().isDisposed()) {
+                getTable().getParent().layout();
+            }
+        });
+        
         // Select first row. This will ensure we only load the first few commits
         Object element = getElementAt(0);
         if(element != null) {
@@ -130,9 +134,6 @@ public class HistoryTableViewer extends TableViewer {
         fSelectedBranch = branchInfo;
         
         setInput(getInput());
-        
-        // Layout kludge
-        ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
         
         // Select first row. This will ensure we only load the first few commits
         Object element = getElementAt(0);
