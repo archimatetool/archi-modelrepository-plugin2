@@ -7,6 +7,7 @@ package com.archimatetool.modelrepository.dialogs;
 
 import java.io.IOException;
 
+import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
@@ -106,7 +107,7 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
             try {
                 CredentialsStorage.getInstance().storeCredentials(fRepository, new UsernamePassword(username, password));
             }
-            catch(IOException ex) {
+            catch(StorageException | IOException ex) {
                 ex.printStackTrace();
                 MessageDialog.openError(getShell(),
                         Messages.UserNamePasswordDialog_5,

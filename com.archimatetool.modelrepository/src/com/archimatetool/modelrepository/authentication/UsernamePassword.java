@@ -5,6 +5,7 @@
  */
 package com.archimatetool.modelrepository.authentication;
 
+import java.util.Arrays;
 
 /**
  * Username and Password pair
@@ -18,7 +19,7 @@ public class UsernamePassword {
     
     public UsernamePassword(String username, char[] password) {
         this.username = username;
-        this.password = password.clone();
+        this.password = password != null ? password.clone() : null;
     }
     
     public char[] getPassword() {
@@ -27,5 +28,17 @@ public class UsernamePassword {
     
     public String getUsername() {
         return username;
+    }
+    
+    /**
+     * Destroy the saved username and password
+     */
+    public void clear() {
+        username = null;
+
+        if(password != null) {
+            Arrays.fill(password, (char)0);
+            password = null;
+        }
     }
 }

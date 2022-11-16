@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.viewers.IFilter;
@@ -163,7 +164,7 @@ public class AuthSection extends AbstractArchiPropertySection {
                     }
                 }
             }
-            catch(IOException ex) {
+            catch(StorageException ex) {
                 showError(ex);
             }
         }
@@ -173,7 +174,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         try {
             CredentialsStorage.getInstance().storeUserName(fRepository, userName);
         }
-        catch(IOException ex) {
+        catch(StorageException | IOException ex) {
             showError(ex);
         }
     }
@@ -182,7 +183,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         try {
             CredentialsStorage.getInstance().storePassword(fRepository, password);
         }
-        catch(IOException ex) {
+        catch(StorageException | IOException ex) {
             showError(ex);
         }
     }

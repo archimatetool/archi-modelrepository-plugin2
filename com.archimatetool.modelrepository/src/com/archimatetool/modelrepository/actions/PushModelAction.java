@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
@@ -70,7 +71,7 @@ public class PushModelAction extends AbstractModelAction {
                 }
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(IOException | GitAPIException | StorageException ex) {
             logger.log(Level.SEVERE, "User Details", ex); //$NON-NLS-1$
             return;
         }

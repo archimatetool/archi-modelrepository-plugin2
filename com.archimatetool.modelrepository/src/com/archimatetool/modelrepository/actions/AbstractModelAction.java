@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -261,7 +262,7 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
     /**
      * Get user name and password from credentials file if present or from dialog
      */
-    protected UsernamePassword getUsernamePassword() throws IOException {
+    protected UsernamePassword getUsernamePassword() throws StorageException {
         // Get credentials from storage
         UsernamePassword npw = CredentialsStorage.getInstance().getCredentials(getRepository());
         

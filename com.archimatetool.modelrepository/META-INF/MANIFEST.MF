@@ -6,7 +6,7 @@ Bundle-Localization: plugin
 Bundle-Version: 0.5.0.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
- com.archimatetool.editor;bundle-version="4.9.3",
+ com.archimatetool.editor,
  com.archimatetool.jdom
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
@@ -30,3 +30,4 @@ Bundle-ClassPath: com.archimatetool.modelrepository.jar,
  lib/org.apache.sshd.osgi_2.8.0.v20211227-1750.jar,
  lib/net.i2p.crypto.eddsa_0.3.0.v20210923-1401.jar
 Automatic-Module-Name: com.archimatetool.modelrepository
+Import-Package: org.eclipse.equinox.security.storage
