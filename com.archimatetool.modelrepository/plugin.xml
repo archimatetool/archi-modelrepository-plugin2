@@ -4,70 +4,87 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowRepositoryViewHandler"
             id="com.archimatetool.modelrepository.command.showRepositoryView"
             name="Toggle Collaboration Workspace">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowHistoryViewHandler"
             id="com.archimatetool.modelrepository.command.showHistoryView"
             name="Toggle Change History">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowBranchesViewHandler"
             id="com.archimatetool.modelrepository.command.showBranchesView"
             name="Toggle Branches View">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowInRepositoryViewHandler"
             id="com.archimatetool.modelrepository.command.showInRepositoryView"
             name="Show in Collaboration Workspace">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowInHistoryViewHandler"
             id="com.archimatetool.modelrepository.command.showInHistoryView"
             name="Show Change History">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowInBranchesViewHandler"
             id="com.archimatetool.modelrepository.command.showInBranchesView"
             name="Show Branches">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.CreateRepoFromModelHandler"
             id="com.archimatetool.modelrepository.command.createRepoFromModel"
             name="Add Model to Workspace">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.CloneModelHandler"
             id="com.archimatetool.modelrepository.command.cloneModel"
             name="Import Remote Model to Workspace">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.RefreshModelHandler"
             id="com.archimatetool.modelrepository.command.refreshModel"
             name="Refresh Model">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.CommitModelHandler"
             id="com.archimatetool.modelrepository.command.commitModel"
             name="Commit Changes">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.PushModelHandler"
             id="com.archimatetool.modelrepository.command.pushModel"
             name="Publish Changes">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.DiscardChangesHandler"
             id="com.archimatetool.modelrepository.command.discardChanges"
             name="Discard Uncommited Changes">
       </command>
       <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.DeleteModelHandler"
             id="com.archimatetool.modelrepository.command.deleteModel"
             name="Delete Model from Workspace">
       </command>
+      <category
+            id="com.archimatetool.modelrepository.category"
+            name="coArchi">
+      </category>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
