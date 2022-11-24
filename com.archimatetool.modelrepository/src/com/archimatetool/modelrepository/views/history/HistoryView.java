@@ -6,10 +6,13 @@
 package com.archimatetool.modelrepository.views.history;
 
 import java.io.File;
+import java.util.List;
 
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -18,6 +21,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
@@ -40,6 +44,7 @@ import com.archimatetool.modelrepository.actions.ExtractModelFromCommitAction;
 import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
 import com.archimatetool.modelrepository.actions.RestoreCommitAction;
 import com.archimatetool.modelrepository.actions.UndoLastCommitAction;
+import com.archimatetool.modelrepository.dialogs.CompareDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -72,6 +77,17 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private ExtractModelFromCommitAction fActionExtractCommit;
     private RestoreCommitAction fActionRestoreCommit;
     private ResetToRemoteCommitAction fActionResetToRemoteCommit;
+    
+    private IAction fActionCompare = new Action("Compare") { //$NON-NLS-1$
+        @Override
+        public void run() {
+            @SuppressWarnings("unchecked")
+            List<RevCommit> selection = getHistoryViewer().getStructuredSelection().toList();
+            if(selection.size() == 2) {
+                new CompareDialog(getSite().getShell(), fSelectedRepository, selection.get(0), selection.get(1)).open();
+            }
+        }
+    };
     
     /*
      * Selected repository
@@ -278,6 +294,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             fActionUndoLastCommit.setEnabled(false);
             fActionResetToRemoteCommit.setEnabled(false);
         }
+        
+        // Compare
+        IStructuredSelection selection = getHistoryViewer().getStructuredSelection();
+        fActionCompare.setEnabled(selection.size() == 2);
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -286,6 +306,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
+        manager.add(new Separator());
+        manager.add(fActionCompare);
     }
 
     HistoryTableViewer getHistoryViewer() {

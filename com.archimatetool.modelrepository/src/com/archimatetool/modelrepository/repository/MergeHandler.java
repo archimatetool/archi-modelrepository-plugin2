@@ -8,8 +8,19 @@ package com.archimatetool.modelrepository.repository;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.logging.Logger;
 
+import org.eclipse.emf.common.util.BasicMonitor;
+import org.eclipse.emf.compare.Comparison;
+import org.eclipse.emf.compare.Diff;
+import org.eclipse.emf.compare.EMFCompare;
+import org.eclipse.emf.compare.merge.BatchMerger;
+import org.eclipse.emf.compare.merge.IBatchMerger;
+import org.eclipse.emf.compare.merge.IMerger.Registry;
+import org.eclipse.emf.compare.merge.IMerger.RegistryImpl;
+import org.eclipse.emf.compare.scope.DefaultComparisonScope;
+import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.MergeResult;
@@ -39,7 +50,7 @@ public class MergeHandler {
     private static Logger logger = Logger.getLogger(MergeHandler.class.getName());
     
     // Set true for development
-    private boolean USE_3WAY_MERGE = false;
+    private boolean USE_3WAY_MERGE = true;
     
     private static MergeHandler instance = new MergeHandler();
     
@@ -154,12 +165,28 @@ public class MergeHandler {
         IArchimateModel theirModel = loadModel(utils, branchToMerge.getFullName());
         IArchimateModel baseModel = loadBaseModel(utils, branchToMerge.getFullName());
         
-        // Now draw the rest of the owl...
-        // https://knowyourmeme.com/memes/how-to-draw-an-owl
+        // POC EMF Compare...
         
-        System.out.println(ourModel);
-        System.out.println(theirModel);
-        System.out.println(baseModel);
+        IComparisonScope scope = new DefaultComparisonScope(ourModel, theirModel, baseModel);
+        Comparison comparison = EMFCompare.builder().build().compare(scope);
+        List<Diff> differences = comparison.getDifferences();
+        
+        Registry mergerRegistry = RegistryImpl.createStandaloneInstance();
+        IBatchMerger merger = new BatchMerger(mergerRegistry);
+        
+        // Copy theirs into ours
+        merger.copyAllRightToLeft(differences, new BasicMonitor());
+        
+        // If OK, save the model
+        if(isModelIntegral(ourModel)) {
+            ourModel.setFile(new File(utils.getRepository().getWorkTree(), RepoConstants.MODEL_FILENAME));
+            IEditorModelManager.INSTANCE.saveModel(ourModel);
+            commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge); //$NON-NLS-1$
+            System.out.println("Model was merged"); //$NON-NLS-1$
+            return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
+        }
+        
+        System.out.println("Model was not integral"); //$NON-NLS-1$
         
         return MergeHandlerResult.CANCELLED;
     }
