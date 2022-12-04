@@ -122,6 +122,8 @@ public class RefreshModelAction extends AbstractModelAction {
                 if(hasTrackingRefUpdates) {
                     notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 }
+                
+                MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_2);
                 return;
             }
             
