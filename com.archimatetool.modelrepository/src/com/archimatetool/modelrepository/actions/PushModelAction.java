@@ -12,12 +12,12 @@ import java.util.logging.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
@@ -106,9 +106,10 @@ public class PushModelAction extends AbstractModelAction {
         Exception[] exception = new Exception[1];
         
         PushResult[] pushResult = new PushResult[1];
-
-        // If using this be careful that no UI operations are peformed as this could lead to an SWT Invalid thread access exception
-        PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
+        
+        ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
+        
+        dialog.run(true, true, monitor -> {
             try {
                 monitor.beginTask(Messages.PushModelAction_3, IProgressMonitor.UNKNOWN);
                 pushResult[0] = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));

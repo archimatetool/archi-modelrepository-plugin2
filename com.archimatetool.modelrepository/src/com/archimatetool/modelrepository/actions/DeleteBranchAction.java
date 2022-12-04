@@ -10,10 +10,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
@@ -119,9 +119,10 @@ public class DeleteBranchAction extends AbstractModelAction {
     private void deleteLocalAndRemoteBranch(BranchInfo branchInfo, UsernamePassword npw) throws Exception {
         // Store exception
         Exception[] exception = new Exception[1];
+        
+        ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
 
-        // If using this be careful that no UI operations are peformed as this could lead to an SWT Invalid thread access exception
-        PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
+        dialog.run(true, true, monitor -> {
             try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
                 // Delete the remote branch first in case of error
                 logger.info("Deleting remote branch: " + branchInfo.getLocalBranchNameFor()); //$NON-NLS-1$

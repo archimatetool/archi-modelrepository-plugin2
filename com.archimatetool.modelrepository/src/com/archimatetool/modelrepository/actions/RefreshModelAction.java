@@ -12,11 +12,11 @@ import java.util.logging.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
@@ -24,8 +24,8 @@ import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.MergeHandler;
-import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.repository.MergeHandler.MergeHandlerResult;
+import com.archimatetool.modelrepository.repository.RepoUtils;
 
 /**
  * Refresh Model Action
@@ -173,8 +173,9 @@ public class RefreshModelAction extends AbstractModelAction {
         
         FetchResult[] fetchResult = new FetchResult[1];
 
-        // If using this be careful that no UI operations are peformed as this could lead to an SWT Invalid thread access exception
-        PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
+        ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
+        
+        dialog.run(true, true, monitor -> {
             try {
                 monitor.beginTask(Messages.RefreshModelAction_3, IProgressMonitor.UNKNOWN);
                 fetchResult[0] = getRepository().fetchFromRemote(npw, new ProgressMonitorWrapper(monitor), false);

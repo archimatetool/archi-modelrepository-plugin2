@@ -11,10 +11,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.FileUtils;
@@ -50,14 +49,14 @@ public class CloneModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        CloneDialog dialog = new CloneDialog(fWindow.getShell(), Messages.CloneModelAction_0);
-        if(dialog.open() != Window.OK) {
+        CloneDialog cloneDialog = new CloneDialog(fWindow.getShell(), Messages.CloneModelAction_0);
+        if(cloneDialog.open() != Window.OK) {
             return;
         }
         
-        final String url = dialog.getURL();
-        final boolean storeCredentials = dialog.doStoreCredentials();
-        final UsernamePassword npw = dialog.getUsernamePassword();
+        final String url = cloneDialog.getURL();
+        final boolean storeCredentials = cloneDialog.doStoreCredentials();
+        final UsernamePassword npw = cloneDialog.getUsernamePassword();
         final File folder = RepoUtils.generateNewRepoFolder();
         
         logger.info("Cloning model at: " + url); //$NON-NLS-1$
@@ -69,20 +68,18 @@ public class CloneModelAction extends AbstractModelAction {
             
             logger.info("Cloning into folder: " + folder.getPath()); //$NON-NLS-1$
 
-           // Ensure folder exists
+            // Ensure folder exists
             folder.mkdirs();
+            
+            ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
 
-            // If using this be careful that no UI operations are included as this could lead to an SWT Invalid thread access exception
-            PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
-                @Override
-                public void run(IProgressMonitor pm) {
-                    try {
-                        pm.beginTask(Messages.CloneModelAction_1, IProgressMonitor.UNKNOWN);
-                        getRepository().cloneModel(url, npw, new ProgressMonitorWrapper(pm));
-                    }
-                    catch(Exception ex) {
-                        exception[0] = ex;
-                    }
+            dialog.run(true, true, monitor -> {
+                try {
+                    monitor.beginTask(Messages.CloneModelAction_1, IProgressMonitor.UNKNOWN);
+                    getRepository().cloneModel(url, npw, new ProgressMonitorWrapper(monitor));
+                }
+                catch(Exception ex) {
+                    exception[0] = ex;
                 }
             });
 

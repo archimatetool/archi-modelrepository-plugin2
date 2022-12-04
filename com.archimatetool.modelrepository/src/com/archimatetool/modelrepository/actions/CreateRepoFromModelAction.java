@@ -10,12 +10,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
@@ -128,10 +128,12 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         // Store exception
         Exception[] exception = new Exception[1];
         
-        // If using this be careful that no UI operations are included as this could lead to an SWT Invalid thread access exception
-        PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
+        ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
+        
+        dialog.run(true, true, monitor -> {
             try {
                 monitor.beginTask(Messages.CreateRepoFromModelAction_2, IProgressMonitor.UNKNOWN);
+                
                 PushResult pushResult = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));
                 
                 // Get any errors in Push Result and set exception
@@ -152,6 +154,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         if(exception[0] != null) {
             // In case of an exception remove the remote
             getRepository().setRemote(null);
+            
             throw exception[0];
         }
     }
