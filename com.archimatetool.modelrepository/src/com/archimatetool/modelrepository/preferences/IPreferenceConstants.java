@@ -21,6 +21,11 @@ public interface IPreferenceConstants {
     
     String PREFS_STORE_REPO_CREDENTIALS = "storeCredentials";
     
+    String PREFS_SCAN_REPOSITORY_FOLDER = "scanRepoFolder";
+    String PREFS_SSH_IDENTITY_FILE = "sshIdentityFile";
+    String PREFS_SSH_IDENTITY_REQUIRES_PASSWORD = "sshIdentityRequiresPassword";
+    String PREFS_SSH_SCAN_DIR = "sshScanSshDir";
+    
     String PREFS_FETCH_IN_BACKGROUND = "fetchInBackground";
     String PREFS_FETCH_IN_BACKGROUND_INTERVAL = "fetchInBackgroundInterval";
  }

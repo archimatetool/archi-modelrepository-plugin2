@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -24,11 +25,13 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
+import com.archimatetool.modelrepository.preferences.ModelRepositoryPreferencePage;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
@@ -97,12 +100,11 @@ public class AuthSection extends AbstractArchiPropertySection {
         prefsButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                // TODO: Open Preferences page
-//                PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(getPart().getSite().getShell(),
-//                        ModelRepositoryPreferencePage.ID, null, null);
-//                if(dialog != null) {
-//                    dialog.open();
-//                }
+                PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(getPart().getSite().getShell(),
+                        ModelRepositoryPreferencePage.ID, null, null);
+                if(dialog != null) {
+                    dialog.open();
+                }
             }
         });
     }

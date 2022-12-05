@@ -43,7 +43,7 @@ public class CloneDialog extends TitleAreaDialog {
 
     protected Button storeCredentialsButton;
     
-    private String URL;
+    private String url;
     private String username;
     private char[] password;
     private boolean doStoreCredentials;
@@ -142,7 +142,7 @@ public class CloneDialog extends TitleAreaDialog {
     protected void saveInput() {
         username = txtUsername.getText().trim();
         password = txtPassword.getTextChars();
-        URL = txtURL.getText().trim();
+        url = txtURL.getText().trim();
         doStoreCredentials = storeCredentialsButton.getSelection();
     }
 
@@ -171,11 +171,11 @@ public class CloneDialog extends TitleAreaDialog {
     }
 
     public UsernamePassword getUsernamePassword() {
-        return new UsernamePassword(username, password);
+        return RepoUtils.isHTTP(url) ? new UsernamePassword(username, password) : null;
     }
     
     public String getURL() {
-        return URL;
+        return url;
     }
     
     public boolean doStoreCredentials() {

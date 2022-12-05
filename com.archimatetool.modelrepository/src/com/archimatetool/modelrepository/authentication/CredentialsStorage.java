@@ -87,6 +87,15 @@ public class CredentialsStorage {
         repoNode.flush();
     }
     
+    public char[] getSSHIdentityFilePassword() throws StorageException {
+        return getCoArchiNode().get("sshPassword", "").toCharArray();
+    }
+    
+    public void setSSHIdentityFilePassword(char[] password) throws StorageException, IOException {
+        getCoArchiNode().put("sshPassword", new String(password), true);
+        getCoArchiNode().flush();
+    }
+    
     private ISecurePreferences getRepositoryNode(IArchiRepository repo) {
         // Get repository URL
         String url = getRemoteURL(repo);
@@ -94,14 +103,16 @@ public class CredentialsStorage {
             return null;
         }
         
+        // This is the child node for this repository
+        return getCoArchiNode().node(URLEncoder.encode(url, StandardCharsets.UTF_8));
+    }
+    
+    private ISecurePreferences getCoArchiNode() {
         // Get Secure Prefs root node
         ISecurePreferences rootNode = SecurePreferencesFactory.getDefault();
         
         // This is the coArchi node for all secure entries. We could clear it with coArchiNode.removeNode()
-        ISecurePreferences coArchiNode = rootNode.node(ModelRepositoryPlugin.PLUGIN_ID);
-        
-        // This is the child node for this repository
-        return coArchiNode.node(URLEncoder.encode(url, StandardCharsets.UTF_8));
+        return rootNode.node(ModelRepositoryPlugin.PLUGIN_ID);
     }
     
     private String getRemoteURL(IArchiRepository repo) {
