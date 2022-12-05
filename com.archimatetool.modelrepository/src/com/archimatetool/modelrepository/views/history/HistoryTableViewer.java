@@ -333,8 +333,6 @@ public class HistoryTableViewer extends TableViewer {
         
         @Override
         protected void paint(Event event, Object element) {
-            super.paint(event, element);
-            
             // Draw a line denoting a branch for unmerged commits (i.e remote commits)
             RevCommit commit = (RevCommit)element;
             
@@ -344,6 +342,9 @@ public class HistoryTableViewer extends TableViewer {
             
             if(event.index == 0) {
                 if(!(commit.equals(fRemoteCommit) || commit.equals(fLocalCommit))) {
+                    Color oldForeground = event.gc.getForeground();
+                    Color oldBackground = event.gc.getBackground();
+                    
                     event.gc.setAntialias(SWT.ON);
                     event.gc.setLineWidth(2);
                     
@@ -360,8 +361,13 @@ public class HistoryTableViewer extends TableViewer {
                     if(commit.getParentCount() > 0) {
                         event.gc.drawLine(event.x + imageGap, event.y + (event.height + cWidth) / 2, event.x + imageGap, event.y + event.height);
                     }
+                    
+                    event.gc.setForeground(oldForeground);
+                    event.gc.setBackground(oldBackground);
                 }
             }
+            
+            super.paint(event, element);
         }
         
         @Override
