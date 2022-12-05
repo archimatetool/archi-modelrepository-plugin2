@@ -92,8 +92,18 @@ public class CredentialsStorage {
     }
     
     public void setSSHIdentityFilePassword(char[] password) throws StorageException, IOException {
-        getCoArchiNode().put("sshPassword", new String(password), true);
-        getCoArchiNode().flush();
+        ISecurePreferences node = getCoArchiNode();
+        
+        // If set
+        if(password != null && password.length > 0) {
+            node.put("sshPassword", new String(password), true);
+        }
+        // Else remove it
+        else {
+            node.remove("sshPassword");
+        }
+        
+        node.flush();
     }
     
     private ISecurePreferences getRepositoryNode(IArchiRepository repo) {
