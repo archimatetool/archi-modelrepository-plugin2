@@ -365,10 +365,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             fActionResetToRemoteCommit.setRepository(selectedRepository);
 
             // Set History
-            getHistoryViewer().doSetInput(selectedRepository);
+            getHistoryViewer().setRepository(selectedRepository);
             
             // Set Branches
-            getBranchesViewer().doSetInput(selectedRepository);
+            getBranchesViewer().setRepository(selectedRepository);
         }
     }
     
@@ -394,7 +394,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     break;
 
                 case IRepositoryListener.BRANCHES_CHANGED:
-                    getBranchesViewer().doSetInput(fSelectedRepository);
+                    getBranchesViewer().setRepository(repository);
                     break;
                     
                 default:

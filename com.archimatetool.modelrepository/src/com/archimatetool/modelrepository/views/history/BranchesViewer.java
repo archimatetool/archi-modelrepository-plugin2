@@ -18,6 +18,7 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.BranchStatus;
@@ -80,7 +81,7 @@ public class BranchesViewer extends ComboViewer {
         });
     }
 
-    void doSetInput(IArchiRepository archiRepo) {
+    void setRepository(IArchiRepository archiRepo) {
         // Get BranchStatus
         BranchStatus branchStatus = null;
         
@@ -102,7 +103,11 @@ public class BranchesViewer extends ComboViewer {
             }
         }
         
-        // And relayout
-        getControl().getParent().layout();
+        // Avoid bogus horizontal scrollbar cheese
+        Display.getCurrent().asyncExec(() -> {
+            if(!getControl().isDisposed()) {
+                getControl().getParent().layout();
+            }
+        });
     }
 }

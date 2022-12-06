@@ -100,7 +100,7 @@ public class HistoryTableViewer extends TableViewer {
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
     }
     
-    void doSetInput(IArchiRepository archiRepo) {
+    void setRepository(IArchiRepository archiRepo) {
         // Get basic current LocalBranch Info
         try {
             fSelectedBranch = BranchInfo.currentLocalBranchInfo(archiRepo.getWorkingFolder(), false);
@@ -110,20 +110,7 @@ public class HistoryTableViewer extends TableViewer {
             logger.log(Level.SEVERE, "Branch Status", ex); //$NON-NLS-1$
         }
 
-        setInput(archiRepo);
-        
-        // avoid bogus horizontal scrollbar cheese
-        Display.getCurrent().asyncExec(() -> {
-            if(!getTable().isDisposed()) {
-                getTable().getParent().layout();
-            }
-        });
-        
-        // Select first row. This will ensure we only load the first few commits
-        Object element = getElementAt(0);
-        if(element != null) {
-            setSelection(new StructuredSelection(element), true);
-        }
+        setInputSelect(archiRepo);
     }
     
     void setSelectedBranch(BranchInfo branchInfo) {
@@ -132,8 +119,18 @@ public class HistoryTableViewer extends TableViewer {
         }
 
         fSelectedBranch = branchInfo;
+        setInputSelect(getInput());
+    }
+    
+    private void setInputSelect(Object input) {
+        setInput(input);
         
-        setInput(getInput());
+        // Avoid bogus horizontal scrollbar cheese
+        Display.getCurrent().asyncExec(() -> {
+            if(!getTable().isDisposed()) {
+                getTable().getParent().layout();
+            }
+        });
         
         // Select first row. This will ensure we only load the first few commits
         Object element = getElementAt(0);
