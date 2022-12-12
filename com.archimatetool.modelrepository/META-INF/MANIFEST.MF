@@ -7,7 +7,8 @@ Bundle-Version: 0.5.0.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
  com.archimatetool.editor,
- com.archimatetool.jdom
+ com.archimatetool.jdom,
+ org.eclipse.emf.compare
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Eclipse-BundleShape: dir
@@ -28,8 +29,6 @@ Bundle-ClassPath: com.archimatetool.modelrepository.jar,
  lib/org.slf4j.binding.simple_1.7.30.v20200204-2150.jar,
  lib/org.eclipse.jgit.ssh.apache_6.1.0.202203080745-r.jar,
  lib/org.apache.sshd.osgi_2.8.0.v20211227-1750.jar,
- lib/net.i2p.crypto.eddsa_0.3.0.v20210923-1401.jar,
- lib/com.google.guava_30.1.0.v20210127-2300.jar,
- lib/org.eclipse.emf.compare_3.5.3.202209051432.jar
+ lib/net.i2p.crypto.eddsa_0.3.0.v20210923-1401.jar
 Automatic-Module-Name: com.archimatetool.modelrepository
 Import-Package: org.eclipse.equinox.security.storage
