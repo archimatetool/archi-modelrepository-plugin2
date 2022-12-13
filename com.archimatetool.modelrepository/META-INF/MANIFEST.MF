@@ -3,12 +3,14 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Archi Collaboration (coArchi)
 Bundle-SymbolicName: com.archimatetool.modelrepository;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.5.0.qualifier
+Bundle-Version: 0.6.0.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
  com.archimatetool.editor,
  com.archimatetool.jdom,
- org.eclipse.emf.compare
+ org.eclipse.emf.compare,
+ org.eclipse.jgit,
+ org.eclipse.jgit.ssh.apache
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Eclipse-BundleShape: dir
@@ -22,13 +24,6 @@ Export-Package: com.archimatetool.modelrepository,
  com.archimatetool.modelrepository.repository,
  com.archimatetool.modelrepository.treemodel,
  com.archimatetool.modelrepository.views.repositories
-Bundle-ClassPath: com.archimatetool.modelrepository.jar,
- lib/javaewah_1.1.13.v20211029-0839.jar,
- lib/org.eclipse.jgit_6.1.0.202203080745-r.jar,
- lib/org.slf4j.api_1.7.30.v20200204-2150.jar,
- lib/org.slf4j.binding.simple_1.7.30.v20200204-2150.jar,
- lib/org.eclipse.jgit.ssh.apache_6.1.0.202203080745-r.jar,
- lib/org.apache.sshd.osgi_2.8.0.v20211227-1750.jar,
- lib/net.i2p.crypto.eddsa_0.3.0.v20210923-1401.jar
+Bundle-ClassPath: com.archimatetool.modelrepository.jar
 Automatic-Module-Name: com.archimatetool.modelrepository
 Import-Package: org.eclipse.equinox.security.storage
