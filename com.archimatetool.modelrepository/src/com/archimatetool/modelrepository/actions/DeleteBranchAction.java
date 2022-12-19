@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -117,12 +118,11 @@ public class DeleteBranchAction extends AbstractModelAction {
      * Delete the local and remote refs and push to the remote deleting the remote branch
      */
     private void deleteLocalAndRemoteBranch(BranchInfo branchInfo, UsernamePassword npw) throws Exception {
-        // Store exception
-        Exception[] exception = new Exception[1];
-        
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
-
-        dialog.run(true, true, monitor -> {
+        
+        RunnableRequest.run(dialog, (monitor) -> {
+            monitor.beginTask(Messages.DeleteBranchAction_0, IProgressMonitor.UNKNOWN);
+            
             try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
                 // Delete the remote branch first in case of error
                 logger.info("Deleting remote branch: " + branchInfo.getLocalBranchNameFor()); //$NON-NLS-1$
@@ -135,14 +135,7 @@ public class DeleteBranchAction extends AbstractModelAction {
                                    branchInfo.getRemoteBranchNameFor());
                 
             }
-            catch(IOException | GitAPIException ex) {
-                exception[0] = ex;
-            }
-        });
-        
-        if(exception[0] != null) {
-            throw exception[0];
-        }
+        }, true);
     }
     
     /**

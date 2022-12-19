@@ -64,29 +64,18 @@ public class CloneModelAction extends AbstractModelAction {
         setRepository(new ArchiRepository(folder));
         
         try {
-            Exception[] exception = new Exception[1];
-            
             logger.info("Cloning into folder: " + folder.getPath()); //$NON-NLS-1$
 
             // Ensure folder exists
             folder.mkdirs();
             
             ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
-
-            dialog.run(true, true, monitor -> {
-                try {
-                    monitor.beginTask(Messages.CloneModelAction_1, IProgressMonitor.UNKNOWN);
-                    getRepository().cloneModel(url, npw, new ProgressMonitorWrapper(monitor));
-                }
-                catch(Exception ex) {
-                    exception[0] = ex;
-                }
-            });
-
-            if(exception[0] != null) {
-                throw exception[0];
-            }
             
+            RunnableRequest.run(dialog, (monitor) -> {
+                monitor.beginTask(Messages.CloneModelAction_1, IProgressMonitor.UNKNOWN);
+                getRepository().cloneModel(url, npw, new ProgressMonitorWrapper(monitor));
+            }, true);
+
             // Model file
             File modelFile = getRepository().getModelFile();
             

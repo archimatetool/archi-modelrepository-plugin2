@@ -170,27 +170,15 @@ public class RefreshModelAction extends AbstractModelAction {
     private FetchResult fetch(UsernamePassword npw) throws Exception {
         logger.info("Fetching from " + getRepository().getRemoteURL()); //$NON-NLS-1$
 
-        // Store exception
-        Exception[] exception = new Exception[1];
-        
         FetchResult[] fetchResult = new FetchResult[1];
 
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
         
-        dialog.run(true, true, monitor -> {
-            try {
-                monitor.beginTask(Messages.RefreshModelAction_3, IProgressMonitor.UNKNOWN);
-                fetchResult[0] = getRepository().fetchFromRemote(npw, new ProgressMonitorWrapper(monitor), false);
-            }
-            catch(IOException | GitAPIException ex) {
-                exception[0] = ex;
-            }
-        });
-        
-        if(exception[0] != null) {
-            throw exception[0];
-        }
-        
+        RunnableRequest.run(dialog, (monitor) -> {
+            monitor.beginTask(Messages.RefreshModelAction_3, IProgressMonitor.UNKNOWN);
+            fetchResult[0] = getRepository().fetchFromRemote(npw, new ProgressMonitorWrapper(monitor), false);
+        }, true);
+
         return fetchResult[0];
     }
 }

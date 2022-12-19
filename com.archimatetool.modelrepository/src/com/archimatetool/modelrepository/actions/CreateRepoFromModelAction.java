@@ -109,6 +109,15 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         }
         catch(Exception ex) {
             logger.log(Level.SEVERE, "Creating repository from model", ex); //$NON-NLS-1$
+            
+            // In case of an exception remove the remote
+            try {
+                getRepository().setRemote(null);
+            }
+            catch(Exception ex1) {
+                ex.printStackTrace();
+            }
+            
             displayErrorDialog(Messages.CreateRepoFromModelAction_0, ex);
         }
         finally {
@@ -125,37 +134,22 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
     private void push(final String repoURL, final UsernamePassword npw) throws Exception {
         logger.info("Pushing to remote: " + repoURL); //$NON-NLS-1$
         
-        // Store exception
-        Exception[] exception = new Exception[1];
-        
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
         
-        dialog.run(true, true, monitor -> {
-            try {
-                monitor.beginTask(Messages.CreateRepoFromModelAction_2, IProgressMonitor.UNKNOWN);
-                
-                PushResult pushResult = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));
-                
-                // Get any errors in Push Result and set exception
-                Status status = GitUtils.getPushResultStatus(pushResult);
-                if(status != Status.OK && status != Status.UP_TO_DATE) {
-                    String errorMessage = GitUtils.getPushResultErrorMessage(pushResult);
-                    if(errorMessage == null) {
-                        errorMessage = "Unknown error"; //$NON-NLS-1$
-                    }
-                    exception[0] = new GitAPIException(errorMessage) {};
-                }
-            }
-            catch(Exception ex) {
-                exception[0] = ex;
-            }
-        });
-
-        if(exception[0] != null) {
-            // In case of an exception remove the remote
-            getRepository().setRemote(null);
+        RunnableRequest.run(dialog, (monitor) -> {
+            monitor.beginTask(Messages.CreateRepoFromModelAction_2, IProgressMonitor.UNKNOWN);
             
-            throw exception[0];
-        }
+            PushResult pushResult = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));
+            
+            // Get any errors in Push Result and set exception
+            Status status = GitUtils.getPushResultStatus(pushResult);
+            if(status != Status.OK && status != Status.UP_TO_DATE) {
+                String errorMessage = GitUtils.getPushResultErrorMessage(pushResult);
+                if(errorMessage == null) {
+                    errorMessage = "Unknown error"; //$NON-NLS-1$
+                }
+                throw new GitAPIException(errorMessage) {};
+            }
+        }, true);
     }
 }

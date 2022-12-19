@@ -102,26 +102,14 @@ public class PushModelAction extends AbstractModelAction {
     private PushResult push(UsernamePassword npw) throws Exception {
         logger.info("Pushing to " + getRepository().getRemoteURL()); //$NON-NLS-1$
 
-        // Store exception
-        Exception[] exception = new Exception[1];
-        
         PushResult[] pushResult = new PushResult[1];
         
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
         
-        dialog.run(true, true, monitor -> {
-            try {
-                monitor.beginTask(Messages.PushModelAction_3, IProgressMonitor.UNKNOWN);
-                pushResult[0] = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));
-            }
-            catch(IOException | GitAPIException ex) {
-                exception[0] = ex;
-            }
-        });
-        
-        if(exception[0] != null) {
-            throw exception[0];
-        }
+        RunnableRequest.run(dialog, (monitor) -> {
+            monitor.beginTask(Messages.PushModelAction_3, IProgressMonitor.UNKNOWN);
+            pushResult[0] = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));
+        }, true);
         
         return pushResult[0];
     }
