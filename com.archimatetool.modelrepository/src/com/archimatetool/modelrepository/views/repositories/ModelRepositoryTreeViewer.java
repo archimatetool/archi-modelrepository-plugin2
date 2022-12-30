@@ -6,6 +6,7 @@
 package com.archimatetool.modelrepository.views.repositories;
 
 import java.io.IOException;
+import java.text.Collator;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.logging.Level;
@@ -96,7 +97,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         // Drag and Drop support
         new ModelRepositoryTreeViewerDragDropHandler(this);
         
-        setComparator(new ViewerComparator() {
+        setComparator(new ViewerComparator(Collator.getInstance()) {
             @Override
             public int compare(Viewer viewer, Object o1, Object o2) {
                 int cat1 = category(o1);
@@ -109,7 +110,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 IModelRepositoryTreeEntry e1 = (IModelRepositoryTreeEntry)o1;
                 IModelRepositoryTreeEntry e2 = (IModelRepositoryTreeEntry)o2;
                 
-                return e1.getName().compareToIgnoreCase(e2.getName());
+                return getComparator().compare(e1.getName(), e2.getName());
             }
             
             @Override

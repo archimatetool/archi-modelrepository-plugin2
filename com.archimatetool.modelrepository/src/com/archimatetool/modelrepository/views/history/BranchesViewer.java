@@ -6,6 +6,7 @@
 package com.archimatetool.modelrepository.views.history;
 
 import java.io.IOException;
+import java.text.Collator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,12 +72,12 @@ public class BranchesViewer extends ComboViewer {
             }
         });
         
-        setComparator(new ViewerComparator() {
+        setComparator(new ViewerComparator(Collator.getInstance()) {
             @Override
             public int compare(Viewer viewer, Object e1, Object e2) {
                 BranchInfo b1 = (BranchInfo)e1;
                 BranchInfo b2 = (BranchInfo)e2;
-                return b1.getShortName().compareToIgnoreCase(b2.getShortName());
+                return getComparator().compare(b1.getShortName(), b2.getShortName());
             }
         });
     }
