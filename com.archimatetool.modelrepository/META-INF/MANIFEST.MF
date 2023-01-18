@@ -3,16 +3,16 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Archi Collaboration (coArchi)
 Bundle-SymbolicName: com.archimatetool.modelrepository;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.6.0.qualifier
+Bundle-Version: 0.7.0.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
- com.archimatetool.editor,
+ com.archimatetool.editor;bundle-version="5.0.0",
  com.archimatetool.jdom,
  org.eclipse.emf.compare,
  org.eclipse.jgit,
  org.eclipse.jgit.ssh.apache
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Eclipse-BundleShape: dir
 Bundle-Activator: com.archimatetool.modelrepository.ModelRepositoryPlugin
 Export-Package: com.archimatetool.modelrepository,

@@ -3,10 +3,10 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Archi Collaboration (coArchi) Command Line
 Bundle-SymbolicName: com.archimatetool.modelrepository.commandline;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.6.0.qualifier
+Bundle-Version: 0.7.0.qualifier
 Bundle-Vendor: Archi
-Require-Bundle: com.archimatetool.commandline;bundle-version="4.6.0",
- com.archimatetool.modelrepository;bundle-version="0.1.0"
+Require-Bundle: com.archimatetool.commandline;bundle-version="5.0.0",
+ com.archimatetool.modelrepository;bundle-version="0.7.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: com.archimatetool.modelrepository.commandline
