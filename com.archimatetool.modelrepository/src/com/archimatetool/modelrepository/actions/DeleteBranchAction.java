@@ -120,7 +120,7 @@ public class DeleteBranchAction extends AbstractModelAction {
     private void deleteLocalAndRemoteBranch(BranchInfo branchInfo, UsernamePassword npw) throws Exception {
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
         
-        RunnableRequest.run(dialog, (monitor) -> {
+        IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.DeleteBranchAction_0, IProgressMonitor.UNKNOWN);
             
             try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {

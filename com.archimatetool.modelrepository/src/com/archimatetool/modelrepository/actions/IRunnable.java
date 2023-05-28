@@ -11,18 +11,32 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableContext;
 
 /**
- * A Runnable that can throw an Exception
+ * An IRunnableContext and IRunnableWithProgress wrapper that catches and re-throws any Exceptions. Example:
+ * 
+ * <pre>
+ *   ProgressMonitorDialog dialog = ...;
+ *   try {
+ *       IRunnable.run(dialog, monitor -> {
+ *           // do stuff...
+ *           monitor.setTaskName("New task");
+ *       }, true);
+ *   }
+ *   catch(Exception ex) {
+ *       ex.printStackTrace();
+ *   } 
+ * </pre>
  * 
  * @author Phillip Beauvoir
  */
-public interface RunnableRequest {
+public interface IRunnable {
     
     void run(IProgressMonitor monitor) throws Exception;
     
     /**
      * Run the Runnable, catching any Exceptions and re-throwing them
+     * @param fork true if the runnable should be run in a separate thread and false to run in the same thread
      */
-    static void run(IRunnableContext context, RunnableRequest runnable, boolean fork) throws Exception {
+    static void run(IRunnableContext context, IRunnable runnable, boolean fork) throws Exception {
         Exception[] exception = new Exception[1];
         
         try {

@@ -136,7 +136,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
         
-        RunnableRequest.run(dialog, (monitor) -> {
+        IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.CreateRepoFromModelAction_2, IProgressMonitor.UNKNOWN);
             
             PushResult pushResult = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));

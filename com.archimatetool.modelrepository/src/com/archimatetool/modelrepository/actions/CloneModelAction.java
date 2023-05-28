@@ -71,7 +71,7 @@ public class CloneModelAction extends AbstractModelAction {
             
             ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
             
-            RunnableRequest.run(dialog, (monitor) -> {
+            IRunnable.run(dialog, monitor -> {
                 monitor.beginTask(Messages.CloneModelAction_1, IProgressMonitor.UNKNOWN);
                 getRepository().cloneModel(url, npw, new ProgressMonitorWrapper(monitor));
             }, true);

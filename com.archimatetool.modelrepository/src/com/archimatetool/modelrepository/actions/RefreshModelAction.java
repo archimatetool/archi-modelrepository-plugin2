@@ -174,7 +174,7 @@ public class RefreshModelAction extends AbstractModelAction {
 
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
         
-        RunnableRequest.run(dialog, (monitor) -> {
+        IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.RefreshModelAction_3, IProgressMonitor.UNKNOWN);
             fetchResult[0] = getRepository().fetchFromRemote(npw, new ProgressMonitorWrapper(monitor), false);
         }, true);

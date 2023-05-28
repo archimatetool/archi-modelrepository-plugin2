@@ -106,7 +106,7 @@ public class PushModelAction extends AbstractModelAction {
         
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
         
-        RunnableRequest.run(dialog, (monitor) -> {
+        IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.PushModelAction_3, IProgressMonitor.UNKNOWN);
             pushResult[0] = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));
         }, true);
