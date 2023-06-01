@@ -12,15 +12,9 @@ import java.io.File;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import junit.framework.JUnit4TestAdapter;
-
 
 @SuppressWarnings("nls")
 public class RepositoryTreeModelTests {
-    
-    public static junit.framework.Test suite() {
-        return new JUnit4TestAdapter(RepositoryTreeModelTests.class);
-    }
     
     @BeforeClass
     public static void runOnceBeforeAllTests() {

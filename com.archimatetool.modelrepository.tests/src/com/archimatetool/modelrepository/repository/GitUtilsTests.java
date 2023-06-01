@@ -22,15 +22,9 @@ import org.junit.Test;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.modelrepository.GitHelper;
 
-import junit.framework.JUnit4TestAdapter;
-
 
 @SuppressWarnings("nls")
 public class GitUtilsTests {
-    
-    public static junit.framework.Test suite() {
-        return new JUnit4TestAdapter(GitUtilsTests.class);
-    }
     
     @Before
     public void runOnceBeforeEachTest() {

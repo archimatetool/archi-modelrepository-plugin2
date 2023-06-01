@@ -5,19 +5,16 @@
  */
 package com.archimatetool.modelrepository.repository;
 
-import junit.framework.TestSuite;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-@SuppressWarnings("nls")
+@RunWith(Suite.class)
+
+@Suite.SuiteClasses({
+    ArchiRepositoryTests.class,
+    GitUtilsTests.class,
+    RepoUtilsTests.class
+})
+
 public class AllRepositoryTests {
-
-    public static junit.framework.Test suite() {
-		TestSuite suite = new TestSuite("com.archimatetool.modelrepository.repository");
-		
-        suite.addTest(ArchiRepositoryTests.suite());
-        suite.addTest(GitUtilsTests.suite());
-        suite.addTest(RepoUtilsTests.suite());
-
-        return suite;
-	}
-
 }

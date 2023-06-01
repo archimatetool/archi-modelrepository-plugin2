@@ -20,15 +20,9 @@ import org.junit.Test;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
-import junit.framework.JUnit4TestAdapter;
-
 
 @SuppressWarnings("nls")
 public class GroupTests {
-    
-    public static junit.framework.Test suite() {
-        return new JUnit4TestAdapter(GroupTests.class);
-    }
     
     @BeforeClass
     public static void runOnceBeforeAllTests() {

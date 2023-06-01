@@ -5,19 +5,16 @@
  */
 package com.archimatetool.modelrepository.treemodel;
 
-import junit.framework.TestSuite;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-@SuppressWarnings("nls")
+@RunWith(Suite.class)
+
+@Suite.SuiteClasses({
+    GroupTests.class,
+    RepositoryRefTests.class,
+    RepositoryTreeModelTests.class
+})
+
 public class AllTreeModelTests {
-
-    public static junit.framework.Test suite() {
-		TestSuite suite = new TestSuite("com.archimatetool.modelrepository.treemodel");
-		
-        suite.addTest(GroupTests.suite());
-        suite.addTest(RepositoryRefTests.suite());
-        suite.addTest(RepositoryTreeModelTests.suite());
-
-        return suite;
-	}
-
 }

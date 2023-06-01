@@ -24,15 +24,9 @@ import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.GitHelper;
 
-import junit.framework.JUnit4TestAdapter;
-
 
 @SuppressWarnings("nls")
 public class ArchiRepositoryTests {
-    
-    public static junit.framework.Test suite() {
-        return new JUnit4TestAdapter(ArchiRepositoryTests.class);
-    }
     
     @Before
     public void runOnceBeforeEachTest() {

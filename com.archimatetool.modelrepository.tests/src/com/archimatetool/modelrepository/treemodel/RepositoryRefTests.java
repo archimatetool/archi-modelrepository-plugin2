@@ -17,15 +17,9 @@ import org.junit.Test;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
-import junit.framework.JUnit4TestAdapter;
-
 
 @SuppressWarnings("nls")
 public class RepositoryRefTests {
-    
-    public static junit.framework.Test suite() {
-        return new JUnit4TestAdapter(RepositoryRefTests.class);
-    }
     
     @Test
     public void getArchiRepository_Repo() {
