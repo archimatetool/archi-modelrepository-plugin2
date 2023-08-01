@@ -34,7 +34,7 @@ import com.archimatetool.modelrepository.repository.RepoUtils;
  */
 public class RefreshModelAction extends AbstractModelAction {
     
-    private static Logger logger = Logger.getLogger(PushModelAction.class.getName());
+    private static Logger logger = Logger.getLogger(RefreshModelAction.class.getName());
     
     public RefreshModelAction(IWorkbenchWindow window) {
         super(window);

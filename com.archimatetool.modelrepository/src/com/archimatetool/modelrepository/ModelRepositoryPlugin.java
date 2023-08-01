@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import com.archimatetool.editor.FileLogger;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 
@@ -23,9 +24,10 @@ import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class ModelRepositoryPlugin extends AbstractUIPlugin {
 
-    public static final String PLUGIN_ID = "com.archimatetool.modelrepository"; //$NON-NLS-1$
+    public static final String PLUGIN_ID = "com.archimatetool.modelrepository";
     
     /**
      * The shared instance
@@ -43,33 +45,27 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin {
         // Set these first
         setSystemProperties();
         
-        // Logging
-        LoggingSupport.init(context.getBundle());
-    }
-    
-    @Override
-    public void stop(BundleContext context) throws Exception {
-        // Logging
-        LoggingSupport.close();
-        
-        super.stop(context);
+        // Start logging
+        FileLogger.create("com.archimatetool.modelrepository",
+                          INSTANCE.getBundle().getEntry("logging.properties"),
+                          new File(INSTANCE.getUserModelRepositoryFolder(), "log-%g.txt"));
     }
     
     private void setSystemProperties() {
         // This needs to be set in order to avoid this exception when using a Proxy:
         // "Unable to tunnel through proxy. Proxy returns "HTTP/1.1 407 Proxy Authentication Required""
         // It needs to be set before any JGit operations, because it can't be set again
-        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
         
         // Added this one too for Proxy. I think it's for HTTP
-        System.setProperty("jdk.http.auth.proxying.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        System.setProperty("jdk.http.auth.proxying.disabledSchemes", "");
     }
     
     /**
      * @return The File Location of this plugin
      */
     public File getPluginFolder() {
-        URL url = getBundle().getEntry("/"); //$NON-NLS-1$
+        URL url = getBundle().getEntry("/");
         try {
             url = FileLocator.resolve(url);
         }
