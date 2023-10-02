@@ -14,6 +14,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.archimatetool.editor.FileLogger;
+import com.archimatetool.editor.Logger;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 
@@ -46,9 +47,15 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin {
         setSystemProperties();
         
         // Start logging
-        FileLogger.create("com.archimatetool.modelrepository",
-                          INSTANCE.getBundle().getEntry("logging.properties"),
-                          new File(INSTANCE.getUserModelRepositoryFolder(), "log-%g.txt"));
+        try {
+            FileLogger.create("com.archimatetool.modelrepository",
+                              INSTANCE.getBundle().getEntry("logging.properties"),
+                              new File(INSTANCE.getUserModelRepositoryFolder(), "log-%g.txt"));
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+            Logger.logError("Could not start logger!", ex);
+        }
     }
     
     private void setSystemProperties() {
