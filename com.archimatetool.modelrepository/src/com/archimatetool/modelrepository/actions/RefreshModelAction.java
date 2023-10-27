@@ -99,8 +99,8 @@ public class RefreshModelAction extends AbstractModelAction {
                 MessageDialog.openWarning(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_1);
             }
             else {
-                displayErrorDialog(Messages.RefreshModelAction_0, ex);
                 logger.log(Level.SEVERE, "Fetch", ex); //$NON-NLS-1$
+                displayErrorDialog(Messages.RefreshModelAction_0, ex);
             }
             
             return;

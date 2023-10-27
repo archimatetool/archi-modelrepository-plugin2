@@ -135,7 +135,7 @@ public class PushModelAction extends AbstractModelAction {
             String errorMessage = GitUtils.getPushResultErrorMessage(pushResult);
             if(errorMessage != null) {
                 logger.warning("Push returned errors: " + errorMessage); //$NON-NLS-1$
-                displayErrorDialog(Messages.PushModelAction_0, errorMessage);
+                displayErrorDialog(Messages.PushModelAction_0, Messages.PushModelAction_4, errorMessage);
             }
         }
     }

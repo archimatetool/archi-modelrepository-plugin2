@@ -6,7 +6,6 @@
 package com.archimatetool.modelrepository.actions;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,7 +15,6 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -26,6 +24,7 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CommitDialog;
+import com.archimatetool.modelrepository.dialogs.ErrorMessageDialog;
 import com.archimatetool.modelrepository.dialogs.UserNamePasswordDialog;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -72,34 +71,28 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
 	}
 	
     /**
-     * Display an errror dialog
-     * @param title
-     * @param ex
+     * Display an errror dialog with exception shown in text box
      */
     protected void displayErrorDialog(String title, Throwable ex) {
         ex.printStackTrace();
-        
-        String message = ex.getMessage();
-        
-        if(ex instanceof InvocationTargetException) {
-            ex = ex.getCause();
-        }
-        
-        if(ex instanceof JGitInternalException) {
-            ex = ex.getCause();
-        }
-        
-        if(ex != null) {
-            message = ex.getMessage();
-        }
-        
-        displayErrorDialog(title, message);
+        ErrorMessageDialog.open(fWindow.getShell(),
+                title,
+                Messages.AbstractModelAction_0,
+                ex);
     }
 
     /**
-     * Display an errror dialog
-     * @param title
-     * @param message
+     * Display an error dialog with a detailed message shown in text box
+     */
+    protected void displayErrorDialog(String title, String message, String detailMessage) {
+        ErrorMessageDialog.open(fWindow.getShell(),
+                title,
+                message,
+                detailMessage);
+    }
+    
+    /**
+     * Display a simple errror dialog with title and message
      */
     protected void displayErrorDialog(String title, String message) {
         MessageDialog.openError(fWindow.getShell(),
