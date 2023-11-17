@@ -151,10 +151,18 @@ public class GitUtils extends Git {
                   .filter(refUpdate -> refUpdate.getStatus() != RemoteRefUpdate.Status.OK)           // Ignore OK
                   .filter(refUpdate -> refUpdate.getStatus() != RemoteRefUpdate.Status.UP_TO_DATE)   // Ignore Up to date
                   .forEach(refUpdate -> {
-                      if(StringUtils.isSet(pushResult.getMessages())) {
-                          sb.append(pushResult.getMessages() + "\n");
-                      }
                       sb.append(refUpdate.getStatus().name() + "\n"); // Status enum name
+                      sb.append(refUpdate.getRemoteName() + "\n"); // Remote ref name
+                      
+                      String msgs = pushResult.getMessages();
+                      if(StringUtils.isSet(msgs)) { // Messages can be null
+                          // First char can be zero byte and message will not show on Windows
+                          if(msgs.charAt(0) == 0) {
+                              msgs = msgs.substring(1);
+                          }
+                          
+                          sb.append(msgs + "\n");
+                      }
                   });
             
         
