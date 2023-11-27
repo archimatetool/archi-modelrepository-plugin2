@@ -106,7 +106,7 @@ public class BranchInfo {
     /**
      * @return True if this BranchInfo has all status info calculated
      */
-    public boolean getFullStatus() {
+    public boolean hasFullStatus() {
         return hasFullStatus;
     }
     
