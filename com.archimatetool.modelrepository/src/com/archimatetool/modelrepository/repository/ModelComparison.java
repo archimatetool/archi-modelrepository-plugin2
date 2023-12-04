@@ -30,6 +30,7 @@ import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModelComponent;
+import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
  * Represents a comparison of changes between two models
@@ -70,6 +71,7 @@ public class ModelComparison {
     
     private IArchiRepository repository;
     private RevCommit revCommit1, revCommit2;
+    private IArchimateModel model1, model2;
     
     private Comparison comparison;
 
@@ -134,10 +136,10 @@ public class ModelComparison {
         if(comparison == null) {
             try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
                 // Load the model from first commit
-                IArchimateModel model1 = loadModel(utils, revCommit1.getName());
+                model1 = loadModel(utils, revCommit1.getName());
                 
                 // Load the model from the second commit or the working tree. If the second commit is null, load the working tree
-                IArchimateModel model2 = isWorkingTreeComparison() ? getWorkingTreeModel() : loadModel(utils, revCommit2.getName());
+                model2 = isWorkingTreeComparison() ? getWorkingTreeModel() : loadModel(utils, revCommit2.getName());
                 
                 IComparisonScope scope = new DefaultComparisonScope(model2, model1, null); // Left/Right are swapped!
                 comparison = EMFCompare.builder().build().compare(scope);
@@ -212,6 +214,20 @@ public class ModelComparison {
         return eObject;
     }
     
+    /**
+     * Find an object by ID in the first model (the oldest commit)
+     */
+    public EObject findObjectInFirstModel(String id) {
+        return ArchimateModelUtils.getObjectByID(model1, id);
+    }
+    
+    /**
+     * Find an object by ID in the second model (the later commit, or working tree)
+     */
+    public EObject findObjectInSecondModel(String id) {
+        return ArchimateModelUtils.getObjectByID(model2, id);
+    }
+
     private IArchimateModel getWorkingTreeModel() throws IOException {
         // Do we have the model open in the UI?
         IArchimateModel model = repository.getOpenModel();

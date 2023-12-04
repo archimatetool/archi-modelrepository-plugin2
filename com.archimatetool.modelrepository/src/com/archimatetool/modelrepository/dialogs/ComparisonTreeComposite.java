@@ -151,6 +151,10 @@ public class ComparisonTreeComposite extends Composite {
         fTreeViewer.setInput(modelComparison);
         fTreeViewer.expandAll();
     }
+    
+    public TreeViewer getTreeViewer() {
+        return fTreeViewer;
+    }
 
     private class ContentProvider implements ITreeContentProvider {
         
