@@ -92,7 +92,7 @@ public class ArchiRepositoryTests {
     }
     
     @Test
-    public void getModel() {
+    public void getOpenModel() {
         File repoFolder = new File("/temp/folder");
         IArchiRepository repo = new ArchiRepository(repoFolder);
         
@@ -100,10 +100,10 @@ public class ArchiRepositoryTests {
         model.setFile(repo.getModelFile());
         
         // Not open
-        assertNull(repo.getModel());
+        assertNull(repo.getOpenModel());
         
         IEditorModelManager.INSTANCE.openModel(model);
-        assertEquals(model, repo.getModel());
+        assertEquals(model, repo.getOpenModel());
     }
     
     @Test

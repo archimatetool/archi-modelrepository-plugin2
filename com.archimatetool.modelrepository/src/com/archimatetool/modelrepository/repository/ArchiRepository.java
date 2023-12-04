@@ -155,7 +155,7 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public String getName() {
         // If the model is open, return its name
-        IArchimateModel model = getModel();
+        IArchimateModel model = getOpenModel();
         if(model != null) {
             return model.getName();
         }
@@ -196,7 +196,7 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public IArchimateModel getModel() {
+    public IArchimateModel getOpenModel() {
         File modelFile = getModelFile();
         
         for(IArchimateModel model : IEditorModelManager.INSTANCE.getModels()) {

@@ -101,10 +101,10 @@ public interface IArchiRepository {
     String getRemoteURL() throws IOException, GitAPIException;
 
     /**
-     * Get the model in the model manager based on its file location
-     * @return The model or null if not found
+     * Return the model if it is open in the model manager
+     * @return The model, or null if it's not open in the model manager (UI)
      */
-    IArchimateModel getModel();
+    IArchimateModel getOpenModel();
     
     /**
      * @return User name and email from config. This is either local or global config.

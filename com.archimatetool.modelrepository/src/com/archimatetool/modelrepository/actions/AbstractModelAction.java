@@ -110,7 +110,7 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
      */
     boolean checkModelNeedsSaving() {
         // Model is open and needs saving
-        IArchimateModel model = getRepository().getModel();
+        IArchimateModel model = getRepository().getOpenModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             try {
                 if(askToSaveModel(model) == SWT.CANCEL) {
@@ -283,7 +283,7 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
      */
     protected OpenModelState closeModel(boolean askSaveModel) {
         OpenModelState modelState = new OpenModelState();
-        modelState.closeModel(getRepository().getModel(), askSaveModel);
+        modelState.closeModel(getRepository().getOpenModel(), askSaveModel);
         return modelState;
     }
     

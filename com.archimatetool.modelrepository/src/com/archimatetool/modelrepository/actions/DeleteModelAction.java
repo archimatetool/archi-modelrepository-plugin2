@@ -91,7 +91,7 @@ public class DeleteModelAction extends AbstractModelAction {
         
         try {
             // Close model without asking to save
-            IEditorModelManager.INSTANCE.closeModel(getRepository().getModel(), false);
+            IEditorModelManager.INSTANCE.closeModel(getRepository().getOpenModel(), false);
             
             // Delete repo
             if(deleteRepo) {

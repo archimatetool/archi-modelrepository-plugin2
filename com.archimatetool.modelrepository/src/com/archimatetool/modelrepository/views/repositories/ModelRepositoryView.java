@@ -383,7 +383,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         try {
             for(RepositoryRef ref : refsToDelete) {
                 // Close model without asking to save
-                IEditorModelManager.INSTANCE.closeModel(ref.getArchiRepository().getModel(), false);
+                IEditorModelManager.INSTANCE.closeModel(ref.getArchiRepository().getOpenModel(), false);
 
                 // Delete repository folder
                 if(delete) {
