@@ -56,6 +56,7 @@ import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
+import com.archimatetool.modelrepository.repository.ModelComparison;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
@@ -96,13 +97,13 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         @Override
         public void run() {
             List<?> selection = getHistoryViewer().getStructuredSelection().toList();
+            ModelComparison mc = null;
             
             // Selected Working Tree so compare with latest commit
             if(selection.size() == 1 && !(selection.get(0) instanceof RevCommit)) {
                 try {
                     BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(fSelectedRepository.getWorkingFolder(), true);
-                    RevCommit revCommit = branchInfo.getLatestCommit();
-                    new CompareDialog(getSite().getShell(), fSelectedRepository, revCommit).open();
+                    mc = new ModelComparison(fSelectedRepository, branchInfo.getLatestCommit());
                 }
                 catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();
@@ -113,15 +114,26 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             else if(selection.size() == 2) {
                 // Two RevCommits
                 if(selection.get(0) instanceof RevCommit && selection.get(1) instanceof RevCommit) {
-                    new CompareDialog(getSite().getShell(), fSelectedRepository, (RevCommit)selection.get(0), (RevCommit)selection.get(1)).open();
+                    mc = new ModelComparison(fSelectedRepository, (RevCommit)selection.get(0), (RevCommit)selection.get(1));
                 }
                 // One RevCommit and Working Tree
                 else if(selection.get(0) instanceof RevCommit) {
-                    new CompareDialog(getSite().getShell(), fSelectedRepository, (RevCommit)selection.get(0)).open();
+                    mc = new ModelComparison(fSelectedRepository, (RevCommit)selection.get(0));
                 }
                 // One RevCommit and Working Tree
                 else if(selection.get(1) instanceof RevCommit) {
-                    new CompareDialog(getSite().getShell(), fSelectedRepository, (RevCommit)selection.get(1)).open();
+                    mc = new ModelComparison(fSelectedRepository, (RevCommit)selection.get(1));
+                }
+            }
+            
+            if(mc != null) {
+                try {
+                    mc.init();
+                    new CompareDialog(getSite().getShell(), mc).open();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                    logger.log(Level.SEVERE, "Model Comparison", ex); //$NON-NLS-1$
                 }
             }
         }

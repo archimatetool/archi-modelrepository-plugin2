@@ -5,27 +5,15 @@
  */
 package com.archimatetool.modelrepository.dialogs;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.emf.compare.AttributeChange;
-import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
 import org.eclipse.emf.compare.DifferenceSource;
-import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.ReferenceChange;
-import org.eclipse.emf.compare.scope.DefaultComparisonScope;
-import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.layout.TreeColumnLayout;
@@ -37,29 +25,23 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 
-import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.ui.UIUtils;
-import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IBounds;
 import com.archimatetool.model.IDiagramModel;
-import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperty;
-import com.archimatetool.modelrepository.repository.GitUtils;
-import com.archimatetool.modelrepository.repository.IArchiRepository;
-import com.archimatetool.modelrepository.repository.RepoConstants;
+import com.archimatetool.modelrepository.repository.ModelComparison;
+import com.archimatetool.modelrepository.repository.ModelComparison.Change;
 
 
 /**
@@ -72,38 +54,12 @@ public class ComparisonTreeComposite extends Composite {
     
     private TreeViewer fTreeViewer;
     
-    private IArchiRepository repository;
-    private RevCommit revCommit1, revCommit2;
+    private ModelComparison modelComparison;
     
-    private static class Change {
-        private EObject parent;
-        private Set<EObject> eObjects = new HashSet<>();
-
-        Change(EObject parent) {
-            this.parent = parent;
-        }
-
-        void add(EObject eObject) {
-            if(eObject != parent) {
-                eObjects.add(eObject);
-            }
-        }
-
-        EObject getParent() {
-            return parent;
-        }
-        
-        Set<EObject> getEObjects() {
-            return eObjects;
-        }
-    }
-    
-    public ComparisonTreeComposite(Composite parent, int style, IArchiRepository repository, RevCommit revCommit1, RevCommit revCommit2) {
+    public ComparisonTreeComposite(Composite parent, int style, ModelComparison modelComparison) {
         super(parent, style);
         
-        this.repository = repository;
-        this.revCommit1 = revCommit1;
-        this.revCommit2 = revCommit2;
+        this.modelComparison = modelComparison;
         
         TreeColumnLayout treeLayout = new TreeColumnLayout();
         setLayout(treeLayout);
@@ -124,11 +80,11 @@ public class ComparisonTreeComposite extends Composite {
         treeLayout.setColumnData(column1.getColumn(), new ColumnWeightData(20, true));
 
         TreeViewerColumn column2 = new TreeViewerColumn(fTreeViewer, SWT.NONE);
-        column2.getColumn().setText(revCommit1.getShortMessage());
+        column2.getColumn().setText(modelComparison.getFirstRevCommit().getShortMessage());
         treeLayout.setColumnData(column2.getColumn(), new ColumnWeightData(40, true));
 
         TreeViewerColumn column3 = new TreeViewerColumn(fTreeViewer, SWT.NONE);
-        String message = revCommit2 != null ? revCommit2.getShortMessage() : "Working Changes";
+        String message = modelComparison.isWorkingTreeComparison() ? "Working Changes" : modelComparison.getSecondRevCommit().getShortMessage();
         column3.getColumn().setText(message);
         treeLayout.setColumnData(column3.getColumn(), new ColumnWeightData(40, true));
 
@@ -192,60 +148,10 @@ public class ComparisonTreeComposite extends Composite {
             }
         });
 
-        fTreeViewer.setInput(createComparison());
+        fTreeViewer.setInput(modelComparison);
         fTreeViewer.expandAll();
     }
 
-    /**
-     * Create the EMF Comparison between the two models in the two revisions (or working tree)
-     */
-    private Comparison createComparison() {
-        try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
-            // Load the model from first commit
-            IArchimateModel model1 = loadModel(utils, revCommit1.getName());
-            
-            // Load the model from the second commit or the working tree. If the second commit is null, load the working tree
-            IArchimateModel model2 = revCommit2 != null ? loadModel(utils, revCommit2.getName()) : getWorkingTreeModel();
-            
-            IComparisonScope scope = new DefaultComparisonScope(model2, model1, null); // Left/Right are swapped!
-            return EMFCompare.builder().build().compare(scope);
-        }
-        catch(IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-    
-    private IArchimateModel getWorkingTreeModel() throws IOException {
-        // Do we have the model open in the UI?
-        IArchimateModel model = repository.getOpenModel();
-        
-        // No, so load it
-        if(model == null) {
-            model = IEditorModelManager.INSTANCE.load(repository.getModelFile());
-        }
-        
-        return model;
-    }
-    
-    /**
-     * Load a model from its revision string
-     */
-    private IArchimateModel loadModel(GitUtils utils, String revStr) throws IOException {
-        File tempFolder = Files.createTempDirectory("archi-").toFile();
-        
-        try {
-            utils.extractCommit(revStr, tempFolder, false);
-            
-            // Load it
-            File modelFile = new File(tempFolder, RepoConstants.MODEL_FILENAME);
-            return modelFile.exists() ? IEditorModelManager.INSTANCE.load(modelFile) : null;
-        }
-        finally {
-            FileUtils.deleteFolder(tempFolder);
-        }
-    }
-    
     private class ContentProvider implements ITreeContentProvider {
         
         @Override
@@ -263,19 +169,19 @@ public class ComparisonTreeComposite extends Composite {
 
         @Override
         public Object[] getChildren(Object parentElement) {
-            if(parentElement instanceof Comparison comparison) {
-                return getChangedObjects(comparison).toArray();
+            if(parentElement instanceof ModelComparison modelComparison) {
+                return modelComparison.getChangedObjects().toArray();
             }
             
             if(parentElement instanceof Change change) {
                 List<Object> list = new ArrayList<>();
-                list.addAll(getDifferences(change.getParent())); // Differences of parent object
+                list.addAll(modelComparison.getDifferences(change.getParent())); // Differences of parent object
                 list.addAll(change.getEObjects());               // Child objects
                 return list.toArray();
             }
             
             if(parentElement instanceof EObject eObject) {
-                return getDifferences(eObject).toArray();
+                return modelComparison.getDifferences(eObject).toArray();
             }
             
             return new Object[0];
@@ -308,7 +214,7 @@ public class ComparisonTreeComposite extends Composite {
                     return null;
                 }
                 if(element instanceof EObject eObject) {
-                    return ArchiLabelProvider.INSTANCE.getImage(getParent(eObject));
+                    return ArchiLabelProvider.INSTANCE.getImage(modelComparison.getParent(eObject));
                 }
             }
             
@@ -329,7 +235,7 @@ public class ComparisonTreeComposite extends Composite {
                         return property.eClass().getName();
                     }
                     if(element instanceof EObject eObject) {
-                        return ArchiLabelProvider.INSTANCE.getLabel(getParent(eObject));
+                        return ArchiLabelProvider.INSTANCE.getLabel(modelComparison.getParent(eObject));
                     }
                     return null;
 
@@ -355,68 +261,6 @@ public class ComparisonTreeComposite extends Composite {
                     return null;
             }
         }
-    }
-    
-    private Comparison getComparison() {
-        return (Comparison)fTreeViewer.getInput();
-    }
-    
-    private List<Diff> getDifferences(EObject eObject) {
-        Match match = getComparison().getMatch(eObject);
-        if(match != null) {
-            return match.getDifferences();
-        }
-        return new ArrayList<>();
-    }
-
-    private Collection<Change> getChangedObjects(Comparison comparison) {
-        Map<EObject, Change> changes = new HashMap<>();
-
-        for(Diff diff : comparison.getDifferences()) {
-            Match match = diff.getMatch();
-            
-            //EObject eObject = match.getLeft() != null ? match.getLeft() : match.getRight();
-            EObject eObject = match.getLeft(); // Taking Left is sufficient
-            
-            if(eObject != null) {
-                EObject parent = getRootParent(eObject);
-                
-                Change change = changes.get(parent);
-                if(change == null) {
-                    change = new Change(parent);
-                    changes.put(parent, change);
-                }
-
-                change.add(eObject);
-            }
-        }
-        
-        return changes.values();
-    }
-    
-    /**
-     * If eObject is Bounds, Properties, Feature etc then return the parent object
-     */
-    private EObject getParent(EObject eObject) {
-        if(!(eObject instanceof IArchimateModelObject)) {
-            eObject = eObject.eContainer();
-        }
-        
-        return eObject;
-    }
-    
-    /**
-     * If eObject is Bounds, Properties, Feature etc then return the parent object
-     * And if eObject is a diagram component return the diagram
-     */
-    private EObject getRootParent(EObject eObject) {
-        eObject = getParent(eObject);
-        
-        if(eObject instanceof IDiagramModelComponent dmc) {
-            eObject = dmc.getDiagramModel();
-        }
-        
-        return eObject;
     }
     
     /**
