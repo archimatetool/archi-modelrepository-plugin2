@@ -6,7 +6,11 @@
 package com.archimatetool.modelrepository.views.history;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
@@ -19,10 +23,12 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -39,6 +45,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.ExtractModelFromCommitAction;
 import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
@@ -60,9 +67,16 @@ import com.archimatetool.modelrepository.treemodel.RepositoryRef;
 public class HistoryView
 extends ViewPart
 implements IContextProvider, ISelectionListener, IRepositoryListener {
+    
+    private static Logger logger = Logger.getLogger(HistoryView.class.getName());
 
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".historyView"; //$NON-NLS-1$
     public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".historyViewHelp"; //$NON-NLS-1$
+    
+    /*
+     * Selected repository
+     */
+    private IArchiRepository fSelectedRepository;
     
     private Label fRepoLabel;
 
@@ -78,22 +92,45 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private RestoreCommitAction fActionRestoreCommit;
     private ResetToRemoteCommitAction fActionResetToRemoteCommit;
     
-    private IAction fActionCompare = new Action("Compare") { //$NON-NLS-1$
+    private IAction fActionCompare = new Action(Messages.HistoryView_3) {
         @Override
         public void run() {
-            @SuppressWarnings("unchecked")
-            List<RevCommit> selection = getHistoryViewer().getStructuredSelection().toList();
-            if(selection.size() == 2) {
-                new CompareDialog(getSite().getShell(), fSelectedRepository, selection.get(0), selection.get(1)).open();
+            List<?> selection = getHistoryViewer().getStructuredSelection().toList();
+            
+            // Selected Working Tree so compare with latest commit
+            if(selection.size() == 1 && !(selection.get(0) instanceof RevCommit)) {
+                try {
+                    BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(fSelectedRepository.getWorkingFolder(), true);
+                    RevCommit revCommit = branchInfo.getLatestCommit();
+                    new CompareDialog(getSite().getShell(), fSelectedRepository, revCommit).open();
+                }
+                catch(IOException | GitAPIException ex) {
+                    ex.printStackTrace();
+                    logger.log(Level.SEVERE, "Branch Info", ex); //$NON-NLS-1$
+                }
+            }
+            // Selected two objects
+            else if(selection.size() == 2) {
+                // Two RevCommits
+                if(selection.get(0) instanceof RevCommit && selection.get(1) instanceof RevCommit) {
+                    new CompareDialog(getSite().getShell(), fSelectedRepository, (RevCommit)selection.get(0), (RevCommit)selection.get(1)).open();
+                }
+                // One RevCommit and Working Tree
+                else if(selection.get(0) instanceof RevCommit) {
+                    new CompareDialog(getSite().getShell(), fSelectedRepository, (RevCommit)selection.get(0)).open();
+                }
+                // One RevCommit and Working Tree
+                else if(selection.get(1) instanceof RevCommit) {
+                    new CompareDialog(getSite().getShell(), fSelectedRepository, (RevCommit)selection.get(1)).open();
+                }
             }
         }
+        
+        @Override
+        public ImageDescriptor getImageDescriptor() {
+            return IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_TWOWAY_COMPARE);
+        };
     };
-    
-    /*
-     * Selected repository
-     */
-    private IArchiRepository fSelectedRepository;
-
     
     @Override
     public void createPartControl(Composite parent) {
@@ -197,6 +234,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
      * Make local actions
      */
     private void makeActions() {
+        fActionCompare.setEnabled(false);
+        
         fActionExtractCommit = new ExtractModelFromCommitAction(getViewSite().getWorkbenchWindow());
         fActionExtractCommit.setEnabled(false);
 
@@ -260,6 +299,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 
         manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
         
+        manager.add(fActionCompare);
+        manager.add(new Separator());
         manager.add(fActionExtractCommit);
         manager.add(fActionRestoreCommit);
         manager.add(new Separator());
@@ -271,20 +312,37 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     
     /**
      * Update the Local Actions depending on the local selection 
-     * @param selection
      */
     private void updateActions() {
-        RevCommit commit = (RevCommit)getHistoryViewer().getStructuredSelection().getFirstElement();
+        IStructuredSelection selection = getHistoryViewer().getStructuredSelection();
+        Object firstSelected = selection.getFirstElement();
+        boolean isSingleSelection = selection.size() == 1;
+        
+        fActionCompare.setText(Messages.HistoryView_3);
+        
+        // Selected Working tree
+        if(!(firstSelected instanceof RevCommit revCommit)) {
+            fCommentViewer.setCommit(null);
+            fActionExtractCommit.setCommit(null);
+            fActionRestoreCommit.setCommit(null);
+            fActionUndoLastCommit.setEnabled(false);
+            fActionResetToRemoteCommit.setEnabled(false);
+            fActionCompare.setEnabled(selection.size() > 0 && selection.size() < 3);
+            if(isSingleSelection) {
+                fActionCompare.setText(Messages.HistoryView_4);
+            }
+            return;
+        }
         
         // Set the commit in the Comment Viewer
-        fCommentViewer.setCommit(commit);
+        fCommentViewer.setCommit(isSingleSelection ? revCommit : null);
         
-        fActionExtractCommit.setCommit(commit);
+        fActionExtractCommit.setCommit(isSingleSelection ? revCommit : null);
         
         // Enable these actions if our selected branch in the combo is the current branch
         BranchInfo selectedBranch = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
         if(selectedBranch != null && selectedBranch.isCurrentBranch()) {
-            fActionRestoreCommit.setCommit(commit);
+            fActionRestoreCommit.setCommit(isSingleSelection ? revCommit : null);
             fActionUndoLastCommit.update();
             fActionResetToRemoteCommit.update();
         }
@@ -296,18 +354,17 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         }
         
         // Compare
-        IStructuredSelection selection = getHistoryViewer().getStructuredSelection();
         fActionCompare.setEnabled(selection.size() == 2);
     }
     
     private void fillContextMenu(IMenuManager manager) {
+        manager.add(fActionCompare);
+        manager.add(new Separator());
         manager.add(fActionExtractCommit);
         manager.add(fActionRestoreCommit);
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
-        manager.add(new Separator());
-        manager.add(fActionCompare);
     }
 
     HistoryTableViewer getHistoryViewer() {
@@ -374,7 +431,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
-        if(repository.equals(fSelectedRepository)) {
+        if(Objects.equals(repository, fSelectedRepository)) {
             switch(eventName) {
                 case IRepositoryListener.HISTORY_CHANGED:
                     fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
@@ -391,6 +448,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     
                 case IRepositoryListener.MODEL_RENAMED:
                     fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
+                    break;
+                    
+                case IRepositoryListener.MODEL_SAVED:
+                    getHistoryViewer().modelSaved();
                     break;
 
                 case IRepositoryListener.BRANCHES_CHANGED:

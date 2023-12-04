@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +39,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 
+import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.editor.ui.ThemeUtils;
 import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.utils.PlatformUtils;
@@ -57,6 +59,8 @@ public class HistoryTableViewer extends TableViewer {
     private BranchInfo fSelectedBranch;
     
     private Set<RevCommit> unmergedCommits;
+    
+    private boolean hasWorkingTree;
     
     private Color unmergedColor = new Color(0, 124, 250);
     private Color mergedColor = ThemeUtils.isDarkTheme() ? new Color(250, 250, 250) : new Color(0, 0, 0);
@@ -110,32 +114,50 @@ public class HistoryTableViewer extends TableViewer {
             logger.log(Level.SEVERE, "Branch Status", ex); //$NON-NLS-1$
         }
 
-        setInputSelect(archiRepo);
+        setInputAndSelect(archiRepo);
     }
     
     void setSelectedBranch(BranchInfo branchInfo) {
-        if(branchInfo != null && branchInfo.equals(fSelectedBranch)) {
+        if(Objects.equals(branchInfo, fSelectedBranch)) {
             return;
         }
 
         fSelectedBranch = branchInfo;
-        setInputSelect(getInput());
+        setInputAndSelect((IArchiRepository)getInput());
     }
     
-    private void setInputSelect(Object input) {
-        setInput(input);
+    void modelSaved() {
+        // If we have working tree then update history view
+        if(hasWorkingTree((IArchiRepository)getInput()) != hasWorkingTree) {
+            setInput(getInput());
+        }
+    }
+    
+    private void setInputAndSelect(IArchiRepository archiRepo) {
+        setInput(archiRepo);
         
-        // Avoid bogus horizontal scrollbar cheese
         Display.getCurrent().asyncExec(() -> {
             if(!getTable().isDisposed()) {
+                // Avoid bogus horizontal scrollbar cheese
                 getTable().getParent().layout();
+                
+                // Select first row. This will ensure we only load the first few commits
+                Object element = getElementAt(0);
+                if(element != null) {
+                    setSelection(new StructuredSelection(element), true);
+                }
             }
         });
-        
-        // Select first row. This will ensure we only load the first few commits
-        Object element = getElementAt(0);
-        if(element != null) {
-            setSelection(new StructuredSelection(element), true);
+    }
+    
+    private boolean hasWorkingTree(IArchiRepository repo) {
+        try {
+            return repo != null && repo.hasChangesToCommit() && fSelectedBranch != null && fSelectedBranch.isCurrentBranch();
+        }
+        catch(IOException | GitAPIException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Has changes to commit", ex); //$NON-NLS-1$
+            return false;
         }
     }
     
@@ -174,9 +196,9 @@ public class HistoryTableViewer extends TableViewer {
             
             dispose();
             
-            if(!(newInput instanceof IArchiRepository
-                    && ((IArchiRepository)newInput).getWorkingFolder().exists() // Local Repo might have been deleted
-                    && fSelectedBranch != null)) {
+            if(!(newInput instanceof IArchiRepository repo // Must be non-null repo
+                    && repo.getWorkingFolder().exists()    // Local Repo might have been deleted
+                    && fSelectedBranch != null)) {         // Must have branch selected
                 setItemCount(0);
                 return;
             }
@@ -184,7 +206,10 @@ public class HistoryTableViewer extends TableViewer {
             commits = new ArrayList<>();
             unmergedCommits = new HashSet<>();
             
-            loadCommits((IArchiRepository)newInput, -1);
+            // Get this now
+            hasWorkingTree = hasWorkingTree(repo);
+            
+            loadCommits(repo, -1);
         }
         
         /**
@@ -225,7 +250,8 @@ public class HistoryTableViewer extends TableViewer {
                             }
                         }
 
-                        setItemCount(count);
+                        // Add an extra item if we are showing the working tree
+                        setItemCount(hasWorkingTree ? count + 1 : count);
                     }
                     // If index is 0 or more we'll load PRELOAD_SIZE more commits from the given index point forwards
                     else {
@@ -254,11 +280,20 @@ public class HistoryTableViewer extends TableViewer {
         
         @Override
         public void updateElement(int index) {
-            if(index >= commits.size()) {
-                loadCommits((IArchiRepository)getInput(), index);
+            // If this is the working tree row insert dummy object
+            if(index == 0 && hasWorkingTree) {
+                replace(new Object(), index);
+                return;
             }
             
-            replace(commits.get(index), index);
+            // The real index of the RevCommit depends on whether we are showing the working tree row
+            int realIndex = hasWorkingTree ? index - 1 : index;
+            
+            if(realIndex >= commits.size()) {
+                loadCommits((IArchiRepository)getInput(), realIndex);
+            }
+            
+            replace(commits.get(realIndex), index);
         }
 
         @Override
@@ -278,7 +313,7 @@ public class HistoryTableViewer extends TableViewer {
         
         DateFormat dateFormat = DateFormat.getDateTimeInstance();
         
-        public String getColumnText(RevCommit commit, int columnIndex) {
+        private String getColumnText(RevCommit commit, int columnIndex) {
             switch(columnIndex) {
                 case 0:
                     return commit.getShortMessage();
@@ -299,6 +334,17 @@ public class HistoryTableViewer extends TableViewer {
 
         @Override
         public void update(ViewerCell cell) {
+            if(!(cell.getElement() instanceof RevCommit)) {
+                if(cell.getColumnIndex() == 0) {
+                    cell.setForeground(null);
+                    cell.setText(Messages.HistoryTableViewer_7);
+                    cell.setFont(FontFactory.SystemFontBold);
+                    Image image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_BLANK);
+                    cell.setImage(image);
+                }
+                return;
+            }
+            
             RevCommit commit = (RevCommit)cell.getElement();
             
             cell.setForeground(null);
@@ -330,6 +376,11 @@ public class HistoryTableViewer extends TableViewer {
         
         @Override
         protected void paint(Event event, Object element) {
+            if(!(element instanceof RevCommit)) {
+                super.paint(event, element);
+                return;
+            }
+            
             // Draw a line denoting a branch for unmerged commits (i.e remote commits)
             RevCommit commit = (RevCommit)element;
             
@@ -369,9 +420,13 @@ public class HistoryTableViewer extends TableViewer {
         
         @Override
         public String getToolTipText(Object element) {
+            if(!(element instanceof RevCommit)) {
+                return null;
+            }
+            
             RevCommit commit = (RevCommit)element;
             String s = ""; //$NON-NLS-1$
-
+            
             // Local/Remote are same commit
             if(commit.equals(fLocalCommit) && commit.equals(fRemoteCommit)) {
                 s += Messages.HistoryTableViewer_4 + " "; //$NON-NLS-1$

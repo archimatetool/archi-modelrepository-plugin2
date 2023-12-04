@@ -43,6 +43,7 @@ public interface IModelRepositoryImages {
     String ICON_REVERT = IMGPATH + "revert.png";
     String ICON_SYNCED = IMGPATH + "synced.png";
     String ICON_TICK = IMGPATH + "tick.png";
+    String ICON_TWOWAY_COMPARE = IMGPATH + "twowaycompare_co.png";
     String ICON_UNDO_COMMIT = IMGPATH + "undo_commit.png";
 
     String ICON_LEFT_BALL_OVERLAY = IMGPATH + "left_ball_ovr.png";
