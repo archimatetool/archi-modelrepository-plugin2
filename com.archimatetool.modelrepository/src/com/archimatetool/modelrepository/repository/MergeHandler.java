@@ -10,13 +10,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Logger;
-
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.compare.Comparison;
+import org.eclipse.emf.compare.ConflictKind;
 import org.eclipse.emf.compare.Diff;
+import org.eclipse.emf.compare.DifferenceSource;
 import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.merge.BatchMerger;
-import org.eclipse.emf.compare.merge.IBatchMerger;
 import org.eclipse.emf.compare.merge.IMerger.Registry;
 import org.eclipse.emf.compare.merge.IMerger.RegistryImpl;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
@@ -37,6 +37,12 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.model.ModelChecker;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
+
+import static com.google.common.base.Predicates.and;
+import static com.google.common.base.Predicates.not;
+import static org.eclipse.emf.compare.utils.EMFComparePredicates.fromSide;
+import static org.eclipse.emf.compare.utils.EMFComparePredicates.hasConflict;
+
 
 /**
  * Handle merging of branches
@@ -168,14 +174,22 @@ public class MergeHandler {
         // POC EMF Compare...
         
         IComparisonScope scope = new DefaultComparisonScope(ourModel, theirModel, baseModel);
+        
         Comparison comparison = EMFCompare.builder().build().compare(scope);
         List<Diff> differences = comparison.getDifferences();
-        
+
         Registry mergerRegistry = RegistryImpl.createStandaloneInstance();
-        IBatchMerger merger = new BatchMerger(mergerRegistry);
+        //IBatchMerger merger = new BatchMerger(mergerRegistry);
         
-        // Copy theirs into ours
-        merger.copyAllRightToLeft(differences, new BasicMonitor());
+        // Merge non conflicting changes coming from LEFT
+        (new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), not(hasConflict(ConflictKind.REAL))))).copyAllLeftToRight(differences, new BasicMonitor());
+        
+        // Merge non conflicting changes coming from RIGHT
+        (new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), not(hasConflict(ConflictKind.REAL))))).copyAllRightToLeft(differences, new BasicMonitor());
+		
+        // Merge conflicts
+        //(new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
+        (new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), hasConflict(ConflictKind.REAL)))).copyAllLeftToRight(differences, new BasicMonitor());
         
         // If OK, save the model
         if(isModelIntegral(ourModel)) {
