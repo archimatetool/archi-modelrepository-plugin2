@@ -140,8 +140,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             
         }, ColumnViewerEditor.DEFAULT);
 
-        setCellEditors(new CellEditor[]{ cellEditor });
-        
         setCellModifier(new ICellModifier() {
             @Override
             public void modify(Object element, String property, Object value) {
