@@ -138,8 +138,16 @@ public class ModelComparison {
                 // Load the model from first commit
                 model1 = loadModel(utils, revCommit1.getName());
                 
+                if(model1 == null) {
+                    throw new IOException("Model was null for " + revCommit1.getName());
+                }
+
                 // Load the model from the second commit or the working tree. If the second commit is null, load the working tree
                 model2 = isWorkingTreeComparison() ? getWorkingTreeModel() : loadModel(utils, revCommit2.getName());
+                
+                if(model2 == null) {
+                    throw new IOException("Model was null for " + (isWorkingTreeComparison() ? "working tree" : revCommit1.getName()));
+                }
                 
                 IComparisonScope scope = new DefaultComparisonScope(model2, model1, null); // Left/Right are swapped!
                 comparison = EMFCompare.builder().build().compare(scope);
