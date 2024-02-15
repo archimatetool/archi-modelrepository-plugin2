@@ -31,7 +31,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 
 import com.archimatetool.editor.ui.ArchiLabelProvider;
-import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IBounds;
@@ -67,9 +66,6 @@ public class ComparisonTreeComposite extends Composite {
         
         fTreeViewer = new TreeViewer(this, SWT.MULTI | SWT.FULL_SELECTION);
         fTreeViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
-
-        // Mac Silicon Item height
-        UIUtils.fixMacSiliconItemHeight(fTreeViewer.getTree());
 
         fTreeViewer.getTree().setHeaderVisible(true);
         fTreeViewer.getTree().setLinesVisible(false);
