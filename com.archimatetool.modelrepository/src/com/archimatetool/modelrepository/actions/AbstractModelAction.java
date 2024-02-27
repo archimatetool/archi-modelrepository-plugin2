@@ -189,6 +189,9 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
                     // Close and re-open the reset model
                     OpenModelState modelState = closeModel(false);
                     restoreModel(modelState);
+                    
+                    // Notify in case history was showing working tree
+                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 }
             }
         }
