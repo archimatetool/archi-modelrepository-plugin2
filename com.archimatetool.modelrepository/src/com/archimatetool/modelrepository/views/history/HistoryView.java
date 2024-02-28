@@ -473,6 +473,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                 default:
                     break;
             }
+
+            // Actions need to be updated
+            updateActions();
         }
     }
     
