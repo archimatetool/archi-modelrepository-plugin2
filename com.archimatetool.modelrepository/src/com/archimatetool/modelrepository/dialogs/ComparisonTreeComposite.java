@@ -31,6 +31,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 
 import com.archimatetool.editor.ui.ArchiLabelProvider;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IBounds;
@@ -284,11 +285,11 @@ public class ComparisonTreeComposite extends Composite {
             }
             
             if(changedObject instanceof IProperty property) {
-                return className + " [" + property.getKey() + ": " + property.getValue() + "]";
+                return className + " [" + property.getKey() + ": " + getObjectAsSingleLine(property.getValue()) + "]";
             }
             
             if(changedObject instanceof IFeature feature) {
-                return className + " [" + feature.getName() + ": " + feature.getValue() + "]";
+                return className + " [" + feature.getName() + ": " + getObjectAsSingleLine(feature.getValue()) + "]";
             }
             
             if(changedObject instanceof IBounds bounds) {
@@ -300,21 +301,35 @@ public class ComparisonTreeComposite extends Composite {
         
         // Get the referenced Attribute that changed
         if(diff instanceof AttributeChange attributeChange) {
+            // Get the Attribute that changed
             EAttribute eAttribute = attributeChange.getAttribute();
+            // Get the value of the Attribute
             Object value = eObject.eGet(eAttribute);
             
-            String s = eObject.eClass().getName();
+            StringBuilder sb = new StringBuilder();
             
             if(eObject instanceof IFeature feature) {
-                s = feature.getName();
+                sb.append(feature.getName());
+            }
+            else {
+                sb.append(eObject.eClass().getName());
             }
             
-            s += " [" + eAttribute.getName() + ": " + value + "]";
+            sb.append(" [");
+            sb.append(eAttribute.getName());
+            sb.append(": ");
+            sb.append(getObjectAsSingleLine(value));
+            sb.append("]");
             
-            return s;
+            return sb.toString();
         }
         
         return eObject.eClass().getName();
+    }
+    
+    // Convert the object into a String and remove any newlines
+    private String getObjectAsSingleLine(Object object) {
+        return StringUtils.normaliseNewLineCharacters(String.valueOf(object));
     }
 
 }
