@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Event;
 
 import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.editor.ui.ThemeUtils;
+import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
@@ -66,6 +67,9 @@ public class HistoryTableViewer extends TableViewer {
     
     public HistoryTableViewer(Composite parent) {
         super(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
+        
+        // Mac Item height
+        UIUtils.fixMacSiliconItemHeight(getTable());
         
         setup(parent);
         
