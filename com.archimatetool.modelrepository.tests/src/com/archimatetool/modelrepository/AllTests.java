@@ -5,19 +5,31 @@
  */
 package com.archimatetool.modelrepository;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
+import org.junit.platform.suite.api.SuiteDisplayName;
 
-import com.archimatetool.modelrepository.repository.AllRepositoryTests;
-import com.archimatetool.modelrepository.treemodel.AllTreeModelTests;
+import com.archimatetool.modelrepository.repository.ArchiRepositoryTests;
+import com.archimatetool.modelrepository.repository.GitUtilsTests;
+import com.archimatetool.modelrepository.repository.RepoUtilsTests;
+import com.archimatetool.modelrepository.treemodel.GroupTests;
+import com.archimatetool.modelrepository.treemodel.RepositoryRefTests;
+import com.archimatetool.modelrepository.treemodel.RepositoryTreeModelTests;
 
-@RunWith(Suite.class)
 
-@Suite.SuiteClasses({
-    AllRepositoryTests.class,
-    AllTreeModelTests.class
+@Suite
+@SelectClasses({
+    // repository
+    ArchiRepositoryTests.class,
+    GitUtilsTests.class,
+    RepoUtilsTests.class,
+    
+    // treemodel
+    GroupTests.class,
+    RepositoryRefTests.class,
+    RepositoryTreeModelTests.class
 })
 
-
+@SuiteDisplayName("All Model Repository Tests")
 public class AllTests {
 }

@@ -5,8 +5,8 @@
  */
 package com.archimatetool.modelrepository.repository;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,9 +15,9 @@ import java.util.List;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.transport.RemoteConfig;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.modelrepository.GitHelper;
@@ -26,11 +26,11 @@ import com.archimatetool.modelrepository.GitHelper;
 @SuppressWarnings("nls")
 public class GitUtilsTests {
     
-    @Before
+    @BeforeEach
     public void runOnceBeforeEachTest() {
     }
     
-    @After
+    @AfterEach
     public void runOnceAfterEachTest() throws IOException {
         FileUtils.deleteFolder(GitHelper.getTempTestsFolder());
     }

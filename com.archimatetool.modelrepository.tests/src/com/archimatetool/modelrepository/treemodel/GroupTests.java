@@ -5,17 +5,17 @@
  */
 package com.archimatetool.modelrepository.treemodel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.List;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -24,7 +24,7 @@ import com.archimatetool.modelrepository.repository.IArchiRepository;
 @SuppressWarnings("nls")
 public class GroupTests {
     
-    @BeforeClass
+    @BeforeAll
     public static void runOnceBeforeAllTests() {
         // Don't save to file
         RepositoryTreeModel.saveToManifest = false;

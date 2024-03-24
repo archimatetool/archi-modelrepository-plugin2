@@ -5,18 +5,18 @@
  */
 package com.archimatetool.modelrepository.treemodel;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 
 @SuppressWarnings("nls")
 public class RepositoryTreeModelTests {
     
-    @BeforeClass
+    @BeforeAll
     public static void runOnceBeforeAllTests() {
         // Don't save to file
         RepositoryTreeModel.saveToManifest = false;
