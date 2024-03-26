@@ -219,7 +219,7 @@ public class ComparisonTreeComposite extends Composite {
                     return null;
                 }
                 if(element instanceof EObject eObject) {
-                    return ArchiLabelProvider.INSTANCE.getImage(modelComparison.getParent(eObject));
+                    return ArchiLabelProvider.INSTANCE.getImage(ModelComparison.getParent(eObject));
                 }
             }
             
@@ -240,7 +240,7 @@ public class ComparisonTreeComposite extends Composite {
                         return property.eClass().getName();
                     }
                     if(element instanceof EObject eObject) {
-                        return ArchiLabelProvider.INSTANCE.getLabel(modelComparison.getParent(eObject));
+                        return ArchiLabelProvider.INSTANCE.getLabel(ModelComparison.getParent(eObject));
                     }
                     return null;
 
