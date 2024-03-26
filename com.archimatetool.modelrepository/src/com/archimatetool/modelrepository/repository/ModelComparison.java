@@ -16,16 +16,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.emf.compare.AttributeChange;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
+import org.eclipse.emf.compare.DifferenceSource;
 import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.Match;
+import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
@@ -37,12 +41,169 @@ import com.archimatetool.model.util.ArchimateModelUtils;
  * Represents a comparison of changes between two models
  * The models can be extracted from commits and the working tree
  * 
- * MUst call init() to load the models and get the Comparison
+ * Must call init() to load the models and get the Comparison
  * 
  * @author Phillip Beauvoir
  */
 @SuppressWarnings("nls")
 public class ModelComparison {
+    
+    public class Change2 {
+        private EObject parent;
+        private Set<EObject> children = new HashSet<>();
+        private Set<Diff> diffs = new HashSet<>();
+        
+        
+        public Change2(EObject parent) {
+            this.parent = parent;
+        }
+        
+        public EObject getParent() {
+            return parent;
+        }
+        
+        public Set<Diff> getDiffs() {
+            return diffs;
+        }
+        
+        public void addDiff(Diff diff) {
+            diffs.add(diff);
+            
+            Match match = diff.getMatch();
+            EObject left = match.getLeft();
+            if(left != null) {
+                addChild(left);
+            }
+            
+            // Reference of object
+            if(diff instanceof ReferenceChange referenceChange) {
+                //EObject eObject = referenceChange.getValue();
+                //EObject parent = ModelComparison.getParent(eObject);
+                //addChild(eObject);
+            }
+        }
+        
+        public EObject getRootOf(DifferenceSource source) {
+            for(Diff diff : getDiffs()) {
+                Match match = diff.getMatch();
+                EObject eObject = source == DifferenceSource.LEFT ? match.getLeft() : match.getRight();
+                if(eObject != null) {
+                    EObject root = getRootParent(eObject);
+                    if(root != null) {
+                        return root;
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        public Set<EObject> getChildren() {
+            return children;
+        }
+        
+        public void addChild(EObject eObject) {
+            if(eObject != null && eObject != parent) {
+                children.add(eObject);
+            }
+        }
+        
+        public void print() {
+            System.out.println(getObjectName(getParent()));
+            
+            for(Diff diff : getDifferences(getParent())) {
+                //System.out.println(" - " + diff);
+            }
+            
+            for(Diff diff : getDiffs()) {
+                System.out.println(" d:  - " + diff);
+            }
+            
+            for(EObject child : getChildren()) {
+                System.out.println(" c:  - " + getObjectName(child));
+            }
+            
+            //System.out.println("  - l: " + getRootOf(DifferenceSource.LEFT));
+            //System.out.println("  - r: " + getRootOf(DifferenceSource.RIGHT));
+        }
+    }
+
+    
+    public void getChangedObjects2() {
+        Map<EObject, Change2> changes = new HashMap<>();
+
+        for(Diff diff : comparison.getDifferences()) {
+            Match match = diff.getMatch();
+            
+            EObject left = match.getLeft();      // Left is the most recent, can be null
+            EObject right = match.getRight();    // Right is previous, can be null
+            
+            if(left != null) {
+                EObject rootParent = getRootParent(left);
+                
+                Change2 change = changes.get(rootParent);
+                if(change == null) {
+                    change = new Change2(rootParent);
+                    changes.put(rootParent, change);
+                }
+
+                change.addDiff(diff);
+            }
+        }
+        
+        System.out.println("---------------------");
+        for(Change2 change : changes.values()) {
+            change.print();
+        }
+        System.out.println();
+    }
+    
+    private void debug() {
+        printDiffs();
+        getChangedObjects2();
+    }
+    
+    private String getObjectName(EObject eObject) {
+        String name = ArchiLabelProvider.INSTANCE.getLabel(eObject);
+        if(name.isEmpty()) {
+            name = eObject.toString();
+        }
+        else {
+            name += " - " + eObject.eClass().getName();
+        }
+        return name;
+    }
+
+    private void printDiffs() {
+        System.out.println("---------------------");
+        for(Diff diff : comparison.getDifferences()) {
+            printDiff(diff);
+        }
+        System.out.println();
+    }
+    
+    private void printDiff(Diff diff) {
+        Match match = diff.getMatch();
+        
+        EObject left = match.getLeft();      // Left is the most recent, can be null
+        EObject right = match.getRight();    // Right is previous, can be null
+        
+        System.out.println("d: " + diff);
+        System.out.println("l: " + left);
+        System.out.println("r: " + right);
+        
+        if(diff instanceof ReferenceChange refChange) {
+            System.out.println("v: " + refChange.getValue());
+        }
+        if(diff instanceof AttributeChange attChange) {
+            System.out.println("vl: " + left.eGet(attChange.getAttribute()));
+            System.out.println("vr: " + right.eGet(attChange.getAttribute()));
+        }
+        
+        System.out.println();
+    }
+    
+    
     
     /**
      * Represents a set of EObjects that have changed and their parent object
@@ -170,6 +331,9 @@ public class ModelComparison {
                 
                 IComparisonScope scope = new DefaultComparisonScope(model2, model1, null); // Left/Right are swapped!
                 comparison = EMFCompare.builder().build().compare(scope);
+                
+                // TODO: Remove this
+                debug();
             }
         }
         
