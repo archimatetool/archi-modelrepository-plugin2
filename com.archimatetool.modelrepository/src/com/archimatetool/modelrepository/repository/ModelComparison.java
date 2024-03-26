@@ -30,6 +30,7 @@ import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModelComponent;
+import com.archimatetool.model.IProfile;
 import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
@@ -47,11 +48,13 @@ public class ModelComparison {
      * Represents a set of EObjects that have changed and their parent object
      */
     public static class Change {
-        private EObject parent;
+        private EObject parent, left, right;
         private Set<EObject> eObjects = new HashSet<>();
 
-        public Change(EObject parent) {
+        public Change(EObject parent, EObject left, EObject right) {
             this.parent = parent;
+            this.left = left;
+            this.right = right;
         }
 
         public void add(EObject eObject) {
@@ -66,6 +69,22 @@ public class ModelComparison {
         
         public Set<EObject> getEObjects() {
             return eObjects;
+        }
+        
+        public EObject getLeftParent() {
+            if(left != null) {
+                return getRootParent(left);
+            }
+            
+            return null;
+        }
+        
+        public EObject getRightParent() {
+            if(right != null) {
+                return getRootParent(right);
+            }
+            
+            return null;
         }
     }
     
@@ -166,19 +185,19 @@ public class ModelComparison {
         for(Diff diff : comparison.getDifferences()) {
             Match match = diff.getMatch();
             
-            //EObject eObject = match.getLeft() != null ? match.getLeft() : match.getRight();
-            EObject eObject = match.getLeft(); // Taking Left is sufficient
+            EObject left = match.getLeft();      // Left is the most recent, can be null
+            EObject right = match.getRight();    // Right is previous, can be null
             
-            if(eObject != null) {
-                EObject parent = getRootParent(eObject);
+            if(left != null) {
+                EObject parent = getRootParent(left);
                 
                 Change change = changes.get(parent);
                 if(change == null) {
-                    change = new Change(parent);
+                    change = new Change(parent, left, right);
                     changes.put(parent, change);
                 }
 
-                change.add(eObject);
+                change.add(left);
             }
         }
         
@@ -197,11 +216,11 @@ public class ModelComparison {
     }
 
     /**
-     * Get the parent eContainer of eObject if eObject is Bounds, Properties, Feature etc 
+     * Get the parent eContainer of eObject if eObject is Bounds, Properties, Feature, Profile
      * Else return the object itself
      */
-    public EObject getParent(EObject eObject) {
-        if(!(eObject instanceof IArchimateModelObject)) {
+    public static EObject getParent(EObject eObject) {
+        if(eObject != null && (!(eObject instanceof IArchimateModelObject) || eObject instanceof IProfile)) {
             eObject = eObject.eContainer();
         }
         
@@ -209,10 +228,10 @@ public class ModelComparison {
     }
     
     /**
-     * If eObject is Bounds, Properties, Feature etc then return the parent object.
+     * If eObject is Bounds, Properties, Feature or Profile then return the parent object.
      * If eObject is a diagram component return the diagram
      */
-    public EObject getRootParent(EObject eObject) {
+    private static EObject getRootParent(EObject eObject) {
         eObject = getParent(eObject);
         
         if(eObject instanceof IDiagramModelComponent dmc) {
