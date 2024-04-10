@@ -58,8 +58,7 @@ public class CompareDialog extends ExtendedTitleAreaDialog {
         Composite area = (Composite) super.createDialogArea(parent);
         Composite container = new Composite(area, SWT.NONE);
         container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        GridLayout layout = new GridLayout(2, false);
-        container.setLayout(layout);
+        container.setLayout(new GridLayout());
         
         SashForm sash = new SashForm(container, SWT.VERTICAL);
         sash.setLayoutData(new GridData(GridData.FILL_BOTH));
