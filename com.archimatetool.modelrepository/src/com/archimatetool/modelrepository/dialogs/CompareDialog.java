@@ -23,6 +23,7 @@ import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.modelrepository.repository.ModelComparison;
 import com.archimatetool.modelrepository.repository.ModelComparison.Change;
+import com.archimatetool.modelrepository.repository.ModelComparison.Change2;
 
 /**
  * Compare Dialog between two revisions
@@ -64,16 +65,16 @@ public class CompareDialog extends ExtendedTitleAreaDialog {
         sash.setLayoutData(new GridData(GridData.FILL_BOTH));
         
         // Comparison Tree
-        ComparisonTreeComposite treeComposite = new ComparisonTreeComposite(sash, SWT.BORDER, modelComparison);
+        ComparisonTreeComposite2 treeComposite2 = new ComparisonTreeComposite2(sash, SWT.BORDER, modelComparison);
         
         // Listen to tree selections
-        treeComposite.getTreeViewer().addSelectionChangedListener(event -> {
+        treeComposite2.getTreeViewer().addSelectionChangedListener(event -> {
             Object selected = event.getStructuredSelection().getFirstElement();
             
             // Selected a Change object
-            if(selected instanceof Change change) {
+            if(selected instanceof Change2 change) {
                 // Selected a DiagramModel
-                if(change.getParent() instanceof IDiagramModel changedDiagramModel) {
+                if(change.getChangedObject() instanceof IDiagramModel changedDiagramModel) {
                     EObject eObject = modelComparison.findObjectInFirstModel(changedDiagramModel.getId());
                     if(eObject instanceof IDiagramModel other) {
                         viewComparisonComp.setDiagramModels(other, changedDiagramModel);
@@ -98,11 +99,58 @@ public class CompareDialog extends ExtendedTitleAreaDialog {
                 viewComparisonComp.clear();
             }
         });
+
+        boolean showOldComposite = false;
         
-        // View Comparison
-        viewComparisonComp = new ViewComparisonComposite(sash, SWT.BORDER);
-        
-        sash.setWeights(new int[] { 60, 40 });
+        if(showOldComposite) {
+            SashForm sash2 = new SashForm(sash, SWT.VERTICAL);
+            sash2.setLayoutData(new GridData(GridData.FILL_BOTH));
+            
+            ComparisonTreeComposite treeComposite = new ComparisonTreeComposite(sash2, SWT.BORDER, modelComparison);
+            
+            // Listen to tree selections
+            treeComposite.getTreeViewer().addSelectionChangedListener(event -> {
+                Object selected = event.getStructuredSelection().getFirstElement();
+                
+                // Selected a Change object
+                if(selected instanceof Change change) {
+                    // Selected a DiagramModel
+                    if(change.getParent() instanceof IDiagramModel changedDiagramModel) {
+                        EObject eObject = modelComparison.findObjectInFirstModel(changedDiagramModel.getId());
+                        if(eObject instanceof IDiagramModel other) {
+                            viewComparisonComp.setDiagramModels(other, changedDiagramModel);
+                        }
+                        else {
+                            viewComparisonComp.setDiagramModel(changedDiagramModel);
+                        }
+                    }
+                    else {
+                        viewComparisonComp.clear();
+                    }
+                }
+                else if(selected instanceof ReferenceChange referenceChange) {
+                    if(referenceChange.getValue() instanceof IDiagramModel changedDiagramModel) {
+                        viewComparisonComp.setDiagramModel(changedDiagramModel);
+                    }
+                    else {
+                        viewComparisonComp.clear();
+                    }
+                }
+                else {
+                    viewComparisonComp.clear();
+                }
+            });
+            
+            // View Comparison
+            viewComparisonComp = new ViewComparisonComposite(sash2, SWT.BORDER);
+            sash.setWeights(new int[] { 35, 65 });
+            sash2.setWeights(new int[] { 65, 35 });
+        }
+        else {
+            // View Comparison
+            viewComparisonComp = new ViewComparisonComposite(sash, SWT.BORDER);
+            sash.setWeights(new int[] { 60, 40 });
+        }
         
         return area;
     }

@@ -16,20 +16,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.emf.compare.AttributeChange;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.Match;
+import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
+import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelComponent;
+import com.archimatetool.model.IDiagramModelContainer;
+import com.archimatetool.model.IDiagramModelObject;
+import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProfile;
 import com.archimatetool.model.util.ArchimateModelUtils;
 
@@ -37,12 +44,199 @@ import com.archimatetool.model.util.ArchimateModelUtils;
  * Represents a comparison of changes between two models
  * The models can be extracted from commits and the working tree
  * 
- * MUst call init() to load the models and get the Comparison
+ * Must call init() to load the models and get the Comparison
  * 
  * @author Phillip Beauvoir
  */
 @SuppressWarnings("nls")
 public class ModelComparison {
+    
+/*
+
+- A Comparison consists of a number of Diffs
+- A Diff has a Match
+- A Match gives us Left (current) and Right (previous) objects from the current and previous models
+- If Left is null the object was deleted
+- If Right is null the object was added
+
+- The Diff can be:
+    - ReferenceChange: a child object added/deleted.
+                       getValue() returns this child object.
+                       This child object can be an element, relation, profile, feature, bounds. 
+    - AttributeChange: an existing attribute of an object is changed.
+                       getAttribute() is used get the attribute to get its value from left or right.
+
+*/
+    
+    public class Change2 {
+        private EObject changedObject;
+        private Set<Diff> diffs = new HashSet<>();
+        private Map<EObject, Change2> children = new HashMap<>();
+        private Collection<Object> changes;
+        
+        public Change2(EObject changedObject) {
+            this.changedObject = changedObject;
+        }
+        
+        public EObject getChangedObject() {
+            return changedObject;
+        }
+        
+        public Set<Diff> getDiffs() {
+            return diffs;
+        }
+        
+        public Collection<Change2> getChildren() {
+            return children.values();
+        }
+        
+        public Collection<Object> getChanges() {
+            if(changes == null) {
+                changes = new HashSet<>();
+                changes.addAll(getDiffs());
+                changes.addAll(getChildren());
+            }
+            return changes;
+        }
+        
+        private Change2 addChild(EObject eObject) {
+            Change2 child = children.get(eObject);
+            if(child == null) {
+                child = new Change2(eObject);
+                children.put(eObject, child);
+            }
+            
+            return child;
+        }
+        
+        private void addDiff(Diff diff) {
+            diffs.add(diff);
+        }
+    }
+
+    
+    public Collection<Change2> getChangedObjects2() {
+        Map<EObject, Change2> changes = new HashMap<>();
+
+        for(Diff diff : comparison.getDifferences()) {
+            Match match = diff.getMatch();
+            
+            EObject changedObject = match.getLeft();      // Left is the most recent, can be null
+            
+            if(changedObject != null) {
+                // Root parent of changed object
+                EObject rootObject = getRootParent(changedObject);
+                
+                // Reference of object (object added/deleted/moved)
+                if(diff instanceof ReferenceChange referenceChange) {
+                    // If the changed object is a folder, get the referenceChange (child) object
+                    if(changedObject instanceof IFolder) {
+                        rootObject = referenceChange.getValue();
+                    }
+                    // If the changed object is a diagram object container and referenceChange is a child dmo, get the dmo
+                    if(changedObject instanceof IDiagramModelContainer && referenceChange.getValue() instanceof IDiagramModelObject dmo) {
+                        rootObject = getRootParent(dmo);
+                        changedObject = dmo;
+                    }
+                }
+                
+                // Add it
+                Change2 change = changes.get(rootObject);
+                if(change == null) {
+                    change = new Change2(rootObject);
+                    changes.put(rootObject, change);
+                }
+                
+                // If the parent object is a Diagram Model Component add it as a child
+                if(rootObject instanceof IDiagramModel) {
+                    EObject eObject = getParent(changedObject);
+                    if(eObject instanceof IDiagramModelComponent && eObject != rootObject) {
+                        change = change.addChild(eObject);
+                    }
+                }
+
+                // Add the diff
+                change.addDiff(diff);
+            }
+        }
+        
+        // TODO: remove this
+        printChanges(changes.values());
+        
+        return changes.values();
+    }
+    
+    // ================================ DEBUG STUFF ==========================================
+    
+    void printChanges(Collection<Change2> changes) {
+        System.out.println("================ NEW COMPARISON ================");
+        System.out.println();
+        
+        System.out.println("----------- Diffs ------------");
+        System.out.println();
+        for(Diff diff : comparison.getDifferences()) {
+            printDiff(diff);
+        }
+        
+        System.out.println("---------- Changes -----------");
+        System.out.println();
+        for(Change2 change : changes) {
+            printChange(change);
+        }
+
+        System.out.println();
+        System.out.println();
+    }
+    
+    void printDiff(Diff diff) {
+        Match match = diff.getMatch();
+        
+        EObject left = match.getLeft();      // Left is the most recent, can be null
+        EObject right = match.getRight();    // Right is previous, can be null
+        
+        System.out.println("diff:            " + diff);
+        System.out.println("left:            " + left);
+        System.out.println("right:           " + right);
+        
+        if(diff instanceof ReferenceChange refChange) {
+            System.out.println("reference:       " + refChange.getValue());
+        }
+        if(diff instanceof AttributeChange attChange) {
+            System.out.println("attribute left:  " + left.eGet(attChange.getAttribute()));
+            System.out.println("attribute right: " + right.eGet(attChange.getAttribute()));
+        }
+        
+        System.out.println();
+    }
+    
+    void printChange(Change2 change) {
+        System.out.println(getObjectName(change.getChangedObject()));
+        
+        for(Diff diff : change.getDiffs()) {
+            System.out.println(" diff:  -  " + diff);
+        }
+        
+        for(Change2 child : change.getChildren()) {
+            printChange(child);
+        }
+        
+        System.out.println();
+    }
+
+    String getObjectName(EObject eObject) {
+        String name = ArchiLabelProvider.INSTANCE.getLabel(eObject);
+        if(name.isEmpty()) {
+            name = eObject.toString();
+        }
+        else {
+            name += " - " + eObject.eClass().getName();
+        }
+        return name;
+    }
+
+    // ================================ END ==========================================
+    
+    
     
     /**
      * Represents a set of EObjects that have changed and their parent object
