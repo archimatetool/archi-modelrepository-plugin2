@@ -68,13 +68,19 @@ public class ModelComparison {
 
 */
     
-    public class Change2 {
+    /**
+     * Represents a model object change of interest.
+     * changedObject is the object of interest to display in a tree.
+     * children are the child objects (in a View)
+     * diffs are the diffs of interest related to the changed object.
+     */
+    public static class Change {
         private EObject changedObject;
         private Set<Diff> diffs = new HashSet<>();
-        private Map<EObject, Change2> children = new HashMap<>();
+        private Map<EObject, Change> children = new HashMap<>();
         private Collection<Object> changes;
         
-        public Change2(EObject changedObject) {
+        public Change(EObject changedObject) {
             this.changedObject = changedObject;
         }
         
@@ -86,7 +92,7 @@ public class ModelComparison {
             return diffs;
         }
         
-        public Collection<Change2> getChildren() {
+        public Collection<Change> getChildren() {
             return children.values();
         }
         
@@ -99,10 +105,10 @@ public class ModelComparison {
             return changes;
         }
         
-        private Change2 addChild(EObject eObject) {
-            Change2 child = children.get(eObject);
+        private Change addChild(EObject eObject) {
+            Change child = children.get(eObject);
             if(child == null) {
-                child = new Change2(eObject);
+                child = new Change(eObject);
                 children.put(eObject, child);
             }
             
@@ -115,177 +121,9 @@ public class ModelComparison {
     }
 
     
-    public Collection<Change2> getChangedObjects2() {
-        Map<EObject, Change2> changes = new HashMap<>();
-
-        for(Diff diff : comparison.getDifferences()) {
-            Match match = diff.getMatch();
-            
-            EObject changedObject = match.getLeft();      // Left is the most recent, can be null
-            
-            if(changedObject != null) {
-                // Root parent of changed object
-                EObject rootObject = getRootParent(changedObject);
-                
-                // Reference of object (object added/deleted/moved)
-                if(diff instanceof ReferenceChange referenceChange) {
-                    // If the changed object is a folder, get the referenceChange (child) object
-                    if(changedObject instanceof IFolder) {
-                        rootObject = referenceChange.getValue();
-                    }
-                    // If the changed object is a diagram object container and referenceChange is a child dmo, get the dmo
-                    if(changedObject instanceof IDiagramModelContainer && referenceChange.getValue() instanceof IDiagramModelObject dmo) {
-                        rootObject = getRootParent(dmo);
-                        changedObject = dmo;
-                    }
-                }
-                
-                // Add it
-                Change2 change = changes.get(rootObject);
-                if(change == null) {
-                    change = new Change2(rootObject);
-                    changes.put(rootObject, change);
-                }
-                
-                // If the parent object is a Diagram Model Component add it as a child
-                if(rootObject instanceof IDiagramModel) {
-                    EObject eObject = getParent(changedObject);
-                    if(eObject instanceof IDiagramModelComponent && eObject != rootObject) {
-                        change = change.addChild(eObject);
-                    }
-                }
-
-                // Add the diff
-                change.addDiff(diff);
-            }
-        }
-        
-        // TODO: remove this
-        printChanges(changes.values());
-        
-        return changes.values();
-    }
-    
-    // ================================ DEBUG STUFF ==========================================
-    
-    void printChanges(Collection<Change2> changes) {
-        System.out.println("================ NEW COMPARISON ================");
-        System.out.println();
-        
-        System.out.println("----------- Diffs ------------");
-        System.out.println();
-        for(Diff diff : comparison.getDifferences()) {
-            printDiff(diff);
-        }
-        
-        System.out.println("---------- Changes -----------");
-        System.out.println();
-        for(Change2 change : changes) {
-            printChange(change);
-        }
-
-        System.out.println();
-        System.out.println();
-    }
-    
-    void printDiff(Diff diff) {
-        Match match = diff.getMatch();
-        
-        EObject left = match.getLeft();      // Left is the most recent, can be null
-        EObject right = match.getRight();    // Right is previous, can be null
-        
-        System.out.println("diff:            " + diff);
-        System.out.println("left:            " + left);
-        System.out.println("right:           " + right);
-        
-        if(diff instanceof ReferenceChange refChange) {
-            System.out.println("reference:       " + refChange.getValue());
-        }
-        if(diff instanceof AttributeChange attChange) {
-            System.out.println("attribute left:  " + left.eGet(attChange.getAttribute()));
-            System.out.println("attribute right: " + right.eGet(attChange.getAttribute()));
-        }
-        
-        System.out.println();
-    }
-    
-    void printChange(Change2 change) {
-        System.out.println(getObjectName(change.getChangedObject()));
-        
-        for(Diff diff : change.getDiffs()) {
-            System.out.println(" diff:  -  " + diff);
-        }
-        
-        for(Change2 child : change.getChildren()) {
-            printChange(child);
-        }
-        
-        System.out.println();
-    }
-
-    String getObjectName(EObject eObject) {
-        String name = ArchiLabelProvider.INSTANCE.getLabel(eObject);
-        if(name.isEmpty()) {
-            name = eObject.toString();
-        }
-        else {
-            name += " - " + eObject.eClass().getName();
-        }
-        return name;
-    }
-
-    // ================================ END ==========================================
-    
-    
-    
-    /**
-     * Represents a set of EObjects that have changed and their parent object
-     */
-    public static class Change {
-        private EObject parent, left, right;
-        private Set<EObject> eObjects = new HashSet<>();
-
-        public Change(EObject parent, EObject left, EObject right) {
-            this.parent = parent;
-            this.left = left;
-            this.right = right;
-        }
-
-        public void add(EObject eObject) {
-            if(eObject != parent) {
-                eObjects.add(eObject);
-            }
-        }
-
-        public EObject getParent() {
-            return parent;
-        }
-        
-        public Set<EObject> getEObjects() {
-            return eObjects;
-        }
-        
-        public EObject getLeftParent() {
-            if(left != null) {
-                return getRootParent(left);
-            }
-            
-            return null;
-        }
-        
-        public EObject getRightParent() {
-            if(right != null) {
-                return getRootParent(right);
-            }
-            
-            return null;
-        }
-    }
-    
     private IArchiRepository repository;
     private RevCommit revCommit1, revCommit2;
     private IArchimateModel model1, model2;
-    
     private Comparison comparison;
 
     
@@ -371,7 +209,14 @@ public class ModelComparison {
     }
     
     /**
-     * @return The Changed objects
+     * @return The Comparison. Ensure init() is called first.
+     */
+    public Comparison getComparison() {
+        return comparison;
+    }
+    
+    /**
+     * @return The Objects that show interesting changes
      */
     public Collection<Change> getChangedObjects() {
         Map<EObject, Change> changes = new HashMap<>();
@@ -379,21 +224,47 @@ public class ModelComparison {
         for(Diff diff : comparison.getDifferences()) {
             Match match = diff.getMatch();
             
-            EObject left = match.getLeft();      // Left is the most recent, can be null
-            EObject right = match.getRight();    // Right is previous, can be null
+            EObject changedObject = match.getLeft();      // Left is the most recent, can be null
             
-            if(left != null) {
-                EObject parent = getRootParent(left);
+            if(changedObject != null) {
+                // Root parent of changed object
+                EObject rootObject = getRootParent(changedObject);
                 
-                Change change = changes.get(parent);
+                // Reference of object (object added/deleted/moved)
+                if(diff instanceof ReferenceChange referenceChange) {
+                    // If the changed object is a folder, get the referenceChange (child) object
+                    if(changedObject instanceof IFolder) {
+                        rootObject = referenceChange.getValue();
+                    }
+                    // If the changed object is a diagram object container and referenceChange is a child dmo, get the dmo
+                    if(changedObject instanceof IDiagramModelContainer && referenceChange.getValue() instanceof IDiagramModelObject dmo) {
+                        rootObject = getRootParent(dmo);
+                        changedObject = dmo;
+                    }
+                }
+                
+                // Add it
+                Change change = changes.get(rootObject);
                 if(change == null) {
-                    change = new Change(parent, left, right);
-                    changes.put(parent, change);
+                    change = new Change(rootObject);
+                    changes.put(rootObject, change);
+                }
+                
+                // If the parent object is a Diagram Model Component add it as a child
+                if(rootObject instanceof IDiagramModel) {
+                    EObject eObject = getParent(changedObject);
+                    if(eObject instanceof IDiagramModelComponent && eObject != rootObject) {
+                        change = change.addChild(eObject);
+                    }
                 }
 
-                change.add(left);
+                // Add the diff
+                change.addDiff(diff);
             }
         }
+        
+        // Debug
+        // printChanges(changes.values());
         
         return changes.values();
     }
@@ -413,7 +284,7 @@ public class ModelComparison {
      * Get the parent eContainer of eObject if eObject is Bounds, Properties, Feature, Profile
      * Else return the object itself
      */
-    public static EObject getParent(EObject eObject) {
+    private static EObject getParent(EObject eObject) {
         if(eObject != null && (!(eObject instanceof IArchimateModelObject) || eObject instanceof IProfile)) {
             eObject = eObject.eContainer();
         }
@@ -478,5 +349,74 @@ public class ModelComparison {
             FileUtils.deleteFolder(tempFolder);
         }
     }
+    
+    
 
+    // ================================ DEBUG STUFF ==========================================
+    
+    void printChanges(Collection<Change> changes) {
+        System.out.println("================ NEW COMPARISON ================");
+        System.out.println();
+        
+        System.out.println("----------- Diffs ------------");
+        System.out.println();
+        for(Diff diff : comparison.getDifferences()) {
+            printDiff(diff);
+        }
+        
+        System.out.println("---------- Changes -----------");
+        System.out.println();
+        for(Change change : changes) {
+            printChange(change);
+        }
+
+        System.out.println();
+        System.out.println();
+    }
+    
+    void printDiff(Diff diff) {
+        Match match = diff.getMatch();
+        
+        EObject left = match.getLeft();      // Left is the most recent, can be null
+        EObject right = match.getRight();    // Right is previous, can be null
+        
+        System.out.println("diff:            " + diff);
+        System.out.println("left:            " + left);
+        System.out.println("right:           " + right);
+        
+        if(diff instanceof ReferenceChange refChange) {
+            System.out.println("reference:       " + refChange.getValue());
+        }
+        if(diff instanceof AttributeChange attChange) {
+            System.out.println("attribute left:  " + left.eGet(attChange.getAttribute()));
+            System.out.println("attribute right: " + right.eGet(attChange.getAttribute()));
+        }
+        
+        System.out.println();
+    }
+    
+    void printChange(Change change) {
+        System.out.println(getObjectName(change.getChangedObject()));
+        
+        for(Diff diff : change.getDiffs()) {
+            System.out.println(" diff:  -  " + diff);
+        }
+        
+        for(Change child : change.getChildren()) {
+            printChange(child);
+        }
+        
+        System.out.println();
+    }
+
+    String getObjectName(EObject eObject) {
+        String name = ArchiLabelProvider.INSTANCE.getLabel(eObject);
+        if(name.isEmpty()) {
+            name = eObject.toString();
+        }
+        else {
+            name += " - " + eObject.eClass().getName();
+        }
+        return name;
+    }
 }

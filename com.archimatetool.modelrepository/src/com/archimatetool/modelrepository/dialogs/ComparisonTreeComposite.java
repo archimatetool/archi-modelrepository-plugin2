@@ -5,9 +5,6 @@
  */
 package com.archimatetool.modelrepository.dialogs;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.emf.compare.AttributeChange;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
@@ -16,7 +13,13 @@ import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.layout.TreeColumnLayout;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -29,14 +32,19 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
 
 import com.archimatetool.editor.ui.ArchiLabelProvider;
+import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.utils.StringUtils;
-import com.archimatetool.model.IArchimateConcept;
+import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IArchimateModelObject;
+import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IBounds;
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.INameable;
@@ -55,12 +63,33 @@ public class ComparisonTreeComposite extends Composite {
     
     private TreeViewer fTreeViewer;
     
-    private ModelComparison modelComparison;
+    private IAction fActionCollapseTree = new Action("Collapse All") {
+        @Override
+        public void run() {
+            fTreeViewer.collapseAll();
+        }
+        
+        @Override
+        public ImageDescriptor getImageDescriptor() {
+            return IArchiImages.ImageFactory.getImageDescriptor(IArchiImages.ICON_COLLAPSEALL);
+        }
+    };
+    
+    private IAction fActionExpandTree = new Action("Expand All") {
+        @Override
+        public void run() {
+            fTreeViewer.expandAll();
+        }
+        
+        @Override
+        public ImageDescriptor getImageDescriptor() {
+            return IArchiImages.ImageFactory.getImageDescriptor(IArchiImages.ICON_EXPANDALL);
+        }
+    };
+
     
     public ComparisonTreeComposite(Composite parent, int style, ModelComparison modelComparison) {
         super(parent, style);
-        
-        this.modelComparison = modelComparison;
         
         TreeColumnLayout treeLayout = new TreeColumnLayout();
         setLayout(treeLayout);
@@ -104,8 +133,12 @@ public class ComparisonTreeComposite extends Composite {
                     return cat1 - cat2;
                 }
                 
-                // DELETE before ADD
                 if(o1 instanceof Diff d1 && o2 instanceof Diff d2) {
+                    // ADD before CHANGE
+                    if(d1.getKind() == DifferenceKind.ADD && d2.getKind() == DifferenceKind.CHANGE) {
+                        return -1;
+                    }
+                    // DELETE before ADD
                     if(d1.getKind() == DifferenceKind.DELETE && d2.getKind() == DifferenceKind.ADD) {
                         return -1;
                     }
@@ -118,8 +151,8 @@ public class ComparisonTreeComposite extends Composite {
                 }
                 
                 if(o1 instanceof Change c1 && o2 instanceof Change c2) {
-                    if(c1.getParent() instanceof INameable && c2.getParent() instanceof INameable) {
-                        return ((INameable)c1.getParent()).getName().compareToIgnoreCase(((INameable)c2.getParent()).getName());
+                    if(c1.getChangedObject() instanceof INameable nameable1 && c2.getChangedObject() instanceof INameable nameable2) {
+                        return nameable1.getName().compareToIgnoreCase(nameable2.getName());
                     }
                 }
                 
@@ -129,7 +162,11 @@ public class ComparisonTreeComposite extends Composite {
             @Override
             public int category(Object element) {
                 if(element instanceof Change change) {
-                    element = change.getParent();
+                    element = change.getChangedObject();
+                }
+                
+                if(element instanceof IDiagramModelArchimateComponent dmc) {
+                    element = dmc.getArchimateConcept();
                 }
                 
                 if(element instanceof IArchimateModel) {
@@ -138,26 +175,52 @@ public class ComparisonTreeComposite extends Composite {
                 if(element instanceof IFolder) {
                     return 1;
                 }
-                if(element instanceof IArchimateConcept) {
+                if(element instanceof IArchimateElement) {
                     return 2;
                 }
-                if(element instanceof IDiagramModel) {
+                if(element instanceof IArchimateRelationship) {
                     return 3;
+                }
+                if(element instanceof IDiagramModel) {
+                    return 4;
                 }
                 
                 return 0;
             }
         });
+        
+        hookContextMenu();
 
         fTreeViewer.setInput(modelComparison);
-        fTreeViewer.expandAll();
+        //fTreeViewer.expandAll();
     }
+    
+    /**
+     * Hook into a right-click menu
+     */
+    private void hookContextMenu() {
+        MenuManager menuMgr = new MenuManager("#ComparisonTreePopupMenu"); //$NON-NLS-1$
+        menuMgr.setRemoveAllWhenShown(true);
+        
+        menuMgr.addMenuListener(new IMenuListener() {
+            @Override
+            public void menuAboutToShow(IMenuManager manager) {
+                manager.add(fActionCollapseTree);
+                manager.add(fActionExpandTree);
+            }
+        });
+        
+        Menu menu = menuMgr.createContextMenu(fTreeViewer.getControl());
+        fTreeViewer.getControl().setMenu(menu);
+    }
+
     
     public TreeViewer getTreeViewer() {
         return fTreeViewer;
     }
 
     private class ContentProvider implements ITreeContentProvider {
+        private Object[] changes;
         
         @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
@@ -165,6 +228,7 @@ public class ComparisonTreeComposite extends Composite {
 
         @Override
         public void dispose() {
+            changes = null;
         }
 
         @Override
@@ -175,18 +239,14 @@ public class ComparisonTreeComposite extends Composite {
         @Override
         public Object[] getChildren(Object parentElement) {
             if(parentElement instanceof ModelComparison modelComparison) {
-                return modelComparison.getChangedObjects().toArray();
+                if(changes == null) {
+                    changes = modelComparison.getChangedObjects().toArray();
+                }
+                return changes;
             }
             
             if(parentElement instanceof Change change) {
-                List<Object> list = new ArrayList<>();
-                list.addAll(modelComparison.getDifferences(change.getParent())); // Differences of parent object
-                list.addAll(change.getEObjects());               // Child objects
-                return list.toArray();
-            }
-            
-            if(parentElement instanceof EObject eObject) {
-                return modelComparison.getDifferences(eObject).toArray();
+                return change.getChanges().toArray();
             }
             
             return new Object[0];
@@ -199,8 +259,7 @@ public class ComparisonTreeComposite extends Composite {
 
         @Override
         public boolean hasChildren(Object element) {
-            return true; // If we expand all tree nodes returning true works fine
-            //return getChildren(element).length > 0;
+            return getChildren(element).length > 0;
         }
     }
     
@@ -210,16 +269,10 @@ public class ComparisonTreeComposite extends Composite {
         public Image getColumnImage(Object element, int columnIndex) {
             if(columnIndex == 0) {
                 if(element instanceof Change change) {
-                    return ArchiLabelProvider.INSTANCE.getImage(change.getParent());
+                    return ArchiLabelProvider.INSTANCE.getImage(change.getChangedObject());
                 }
-                if(element instanceof ReferenceChange referenceChange) {
-                    return ArchiLabelProvider.INSTANCE.getImage(referenceChange.getValue());
-                }
-                if(element instanceof IProperty) {
-                    return null;
-                }
-                if(element instanceof EObject eObject) {
-                    return ArchiLabelProvider.INSTANCE.getImage(ModelComparison.getParent(eObject));
+                else if(element instanceof IArchimateModelObject eObject) {
+                    return ArchiLabelProvider.INSTANCE.getImage(eObject);
                 }
             }
             
@@ -231,16 +284,13 @@ public class ComparisonTreeComposite extends Composite {
             switch(columnIndex) {
                 case 0:
                     if(element instanceof Change change) {
-                        return ArchiLabelProvider.INSTANCE.getLabel(change.getParent());
+                        return ArchiLabelProvider.INSTANCE.getLabel(change.getChangedObject());
                     }
                     if(element instanceof Diff diff) {
-                        return diff.getKind().getName();
-                    }
-                    if(element instanceof IProperty property) {
-                        return property.eClass().getName();
+                        return getDiffName(diff);
                     }
                     if(element instanceof EObject eObject) {
-                        return ArchiLabelProvider.INSTANCE.getLabel(ModelComparison.getParent(eObject));
+                        return ArchiLabelProvider.INSTANCE.getLabel(eObject);
                     }
                     return null;
 
@@ -272,13 +322,6 @@ public class ComparisonTreeComposite extends Composite {
      * Return the underlying object that changed as a string representation
      */
     private String getChangedObjectAsString(Diff diff, DifferenceSource source) {
-        Match match = diff.getMatch();
-        
-        EObject eObject = (source == DifferenceSource.LEFT) ? match.getLeft() : match.getRight();
-        if(eObject == null) {
-            return null;
-        }
-        
         // Get the referenced EObject that changed
         if(diff instanceof ReferenceChange referenceChange) {
             EObject changedObject = referenceChange.getValue();
@@ -301,6 +344,12 @@ public class ComparisonTreeComposite extends Composite {
             }
             
             return className;
+        }
+        
+        Match match = diff.getMatch();
+        EObject eObject = (source == DifferenceSource.LEFT) ? match.getLeft() : match.getRight();
+        if(eObject == null) {
+            return null;
         }
         
         // Get the referenced Attribute that changed
@@ -336,4 +385,22 @@ public class ComparisonTreeComposite extends Composite {
         return StringUtils.normaliseNewLineCharacters(String.valueOf(object));
     }
 
+    private String getDiffName(Diff diff) {
+        switch(diff.getKind()) {
+            case ADD: {
+                return "Added";
+            }
+            case DELETE: {
+                return "Deleted";
+            }
+            case CHANGE: {
+                return "Changed";
+            }
+            case MOVE: {
+                return "Moved";
+            }
+            default:
+                return "";
+        }
+    }
 }
