@@ -5,6 +5,11 @@
  */
 package com.archimatetool.modelrepository.repository;
 
+import static com.google.common.base.Predicates.and;
+import static com.google.common.base.Predicates.not;
+import static org.eclipse.emf.compare.utils.EMFComparePredicates.fromSide;
+import static org.eclipse.emf.compare.utils.EMFComparePredicates.hasConflict;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,10 +18,11 @@ import java.util.logging.Logger;
 
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.compare.Comparison;
+import org.eclipse.emf.compare.ConflictKind;
 import org.eclipse.emf.compare.Diff;
+import org.eclipse.emf.compare.DifferenceSource;
 import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.merge.BatchMerger;
-import org.eclipse.emf.compare.merge.IBatchMerger;
 import org.eclipse.emf.compare.merge.IMerger.Registry;
 import org.eclipse.emf.compare.merge.IMerger.RegistryImpl;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
@@ -38,18 +44,17 @@ import com.archimatetool.editor.model.ModelChecker;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 
+
 /**
  * Handle merging of branches
- * 
- * A lot of this code is subject to change!
- * 
+ *  
  * @author Phillip Beauvoir
  */
 public class MergeHandler {
 
     private static Logger logger = Logger.getLogger(MergeHandler.class.getName());
     
-    // Set true for development
+    // Set true for 3 way merge
     private boolean USE_3WAY_MERGE = true;
     
     private static MergeHandler instance = new MergeHandler();
@@ -150,10 +155,10 @@ public class MergeHandler {
     }
     
     /**
-     * The following code is for the future.
-     * Instead of merging we will load 3 models - ours, theirs and the common ancestor.
-     * Then we will show changes and resolve them before merging and committing
+     * We load 3 models - ours, theirs and the common ancestor.
+     * Then we will show any conflicts and resolve them before merging and committing
      */
+    @SuppressWarnings("deprecation")
     private MergeHandlerResult handle3WayMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
         // Reset to HEAD
         utils.resetToRef(Constants.HEAD);
@@ -161,34 +166,44 @@ public class MergeHandler {
         // Load the three models...
         IArchimateModel ourModel = loadModel(utils, Constants.HEAD);
         // Or just load the file in the working dir?
-        //ourModel = IEditorModelManager.INSTANCE.loadModel(repo.getModelFile());
+        // IArchimateModel ourModel = IEditorModelManager.INSTANCE.loadModel(repo.getModelFile());
         IArchimateModel theirModel = loadModel(utils, branchToMerge.getFullName());
         IArchimateModel baseModel = loadBaseModel(utils, branchToMerge.getFullName());
-        
-        // POC EMF Compare...
         
         IComparisonScope scope = new DefaultComparisonScope(ourModel, theirModel, baseModel);
         Comparison comparison = EMFCompare.builder().build().compare(scope);
         List<Diff> differences = comparison.getDifferences();
         
+        // Get the Registry
         Registry mergerRegistry = RegistryImpl.createStandaloneInstance();
-        IBatchMerger merger = new BatchMerger(mergerRegistry);
         
-        // Copy theirs into ours
-        merger.copyAllRightToLeft(differences, new BasicMonitor());
+        // Merge non conflicting changes coming from LEFT
+        new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), not(hasConflict(ConflictKind.REAL)))).copyAllLeftToRight(differences, new BasicMonitor());
         
-        // If OK, save the model
-        if(isModelIntegral(ourModel)) {
-            ourModel.setFile(new File(utils.getRepository().getWorkTree(), RepoConstants.MODEL_FILENAME));
-            IEditorModelManager.INSTANCE.saveModel(ourModel);
-            commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge); //$NON-NLS-1$
-            System.out.println("Model was merged"); //$NON-NLS-1$
-            return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
+        // Merge non conflicting changes coming from RIGHT
+        new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), not(hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
+		
+        // Merge conflicts
+        //(new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
+        new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), hasConflict(ConflictKind.REAL))).copyAllLeftToRight(differences, new BasicMonitor());
+        
+        // If the result is a non-integral model then return cancelled
+        // TODO: Show and resolve conflicts
+        if(!isModelIntegral(ourModel)) {
+            System.out.println("Model was not integral"); //$NON-NLS-1$
+            return MergeHandlerResult.CANCELLED;
         }
         
-        System.out.println("Model was not integral"); //$NON-NLS-1$
+        // If OK, save the model
+        ourModel.setFile(new File(utils.getRepository().getWorkTree(), RepoConstants.MODEL_FILENAME));
+        IEditorModelManager.INSTANCE.saveModel(ourModel);
         
-        return MergeHandlerResult.CANCELLED;
+        // Commit the merge
+        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge); //$NON-NLS-1$
+        
+        // Return
+        System.out.println("Model was merged"); //$NON-NLS-1$
+        return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
     }
     
     /**

@@ -26,4 +26,5 @@ Export-Package: com.archimatetool.modelrepository,
  com.archimatetool.modelrepository.views.repositories
 Bundle-ClassPath: com.archimatetool.modelrepository.jar
 Automatic-Module-Name: com.archimatetool.modelrepository
-Import-Package: org.eclipse.equinox.security.storage
+Import-Package: com.google.common.base,
+ org.eclipse.equinox.security.storage
