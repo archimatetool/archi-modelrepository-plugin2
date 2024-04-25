@@ -13,7 +13,9 @@ import static org.eclipse.emf.compare.utils.EMFComparePredicates.hasConflict;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.common.util.BasicMonitor;
@@ -50,6 +52,7 @@ import com.archimatetool.model.IArchimateModel;
  *  
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class MergeHandler {
 
     private static Logger logger = Logger.getLogger(MergeHandler.class.getName());
@@ -95,13 +98,13 @@ public class MergeHandler {
             
             // Already up to date
             if(mergeStatus == MergeStatus.ALREADY_UP_TO_DATE) {
-                logger.info("Merge up to date"); //$NON-NLS-1$
+                logger.info("Merge up to date");
                 return MergeHandlerResult.ALREADY_UP_TO_DATE;
             }
             
             // Conflicting or model corrupt (successful git merge but model broken)
             if(mergeStatus == MergeStatus.CONFLICTING || !isModelIntegral(repo.getModelFile())) {
-                logger.info("Conflicting merge"); //$NON-NLS-1$
+                logger.info("Conflicting merge");
                 return USE_3WAY_MERGE ? handle3WayMerge(utils, branchToMerge) : handleConflictingMerge(utils, branchToMerge);
             }
 
@@ -109,12 +112,12 @@ public class MergeHandler {
 
             // If FF merge is possible (head is reachable from the branch to merge) just move HEAD to the target branch ref
             if(utils.isMergedInto(Constants.HEAD, branchToMerge.getFullName())) {
-                logger.info("Doing a FastForward merge"); //$NON-NLS-1$
+                logger.info("Doing a FastForward merge");
                 utils.resetToRef(branchToMerge.getFullName());
             }
             // Else commit the merge if we have something to commit
             else if(mergeStatus == MergeStatus.MERGED_NOT_COMMITTED) {
-                commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}''", branchToMerge); //$NON-NLS-1$
+                commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}''", branchToMerge);
             }
         }
 
@@ -129,12 +132,12 @@ public class MergeHandler {
     private MergeHandlerResult handleConflictingMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
         int response = MessageDialog.open(MessageDialog.QUESTION,
                 null,
-                "Merge Branch", //$NON-NLS-1$
-                "There's a conflict. What do you want from life?", //$NON-NLS-1$
+                "Merge Branch",
+                "There's a conflict. What do you want from life?",
                 SWT.NONE,
-                "My stuff", //$NON-NLS-1$
-                "Their stuff", //$NON-NLS-1$
-                "Cancel"); //$NON-NLS-1$
+                "My stuff",
+                "Their stuff",
+                "Cancel");
 
         // Cancel
         if(response == -1 || response == 2) {
@@ -149,7 +152,7 @@ public class MergeHandler {
              .setStartPoint(response == 0 ? utils.getCurrentLocalBranchName() : branchToMerge.getFullName())
              .call();
 
-        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge); //$NON-NLS-1$
+        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge);
         
         return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
     }
@@ -187,10 +190,17 @@ public class MergeHandler {
         //(new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
         new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), hasConflict(ConflictKind.REAL))).copyAllLeftToRight(differences, new BasicMonitor());
         
-        // If the result is a non-integral model then return cancelled
-        // TODO: Show and resolve conflicts
+        /*
+         * If the result is a non-integral model then return cancelled
+         * TODO: Show and resolve conflicts
+         * 
+         * Use case:
+         * 1. We delete an image file.
+         * 2. We merge their branch which references this image file
+         * 3. We now need to go back in time to find this image file and restore it
+         */
         if(!isModelIntegral(ourModel)) {
-            System.out.println("Model was not integral"); //$NON-NLS-1$
+            System.out.println("Model was not integral");
             return MergeHandlerResult.CANCELLED;
         }
         
@@ -199,10 +209,10 @@ public class MergeHandler {
         IEditorModelManager.INSTANCE.saveModel(ourModel);
         
         // Commit the merge
-        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge); //$NON-NLS-1$
+        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge);
         
         // Return
-        System.out.println("Model was merged"); //$NON-NLS-1$
+        System.out.println("Model was merged");
         return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
     }
     
@@ -211,10 +221,10 @@ public class MergeHandler {
      */
     private void commitChanges(GitUtils utils, String message, BranchInfo branchToMerge) throws IOException, GitAPIException {
         String fullMessage = NLS.bind(message,
-                new Object[] { branchToMerge.isRemote() ? " remote " : " ",  //$NON-NLS-1$ //$NON-NLS-2$
+                new Object[] { branchToMerge.isRemote() ? " remote " : " ",
                         branchToMerge.getShortName(), utils.getCurrentLocalBranchName()} );
         
-        logger.info("Committing merge " + fullMessage); //$NON-NLS-1$
+        logger.info("Committing merge " + fullMessage);
         utils.commitChanges(fullMessage, false);
     }
     
@@ -233,19 +243,35 @@ public class MergeHandler {
     }
     
     /**
-     * Check the model integroty after a merge
+     * Check the model integrity after a merge
      * @return false if an image is missing, or the ModelChecker fails
      */
     private boolean isModelIntegral(IArchimateModel model) {
-        // Check that all referenced images are present (they might have deleted image while we are still using it)
+        // Check that all referenced images are present (they might have deleted image while we are still using it, or we might have deleted it while they were using it)
+        Set<String> missingPaths = getMissingImagePaths(model);
+        if(!missingPaths.isEmpty()) {
+            return false;
+        }
+        
+        // Now pass it to the ModelChecker
+        return new ModelChecker(model).checkAll();
+    }
+    
+    /**
+     * Check for any missing image paths
+     */
+    private Set<String> getMissingImagePaths(IArchimateModel model) {
+        Set<String> missingPaths = new HashSet<>();
+        
         IArchiveManager archiveManager = (IArchiveManager)model.getAdapter(IArchiveManager.class);
         for(String imagePath : archiveManager.getImagePaths()) {
             if(archiveManager.getBytesFromEntry(imagePath) == null) {
-                return false;
+                System.out.println("Missing image: " + imagePath);
+                missingPaths.add(imagePath);
             }
         }
         
-        return new ModelChecker(model).checkAll();
+        return missingPaths;
     }
     
     /**
@@ -261,7 +287,7 @@ public class MergeHandler {
      * revStr could be "HEAD" or "refs/remotes/origin/main", or a SHA-1 - same as for Repository#resolve()
      */
     private IArchimateModel loadModel(GitUtils utils, String revStr) throws IOException {
-        File tempFolder = Files.createTempDirectory("archi-").toFile(); //$NON-NLS-1$
+        File tempFolder = Files.createTempDirectory("archi-").toFile();
         
         try {
             utils.extractCommit(revStr, tempFolder, false);
