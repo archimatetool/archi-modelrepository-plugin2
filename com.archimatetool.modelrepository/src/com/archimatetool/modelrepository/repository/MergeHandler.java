@@ -57,9 +57,6 @@ public class MergeHandler {
 
     private static Logger logger = Logger.getLogger(MergeHandler.class.getName());
     
-    // Set true for 3 way merge
-    private boolean USE_3WAY_MERGE = true;
-    
     private static MergeHandler instance = new MergeHandler();
     
     public static MergeHandler getInstance() {
@@ -102,10 +99,16 @@ public class MergeHandler {
                 return MergeHandlerResult.ALREADY_UP_TO_DATE;
             }
             
+            // TODO: Maybe we should just do it anyway?
+            boolean DO_3WAY_MERGE_IN_ALL_CASES = true;
+            
+            if(DO_3WAY_MERGE_IN_ALL_CASES) {
+                return handle3WayMerge(utils, branchToMerge);
+            }
+            
             // Conflicting or model corrupt (successful git merge but model broken)
             if(mergeStatus == MergeStatus.CONFLICTING || !isModelIntegral(repo.getModelFile())) {
-                logger.info("Conflicting merge");
-                return USE_3WAY_MERGE ? handle3WayMerge(utils, branchToMerge) : handleConflictingMerge(utils, branchToMerge);
+                return handle3WayMerge(utils, branchToMerge);
             }
 
             // Successful git merge and the model is OK!
@@ -125,51 +128,15 @@ public class MergeHandler {
     }
     
     /**
-     * This is placeholder code.
-     * It means we can at least work with the code until we implement 3-way merge.
-     * We offer to cancel the merge or take our or their branch
-     */
-    private MergeHandlerResult handleConflictingMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
-        int response = MessageDialog.open(MessageDialog.QUESTION,
-                null,
-                "Merge Branch",
-                "There's a conflict. What do you want from life?",
-                SWT.NONE,
-                "My stuff",
-                "Their stuff",
-                "Cancel");
-
-        // Cancel
-        if(response == -1 || response == 2) {
-            // Reset and clear
-            utils.resetToRef(Constants.HEAD);
-            return MergeHandlerResult.CANCELLED;
-        }
-        
-        // Check out either the current or the other branch
-        utils.checkout()
-             .setAllPaths(true)
-             .setStartPoint(response == 0 ? utils.getCurrentLocalBranchName() : branchToMerge.getFullName())
-             .call();
-
-        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge);
-        
-        return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
-    }
-    
-    /**
      * We load 3 models - ours, theirs and the common ancestor.
      * Then we will show any conflicts and resolve them before merging and committing
      */
     @SuppressWarnings("deprecation")
     private MergeHandlerResult handle3WayMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
-        // Reset to HEAD
-        utils.resetToRef(Constants.HEAD);
-        
+        logger.info("Handling 3Way merge...");
+
         // Load the three models...
         IArchimateModel ourModel = loadModel(utils, Constants.HEAD);
-        // Or just load the file in the working dir?
-        // IArchimateModel ourModel = IEditorModelManager.INSTANCE.loadModel(repo.getModelFile());
         IArchimateModel theirModel = loadModel(utils, branchToMerge.getFullName());
         IArchimateModel baseModel = loadBaseModel(utils, branchToMerge.getFullName());
         
@@ -190,17 +157,15 @@ public class MergeHandler {
         //(new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
         new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), hasConflict(ConflictKind.REAL))).copyAllLeftToRight(differences, new BasicMonitor());
         
+        // Fix any missing images (should we get them from the baseModel?)
+        fixMissingImages(ourModel, theirModel);
+        
         /*
          * If the result is a non-integral model then return cancelled
          * TODO: Show and resolve conflicts
-         * 
-         * Use case:
-         * 1. We delete an image file.
-         * 2. We merge their branch which references this image file
-         * 3. We now need to go back in time to find this image file and restore it
          */
         if(!isModelIntegral(ourModel)) {
-            System.out.println("Model was not integral");
+            System.err.println("Model was not integral");
             return MergeHandlerResult.CANCELLED;
         }
         
@@ -209,10 +174,9 @@ public class MergeHandler {
         IEditorModelManager.INSTANCE.saveModel(ourModel);
         
         // Commit the merge
-        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge);
+        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}''", branchToMerge);
         
         // Return
-        System.out.println("Model was merged");
         return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
     }
     
@@ -247,9 +211,8 @@ public class MergeHandler {
      * @return false if an image is missing, or the ModelChecker fails
      */
     private boolean isModelIntegral(IArchimateModel model) {
-        // Check that all referenced images are present (they might have deleted image while we are still using it, or we might have deleted it while they were using it)
-        Set<String> missingPaths = getMissingImagePaths(model);
-        if(!missingPaths.isEmpty()) {
+        // Check that all referenced images are present
+        if(!getMissingImagePaths(model).isEmpty()) {
             return false;
         }
         
@@ -258,7 +221,34 @@ public class MergeHandler {
     }
     
     /**
-     * Check for any missing image paths
+     * If our model contains missing images, get them from the other model
+     */
+    private void fixMissingImages(IArchimateModel ourModel, IArchimateModel otherModel) throws IOException {
+        Set<String> missingPaths = getMissingImagePaths(ourModel);
+        if(missingPaths.isEmpty()) {
+            return;
+        }
+        
+        logger.info("Restoring missing images...");
+        
+        IArchiveManager ourArchiveManager = (IArchiveManager)ourModel.getAdapter(IArchiveManager.class);
+        IArchiveManager otherArchiveManager = (IArchiveManager)otherModel.getAdapter(IArchiveManager.class);
+        
+        for(String imagePath : missingPaths) {
+            byte[] bytes = otherArchiveManager.getBytesFromEntry(imagePath);
+            if(bytes != null) {
+                logger.info("Restoring missing image: " + imagePath);
+                ourArchiveManager.addByteContentEntry(imagePath, bytes);
+            }
+            else {
+                logger.warning("Could not get image: " + imagePath);
+            }
+        }
+    }
+    
+    /**
+     * Check for any missing image paths.
+     * They might have deleted an image but we are still using it, or we might have deleted it but they were using it
      */
     private Set<String> getMissingImagePaths(IArchimateModel model) {
         Set<String> missingPaths = new HashSet<>();
@@ -266,7 +256,6 @@ public class MergeHandler {
         IArchiveManager archiveManager = (IArchiveManager)model.getAdapter(IArchiveManager.class);
         for(String imagePath : archiveManager.getImagePaths()) {
             if(archiveManager.getBytesFromEntry(imagePath) == null) {
-                System.out.println("Missing image: " + imagePath);
                 missingPaths.add(imagePath);
             }
         }
@@ -299,5 +288,40 @@ public class MergeHandler {
         finally {
             FileUtils.deleteFolder(tempFolder);
         }
+    }
+    
+    
+    /**
+     * This is placeholder code. TODO: remove this.
+     * It means we can at least work with the code until we implement 3-way merge.
+     * We offer to cancel the merge or take our or their branch
+     */
+    @SuppressWarnings("unused")
+    private MergeHandlerResult handleConflictingMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
+        int response = MessageDialog.open(MessageDialog.QUESTION,
+                null,
+                "Merge Branch",
+                "There's a conflict. What do you want from life?",
+                SWT.NONE,
+                "My stuff",
+                "Their stuff",
+                "Cancel");
+
+        // Cancel
+        if(response == -1 || response == 2) {
+            // Reset and clear
+            utils.resetToRef(Constants.HEAD);
+            return MergeHandlerResult.CANCELLED;
+        }
+        
+        // Check out either the current or the other branch
+        utils.checkout()
+             .setAllPaths(true)
+             .setStartPoint(response == 0 ? utils.getCurrentLocalBranchName() : branchToMerge.getFullName())
+             .call();
+
+        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge);
+        
+        return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
     }
 }
