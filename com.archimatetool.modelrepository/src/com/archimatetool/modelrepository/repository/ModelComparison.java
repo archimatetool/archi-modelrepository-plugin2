@@ -238,7 +238,8 @@ public class ModelComparison {
                     }
                     // If the changed object is a diagram object container and referenceChange is a child dmo, get the dmo
                     if(changedObject instanceof IDiagramModelContainer && referenceChange.getValue() instanceof IDiagramModelObject dmo) {
-                        rootObject = getRootParent(dmo);
+                        // TODO: Removing this line fixes the bug of getting the wrong IDiagramModel, but do we need to do it?
+                        //rootObject = getRootParent(dmo);
                         changedObject = dmo;
                     }
                 }

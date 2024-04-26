@@ -73,7 +73,7 @@ public class CompareDialog extends ExtendedTitleAreaDialog {
             if(selected instanceof Change change && change.getChangedObject() instanceof IDiagramModel dm) {
                 // Find its counterpart 
                 EObject eObject = modelComparison.findObjectInFirstModel(dm.getId());
-                if(eObject instanceof IDiagramModel other) {
+                if(eObject instanceof IDiagramModel other && other != dm) {
                     viewComparisonComp.setDiagramModels(other, dm);
                 }
                 else {
