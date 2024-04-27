@@ -78,7 +78,7 @@ public class ModelComparison {
         private EObject changedObject;
         private Set<Diff> diffs = new HashSet<>();
         private Map<EObject, Change> children = new HashMap<>();
-        private Collection<Object> changes;
+        private List<Object> changes;
         
         public Change(EObject changedObject) {
             this.changedObject = changedObject;
@@ -96,9 +96,9 @@ public class ModelComparison {
             return children.values();
         }
         
-        public Collection<Object> getChanges() {
+        public List<Object> getChanges() {
             if(changes == null) {
-                changes = new HashSet<>();
+                changes = new ArrayList<>();
                 changes.addAll(getDiffs());
                 changes.addAll(getChildren());
             }
