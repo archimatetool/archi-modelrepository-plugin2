@@ -32,7 +32,6 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.FetchResult;
@@ -525,37 +524,46 @@ public class GitUtils extends Git {
 
         try(RevWalk revWalk = new RevWalk(getRepository())) {
             RevCommit commit = revWalk.parseCommit(commitId);
-            RevTree tree = commit.getTree();
+            return getFileContents(path, commit, preserveEol);
+        }
+    }
+    
+    /**
+     * Return the contents of a file as a byte stream in the repo given its RevCommit
+     * @param path is the path to the file
+     * @param commit the commit to extract from
+     * @param preserveEol if true EOL characters in text files are set according to the repo's "autocrlf" setting.
+     *                    On Windows this will be CRLF, else LF
+     * @return The file contents or null if not found
+     */
+    public byte[] getFileContents(String path, RevCommit commit, boolean preserveEol) throws IOException {
+        try(TreeWalk treeWalk = new TreeWalk(getRepository())) {
+            treeWalk.addTree(commit.getTree());
+            treeWalk.setRecursive(true);
+            treeWalk.setFilter(PathFilter.create(path));
 
-            // now try to find a specific file
-            try(TreeWalk treeWalk = new TreeWalk(getRepository())) {
-                treeWalk.addTree(tree);
-                treeWalk.setRecursive(true);
-                treeWalk.setFilter(PathFilter.create(path));
+            // Not found, return null
+            if(!treeWalk.next()) {
+                return null;
+            }
 
-                // Not found, return null
-                if(!treeWalk.next()) {
-                    return null;
+            ObjectId objectId = treeWalk.getObjectId(0);
+            ObjectLoader loader = getRepository().open(objectId);
+            
+            // Use a stream in case ObjectLoader.isLarge
+            try(ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                // Wrap the output stream in another stream to respect the line ending setting
+                if(preserveEol) {
+                    EolStreamType eolStreamType = treeWalk.getEolStreamType(OperationType.CHECKOUT_OP);
+                    try(OutputStream out = EolStreamTypeUtil.wrapOutputStream(baos, eolStreamType)) {
+                        loader.copyTo(out);
+                    }
                 }
-
-                ObjectId objectId = treeWalk.getObjectId(0);
-                ObjectLoader loader = getRepository().open(objectId);
+                else {
+                    loader.copyTo(baos);
+                }
                 
-                // Use a stream in case ObjectLoader.isLarge
-                try(ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                    // Wrap the output stream in another stream to respect the line ending setting
-                    if(preserveEol) {
-                        EolStreamType eolStreamType = treeWalk.getEolStreamType(OperationType.CHECKOUT_OP);
-                        try(OutputStream out = EolStreamTypeUtil.wrapOutputStream(baos, eolStreamType)) {
-                            loader.copyTo(out);
-                        }
-                    }
-                    else {
-                        loader.copyTo(baos);
-                    }
-                    
-                    return baos.toByteArray();
-                }
+                return baos.toByteArray();
             }
         }
     }
