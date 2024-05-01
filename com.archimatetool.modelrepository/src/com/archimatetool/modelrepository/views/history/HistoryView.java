@@ -426,7 +426,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             fSelectedRepository = selectedRepository;
 
             // Set label text
-            fRepoLabel.setText(Messages.HistoryView_0 + " " + selectedRepository.getName()); //$NON-NLS-1$
+            updateLabel();
             
             // Set repository in actions *first*
             fActionExtractCommit.setRepository(selectedRepository);
@@ -442,25 +442,36 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         }
     }
     
+    /**
+     * Update the label
+     */
+    private void updateLabel() {
+        String text = Messages.HistoryView_0 + " "; //$NON-NLS-1$
+        if(fSelectedRepository != null) {
+            text += fSelectedRepository.getName();
+        }
+        fRepoLabel.setText(text);
+    }
+    
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
         if(Objects.equals(repository, fSelectedRepository)) {
             switch(eventName) {
                 case IRepositoryListener.HISTORY_CHANGED:
-                    fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
                     getHistoryViewer().setInput(repository);
                     fCommentViewer.setCommit(null);
+                    updateLabel();
                     break;
                     
                 case IRepositoryListener.REPOSITORY_DELETED:
-                    fRepoLabel.setText(Messages.HistoryView_0);
                     getHistoryViewer().setInput(null);
                     fCommentViewer.setCommit(null);
                     fSelectedRepository = null; // Reset this
+                    updateLabel();
                     break;
                     
                 case IRepositoryListener.MODEL_RENAMED:
-                    fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
+                    updateLabel();
                     break;
                     
                 case IRepositoryListener.MODEL_SAVED:
