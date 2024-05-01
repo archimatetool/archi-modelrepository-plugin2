@@ -171,13 +171,23 @@ public class MergeHandler {
         
         // If OK, save the model
         ourModel.setFile(new File(utils.getRepository().getWorkTree(), RepoConstants.MODEL_FILENAME));
-        IEditorModelManager.INSTANCE.saveModel(ourModel);
+        saveModel(ourModel);
         
         // Commit the merge
         commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}''", branchToMerge);
         
         // Return
         return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
+    }
+    
+    /**
+     * Save the model
+     */
+    private void saveModel(IArchimateModel model) throws IOException {
+        // This has overheads - model check, creating a backup, setting model version, notifications
+        // IEditorModelManager.INSTANCE.saveModel(model);
+        IArchiveManager archiveManager = (IArchiveManager)model.getAdapter(IArchiveManager.class);
+        archiveManager.saveModel();
     }
     
     /**
