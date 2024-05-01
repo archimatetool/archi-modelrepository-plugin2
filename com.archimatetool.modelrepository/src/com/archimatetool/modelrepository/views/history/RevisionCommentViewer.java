@@ -7,7 +7,6 @@ package com.archimatetool.modelrepository.views.history;
 
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.util.RawParseUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
@@ -36,8 +35,7 @@ public class RevisionCommentViewer {
             fText.setText(fullMessage);
             
             // The first line is bold
-            // The first line is everything up to the first pair of LFs
-            int firstLineLength = RawParseUtils.endOfParagraph(fullMessage.getBytes(), 0);
+            int firstLineLength = fullMessage.indexOf('\n');
             firstLineLength = firstLineLength == -1 ? fullMessage.length() : firstLineLength;
             
             StyleRange style = new StyleRange();
