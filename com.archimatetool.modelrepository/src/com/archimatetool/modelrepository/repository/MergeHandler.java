@@ -59,6 +59,9 @@ public class MergeHandler {
     
     private static MergeHandler instance = new MergeHandler();
     
+    // Allow Fast-Forward merges if possible
+    private static boolean ALLOW_FF_MERGE = true;
+    
     public static MergeHandler getInstance() {
         return instance;
     }
@@ -81,6 +84,13 @@ public class MergeHandler {
         logger.info("Merging " + branchToMerge.getFullName()); //$NON-NLS-1$
         
         try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
+            // If a FF merge is possible (head is reachable from the branch to merge) just move HEAD to the target branch ref
+            if(ALLOW_FF_MERGE && utils.isMergedInto(Constants.HEAD, branchToMerge.getFullName())) {
+                logger.info("Doing a FastForward merge");
+                utils.resetToRef(branchToMerge.getFullName());
+                return MergeHandlerResult.MERGED_OK;
+            }
+
             // Do the merge
             MergeResult mergeResult = utils.merge()
                     .include(branchToMerge.getRef())
@@ -99,32 +109,9 @@ public class MergeHandler {
                 return MergeHandlerResult.ALREADY_UP_TO_DATE;
             }
             
-            // TODO: Maybe we should just do it anyway?
-            boolean DO_3WAY_MERGE_IN_ALL_CASES = true;
-            
-            if(DO_3WAY_MERGE_IN_ALL_CASES) {
-                return handle3WayMerge(utils, branchToMerge);
-            }
-            
-            // Conflicting or model corrupt (successful git merge but model broken)
-            if(mergeStatus == MergeStatus.CONFLICTING || !isModelIntegral(repo.getModelFile())) {
-                return handle3WayMerge(utils, branchToMerge);
-            }
-
-            // Successful git merge and the model is OK!
-
-            // If FF merge is possible (head is reachable from the branch to merge) just move HEAD to the target branch ref
-            if(utils.isMergedInto(Constants.HEAD, branchToMerge.getFullName())) {
-                logger.info("Doing a FastForward merge");
-                utils.resetToRef(branchToMerge.getFullName());
-            }
-            // Else commit the merge if we have something to commit
-            else if(mergeStatus == MergeStatus.MERGED_NOT_COMMITTED) {
-                commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}''", branchToMerge);
-            }
+            // 3 way merge
+            return handle3WayMerge(utils, branchToMerge);
         }
-
-        return MergeHandlerResult.MERGED_OK;
     }
     
     /**
@@ -166,6 +153,7 @@ public class MergeHandler {
          */
         if(!isModelIntegral(ourModel)) {
             System.err.println("Model was not integral");
+            logger.warning("Model was not integral");
             return MergeHandlerResult.CANCELLED;
         }
         
@@ -176,8 +164,10 @@ public class MergeHandler {
         // Commit the merge
         commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}''", branchToMerge);
         
+        logger.info("Merge succesful!");
+        
         // Return
-        return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
+        return MergeHandlerResult.MERGED_OK;
     }
     
     /**
@@ -206,6 +196,7 @@ public class MergeHandler {
      * Try to load the model after a merge.
      * @return false if an exception is thrown when loading, an image is missing, or the ModelChecker fails
      */
+    @SuppressWarnings("unused")
     private boolean isModelIntegral(File modelFile) {
         try {
             IArchimateModel model = IEditorModelManager.INSTANCE.load(modelFile);
