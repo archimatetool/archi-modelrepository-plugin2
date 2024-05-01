@@ -405,10 +405,16 @@ public class HistoryTableViewer extends TableViewer {
                     // top line
                     event.gc.drawLine(event.x + imageGap, event.y, event.x + imageGap, event.y + (event.height - cWidth) / 2);
                     
-                    // bottom line
-                    if(commit.getParentCount() > 0) {
+                    // bottom line if not the oldest commit
+                    List<RevCommit> commits = ((HistoryContentProvider)getContentProvider()).commits;
+                    if(commits != null && commit != commits.get(commits.size() - 1)) {
                         event.gc.drawLine(event.x + imageGap, event.y + (event.height + cWidth) / 2, event.x + imageGap, event.y + event.height);
                     }
+                    
+                    // old way of doing it
+                    //if(commit.getParentCount() > 0) {
+                    //    event.gc.drawLine(event.x + imageGap, event.y + (event.height + cWidth) / 2, event.x + imageGap, event.y + event.height);
+                    //}
                     
                     event.gc.setForeground(oldForeground);
                     event.gc.setBackground(oldBackground);
