@@ -43,6 +43,7 @@ import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.editor.ui.ThemeUtils;
 import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.utils.PlatformUtils;
+import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -61,6 +62,8 @@ public class HistoryTableViewer extends TableViewer {
     private Set<RevCommit> unmergedCommits;
     
     private boolean hasWorkingTree;
+    
+    private IArchimateModelObject filteredModelObject;
     
     private Color unmergedColor = new Color(0, 124, 250);
     private Color mergedColor = ThemeUtils.isDarkTheme() ? new Color(250, 250, 250) : new Color(0, 0, 0);
@@ -150,6 +153,18 @@ public class HistoryTableViewer extends TableViewer {
         });
     }
     
+    /**
+     * Set the model object to filter on in the history
+     */
+    void setFilteredModelObject(IArchimateModelObject modelObject, boolean doUpdate) {
+        if(filteredModelObject != modelObject) {
+            filteredModelObject = modelObject;
+            if(doUpdate) {
+                setInputAndSelect((IArchiRepository)getInput());
+            }
+        }
+    }
+    
     private boolean hasWorkingTree(IArchiRepository repo) {
         try {
             return repo != null && repo.hasChangesToCommit() && fSelectedBranch != null && fSelectedBranch.isCurrentBranch();
@@ -219,6 +234,11 @@ public class HistoryTableViewer extends TableViewer {
             try(Repository repository = Git.open(repo.getWorkingFolder()).getRepository()) {
                 try(RevWalk revWalk = new RevWalk(repository)) {
                     revWalk.setRetainBody(false); // Don't load the body of commits that are being counted
+                    
+                    // Add a filter to show only commits that contain an object with a given identifier
+                    if(filteredModelObject != null) {
+                        revWalk.setRevFilter(new ModelObjectIdFilter(repository, filteredModelObject.getId()));
+                    }
 
                     // Set the local branch commit start
                     ObjectId localCommitID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());
