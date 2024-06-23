@@ -8,7 +8,7 @@ package com.archimatetool.modelrepository.treemodel;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -37,7 +37,7 @@ public class RepositoryTreeModel extends Group {
     /**
      * Listeners
      */
-    private List<IRepositoryTreeModelListener> listeners = new ArrayList<IRepositoryTreeModelListener>();
+    private CopyOnWriteArrayList<IRepositoryTreeModelListener> listeners = new CopyOnWriteArrayList<>(); // Avoid possible CMEs
     
     private static RepositoryTreeModel instance;
     
@@ -162,8 +162,8 @@ public class RepositoryTreeModel extends Group {
     
     @Override
     public void addListener(IRepositoryTreeModelListener listener) {
-        if(listeners != null && !listeners.contains(listener)) {
-            listeners.add(listener);
+        if(listeners != null) {
+            listeners.addIfAbsent(listener);
         }
     }
     
