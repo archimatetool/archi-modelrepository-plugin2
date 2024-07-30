@@ -152,8 +152,10 @@ public class MergeHandler {
          * TODO: Show and resolve conflicts
          */
         if(!isModelIntegral(ourModel)) {
-            System.err.println("Model was not integral");
+            // Reset and clear for now
             logger.warning("Model was not integral");
+            utils.resetToRef(Constants.HEAD);
+            MessageDialog.openError(null, "Merge", "Model was not integral. Merge cancelled.");
             return MergeHandlerResult.CANCELLED;
         }
         
