@@ -271,6 +271,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fSSHIdentityFileTextField.setText(getPreferenceStore().getDefaultString(PREFS_SSH_IDENTITY_FILE));
         fSSHIdentityRequiresPasswordButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD));
         fSSHIdentityPasswordTextField.setText(""); //$NON-NLS-1$
+        
+        super.performDefaults();
     }
     
     
