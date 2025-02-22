@@ -1,1 +1,6 @@
 .settings/
+bin/
+target/
+
+# Maven generates these *.jar files in the project's root...
+com.archimatetool.modelrepository.jar
