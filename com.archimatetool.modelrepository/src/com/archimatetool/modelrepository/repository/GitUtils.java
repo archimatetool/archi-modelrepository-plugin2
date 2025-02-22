@@ -379,6 +379,19 @@ public class GitUtils extends Git {
     }
     
     /**
+     * Get the latest (last) commit at HEAD, or null if it can't be located.
+     */
+    public RevCommit getLatestCommit() throws IOException {
+        ObjectId headID = getRepository().resolve(Constants.HEAD);
+        if(headID != null) {
+            try(RevWalk revWalk = new RevWalk(getRepository())) {
+                return revWalk.parseCommit(headID);
+            }
+        }
+        return null;
+    }
+    
+    /**
      * Return true if there are 2 or more commits for current HEAD
      */
     public boolean hasMoreThanOneCommit() throws IOException, GitAPIException {
@@ -389,7 +402,6 @@ public class GitUtils extends Git {
             while(revWalk.next() != null) {
                 count++;
             }
-            revWalk.dispose();
         }
         
         return count > 1;

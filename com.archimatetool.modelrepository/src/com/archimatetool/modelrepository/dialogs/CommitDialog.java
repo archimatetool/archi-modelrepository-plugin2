@@ -5,13 +5,17 @@
  */
 package com.archimatetool.modelrepository.dialogs;
 
+import static org.eclipse.swt.events.SelectionListener.widgetSelectedAdapter;
+
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -129,6 +133,24 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
             // If HEAD and Remote Ref are not the same && the HEAD commit does not have more than one parent (i.e HEAD commit is not a merged commit)
             boolean isAmendable = !utils.isRemoteRefForCurrentBranchAtHead() && utils.getCommitParentCount(Constants.HEAD) < 2;
             fAmendLastCommitCheckbox.setEnabled(isAmendable);
+            
+            // Set commit message to last commit message on checkbox click
+            if(isAmendable) {
+                // Get the latest commit message if there is one
+                RevCommit latestCommit = utils.getLatestCommit();
+                String previousCommitMessage = latestCommit != null ? latestCommit.getFullMessage() : null;
+                
+                if(previousCommitMessage != null) {
+                    fAmendLastCommitCheckbox.addSelectionListener(widgetSelectedAdapter(event -> {
+                        if(fAmendLastCommitCheckbox.getSelection()) {
+                            if(fTextCommitMessage.getText().isEmpty() || (!fTextCommitMessage.getText().equals(previousCommitMessage) && MessageDialog.openQuestion(getShell(),
+                                    Messages.CommitDialog_0, Messages.CommitDialog_7))) {
+                                fTextCommitMessage.setText(previousCommitMessage);
+                            }
+                        }
+                    }));
+                }
+            }
             
             if(!StringUtils.isSet(result.getName())) {
                 fTextUserName.setFocus();
