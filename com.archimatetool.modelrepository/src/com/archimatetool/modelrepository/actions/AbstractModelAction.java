@@ -15,7 +15,6 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -28,6 +27,7 @@ import com.archimatetool.modelrepository.dialogs.ErrorMessageDialog;
 import com.archimatetool.modelrepository.dialogs.UserNamePasswordDialog;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 
 /**
@@ -185,7 +185,7 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
                 // No. Discard changes by resetting to HEAD
                 else if(response == SWT.NO) {
                     logger.info("Resetting to HEAD"); //$NON-NLS-1$
-                    getRepository().resetToRef(Constants.HEAD);
+                    getRepository().resetToRef(RepoConstants.HEAD);
                     // Close and re-open the reset model
                     OpenModelState modelState = closeModel(false);
                     restoreModel(modelState);

@@ -98,7 +98,7 @@ public class BranchesViewer extends ComboViewer {
         
         // Set selection to current branch
         if(branchStatus != null) {
-            BranchInfo branchInfo = branchStatus.getCurrentLocalBranch();
+            BranchInfo branchInfo = branchStatus.getCurrentLocalBranchInfo();
             if(branchInfo != null) {
                 setSelection(new StructuredSelection(branchInfo));
             }

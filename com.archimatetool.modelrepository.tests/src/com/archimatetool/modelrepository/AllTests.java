@@ -10,6 +10,8 @@ import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SuiteDisplayName;
 
 import com.archimatetool.modelrepository.repository.ArchiRepositoryTests;
+import com.archimatetool.modelrepository.repository.BranchInfoTests;
+import com.archimatetool.modelrepository.repository.BranchStatusTests;
 import com.archimatetool.modelrepository.repository.GitUtilsTests;
 import com.archimatetool.modelrepository.repository.RepoUtilsTests;
 import com.archimatetool.modelrepository.treemodel.GroupTests;
@@ -21,6 +23,8 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModelTests;
 @SelectClasses({
     // repository
     ArchiRepositoryTests.class,
+    BranchInfoTests.class,
+    BranchStatusTests.class,
     GitUtilsTests.class,
     RepoUtilsTests.class,
     

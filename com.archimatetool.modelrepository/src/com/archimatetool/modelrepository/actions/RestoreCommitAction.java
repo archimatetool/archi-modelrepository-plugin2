@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -19,7 +18,7 @@ import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
-import com.archimatetool.modelrepository.repository.RepoUtils;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Restore to a particular commit
@@ -68,7 +67,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         try {
             // Delete the contents of the working directory
             logger.info("Deleting contents of working directory"); //$NON-NLS-1$
-            RepoUtils.deleteContentsOfGitRepository(getRepository().getWorkingFolder());
+            getRepository().deleteWorkingFolderContents();
             
             // Extract the contents of the commit
             logger.info("Extracting the oommit"); //$NON-NLS-1$
@@ -88,7 +87,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         catch(IOException | GitAPIException ex) {
             logger.log(Level.SEVERE, "Restore to Commit", ex); //$NON-NLS-1$
             try {
-                getRepository().resetToRef(Constants.HEAD);
+                getRepository().resetToRef(RepoConstants.HEAD);
             }
             catch(IOException | GitAPIException ex1) {
                 logger.log(Level.SEVERE, "Reset to HEAD", ex1); //$NON-NLS-1$
@@ -110,7 +109,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         
         try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
             // Commit is not at HEAD and is part of the local branch's history (HEAD)
-            return !utils.isCommitAtHead(fCommit) && utils.isMergedInto(fCommit.getName(), Constants.HEAD);
+            return !utils.isCommitAtHead(fCommit) && utils.isMergedInto(fCommit.getName(), RepoConstants.HEAD);
         }
         catch(IOException ex) {
             ex.printStackTrace();

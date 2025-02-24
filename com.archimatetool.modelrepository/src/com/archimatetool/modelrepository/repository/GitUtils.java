@@ -22,7 +22,6 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.CoreConfig.EolStreamType;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -179,7 +178,7 @@ public class GitUtils extends Git {
         FetchResult fetchResult = fetchCommand.call();
         
         // Ensure that the current branch is tracking its remote (if there is one) in case the remote ref was deleted and is fetched again
-        if(fetchResult.getTrackingRefUpdate(RepoConstants.REMOTE_PREFIX + getRepository().getBranch()) != null) {
+        if(fetchResult.getTrackingRefUpdate(RepoConstants.R_REMOTES_ORIGIN + getRepository().getBranch()) != null) {
             setTrackedBranch(getRepository().getBranch());
         }
         
@@ -245,14 +244,14 @@ public class GitUtils extends Git {
      */
     public String getPrimaryBranch() throws IOException {
         // "main" takes priority
-        if(getRepository().exactRef(RepoConstants.LOCAL_PREFIX + RepoConstants.MAIN) != null
-                || getRepository().exactRef(RepoConstants.REMOTE_PREFIX + RepoConstants.MAIN) != null) {
+        if(getRepository().exactRef(RepoConstants.R_HEADS_MAIN) != null
+                || getRepository().exactRef(RepoConstants.R_REMOTES_ORIGIN_MAIN) != null) {
             return RepoConstants.MAIN;
         }
         
         // then "master"
-        if(getRepository().exactRef(RepoConstants.LOCAL_PREFIX + RepoConstants.MASTER) != null
-                || getRepository().exactRef(RepoConstants.REMOTE_PREFIX + RepoConstants.MASTER) != null) {
+        if(getRepository().exactRef(RepoConstants.R_HEADS_MASTER) != null
+                || getRepository().exactRef(RepoConstants.R_REMOTES_ORIGIN_MASTER) != null) {
             return RepoConstants.MASTER;
         }
         
@@ -291,10 +290,8 @@ public class GitUtils extends Git {
      * @param URL if this is empty or null, the remote is removed else it is added or updated if it already exists
      */
     public RemoteConfig setRemote(String URL) throws GitAPIException, URISyntaxException {
-        RemoteConfig config;
-        
         // Remove existing remote
-        config = remoteRemove().setRemoteName(RepoConstants.ORIGIN).call();
+        RemoteConfig config = remoteRemove().setRemoteName(RepoConstants.ORIGIN).call();
         
         // Add new one
         if(StringUtils.isSetAfterTrim(URL)) {
@@ -310,8 +307,8 @@ public class GitUtils extends Git {
      */
     public String getRemoteURL() throws GitAPIException {
         // Could do it this way:
-        // return git.getRepository().getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION,
-        //        Constants.DEFAULT_REMOTE_NAME, ConfigConstants.CONFIG_KEY_URL);
+        // return getRepository().getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION,
+        //        RepoConstants.ORIGIN, ConfigConstants.CONFIG_KEY_URL);
         
         List<RemoteConfig> remotes = remoteList().call();
         if(!remotes.isEmpty()) {
@@ -339,7 +336,7 @@ public class GitUtils extends Git {
      * Return true if the given RevCommit is equal to the HEAD position
      */
     public boolean isCommitAtHead(RevCommit commit) throws IOException {
-        ObjectId headID = getRepository().resolve(Constants.HEAD);
+        ObjectId headID = getRepository().resolve(RepoConstants.HEAD);
         ObjectId commitID = commit.getId();
         return headID != null && commitID != null && headID.equals(commitID);
     }
@@ -348,7 +345,7 @@ public class GitUtils extends Git {
      * Return true if the given Ref is equal to the HEAD position
      */
     public boolean isRefAtHead(Ref ref) throws IOException {
-        ObjectId headID = getRepository().resolve(Constants.HEAD);
+        ObjectId headID = getRepository().resolve(RepoConstants.HEAD);
         return headID != null && ref != null && headID.equals(ref.getObjectId());
     }
 
@@ -382,7 +379,7 @@ public class GitUtils extends Git {
      * Get the latest (last) commit at HEAD, or null if it can't be located.
      */
     public RevCommit getLatestCommit() throws IOException {
-        ObjectId headID = getRepository().resolve(Constants.HEAD);
+        ObjectId headID = getRepository().resolve(RepoConstants.HEAD);
         if(headID != null) {
             try(RevWalk revWalk = new RevWalk(getRepository())) {
                 return revWalk.parseCommit(headID);
@@ -395,18 +392,30 @@ public class GitUtils extends Git {
      * Return true if there are 2 or more commits for current HEAD
      */
     public boolean hasMoreThanOneCommit() throws IOException, GitAPIException {
+        return getCommitCount(2) > 1;
+    }
+    
+    /**
+     * Return the commit log count for the current HEAD branch
+     * This is expensive and shouldn't be called to often
+     */
+    public int getCommitCount() throws IOException, GitAPIException {
+        return getCommitCount(-1);
+    }
+    
+    private int getCommitCount(int maxCount) throws IOException, GitAPIException {
         int count = 0;
         
-        try(RevWalk revWalk = (RevWalk)log().setMaxCount(2).call()) {
+        try(RevWalk revWalk = (RevWalk)log().setMaxCount(maxCount).call()) {
             revWalk.setRetainBody(false);
             while(revWalk.next() != null) {
                 count++;
             }
         }
         
-        return count > 1;
+        return count;
     }
-    
+
     /**
      * Return the number of parent commits for the commit at revision revstr (HEAD, ref name, etc)
      */
@@ -603,7 +612,7 @@ public class GitUtils extends Git {
         
         if(!RepoConstants.ORIGIN.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, RepoConstants.ORIGIN);
-            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
+            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, RepoConstants.R_HEADS + branchName);
             config.save();
         }
     }

@@ -8,9 +8,6 @@ package com.archimatetool.modelrepository.repository;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.Set;
 
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -106,27 +103,13 @@ public class RepoUtils {
     }
     
     /**
-     * Get the enclosing repo folder (sorking dir) for a model
+     * Get the enclosing repo folder (working dir) for a model
      * It is assumed that the model file is named "model.archimate", exists, and has a .git folder
      * @return The folder or null if the model is not in a Archi repo
      */
     public static File getWorkingFolderForModel(IArchimateModel model) {
         File parentFolder = (model != null && model.getFile() != null) ? model.getFile().getParentFile() : null;
         return isArchiGitRepository(parentFolder) ? parentFolder : null;
-    }
-    
-    /**
-     * Delete the contents of the local repository folder *except* the .git folder
-     * @param folder The local repository folder
-     */
-    public static void deleteContentsOfGitRepository(File folder) throws IOException {
-        Path gitFolder = new File(folder, ".git").toPath();
-        
-        Files.walk(folder.toPath())
-             .filter(path -> !path.startsWith(gitFolder)) // Not the .git folder
-             .sorted(Comparator.reverseOrder())           // Has to be sorted in reverse order to prevent removal of a non-empty directory
-             .map(Path::toFile)
-             .forEach(File::delete);
     }
     
     /**
@@ -144,7 +127,7 @@ public class RepoUtils {
     }
     
     /**
-     * Save the gloable user name and email as set in .gitconfig file
+     * Save the global user name and email as set in .gitconfig file
      * @param name
      * @param email
      * @throws IOException

@@ -11,12 +11,12 @@ import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Discard Uncommitted Changes Action
@@ -76,7 +76,7 @@ public class DiscardChangesAction extends AbstractModelAction {
         // Reset to HEAD
         try {
             logger.info("Resetting to HEAD"); //$NON-NLS-1$
-            getRepository().resetToRef(Constants.HEAD);
+            getRepository().resetToRef(RepoConstants.HEAD);
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();

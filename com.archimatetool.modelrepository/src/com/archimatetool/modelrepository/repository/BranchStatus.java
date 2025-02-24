@@ -26,10 +26,10 @@ import org.eclipse.jgit.lib.Repository;
  */
 public class BranchStatus {
     
-    private Map<String, BranchInfo> infos = new HashMap<String, BranchInfo>();
+    private Map<String, BranchInfo> infos = new HashMap<>();
     
-    private BranchInfo currentLocalBranch;
-    private BranchInfo currentRemoteBranch;
+    private BranchInfo currentLocalBranchInfo;
+    private BranchInfo currentRemoteBranchInfo;
     
     /**
      * BranchStatus is a list of all branches in the repo, local and remote, as a list of BranchInfo objects.
@@ -48,13 +48,13 @@ public class BranchStatus {
             // Get current local branch
             String head = repository.getFullBranch();
             if(head != null) {
-                currentLocalBranch = infos.get(head);
+                currentLocalBranchInfo = infos.get(head);
             }
             
             // Get current remote branch if there is one (can be null)
-            if(currentLocalBranch != null) {
-                String remoteName = currentLocalBranch.getRemoteBranchNameFor();
-                currentRemoteBranch = infos.get(remoteName);
+            if(currentLocalBranchInfo != null) {
+                String remoteName = currentLocalBranchInfo.getRemoteBranchNameFor();
+                currentRemoteBranchInfo = infos.get(remoteName);
             }
         }
     }
@@ -94,11 +94,11 @@ public class BranchStatus {
                 .collect(Collectors.toList());
     }
     
-    public BranchInfo getCurrentLocalBranch() {
-        return currentLocalBranch;
+    public BranchInfo getCurrentLocalBranchInfo() {
+        return currentLocalBranchInfo;
     }
     
-    public BranchInfo getCurrentRemoteBranch() {
-        return currentRemoteBranch;
+    public BranchInfo getCurrentRemoteBranchInfo() {
+        return currentRemoteBranchInfo;
     }
 }

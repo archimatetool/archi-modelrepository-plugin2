@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
@@ -33,6 +32,7 @@ import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Commit Dialog
@@ -131,7 +131,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
             
             // An amend of the last commit is allowed:
             // If HEAD and Remote Ref are not the same && the HEAD commit does not have more than one parent (i.e HEAD commit is not a merged commit)
-            boolean isAmendable = !utils.isRemoteRefForCurrentBranchAtHead() && utils.getCommitParentCount(Constants.HEAD) < 2;
+            boolean isAmendable = !utils.isRemoteRefForCurrentBranchAtHead() && utils.getCommitParentCount(RepoConstants.HEAD) < 2;
             fAmendLastCommitCheckbox.setEnabled(isAmendable);
             
             // Set commit message to last commit message on checkbox click

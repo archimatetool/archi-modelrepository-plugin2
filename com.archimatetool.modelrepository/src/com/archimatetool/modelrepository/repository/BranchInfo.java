@@ -14,7 +14,6 @@ import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.BranchConfig;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -51,17 +50,17 @@ public class BranchInfo {
      */
     public static BranchInfo currentLocalBranchInfo(File repoDir, boolean fullStatus) throws IOException, GitAPIException {
         try(Repository repository = Git.open(repoDir).getRepository()) {
-            return new BranchInfo(repository, repository.exactRef(Constants.HEAD).getTarget(), fullStatus);
+            return new BranchInfo(repository, repository.exactRef(RepoConstants.HEAD).getTarget(), fullStatus);
         }
     }
     
     /**
-     * Get Current Remote BranchInfo or null if the current brnach is not tracking a remote branch
+     * Get Current Remote BranchInfo or null if the current branch is not tracking a remote branch
      * @param fullStatus if true all BranchInfo status info is calculated. Setting this to false can mean a more lightweight instance.
      */
     public static BranchInfo currentRemoteBranchInfo(File repoDir, boolean fullStatus) throws IOException, GitAPIException {
         try(Repository repository = Git.open(repoDir).getRepository()) {
-            Ref remoteRef = repository.exactRef(RepoConstants.REMOTE_PREFIX + repository.getBranch());
+            Ref remoteRef = repository.exactRef(RepoConstants.R_REMOTES_ORIGIN + repository.getBranch());
             return remoteRef != null ? new BranchInfo(repository, remoteRef.getTarget(), fullStatus) : null;
         }
     }
@@ -121,22 +120,22 @@ public class BranchInfo {
     public String getShortName() {
         String branchName = getFullName();
         
-        if(branchName.startsWith(RepoConstants.LOCAL_PREFIX)) {
-            return branchName.substring(RepoConstants.LOCAL_PREFIX.length());
+        if(branchName.startsWith(RepoConstants.R_HEADS)) {
+            return branchName.substring(RepoConstants.R_HEADS.length());
         }
-        if(branchName.startsWith(RepoConstants.REMOTE_PREFIX)) {
-            return branchName.substring(RepoConstants.REMOTE_PREFIX.length());
+        if(branchName.startsWith(RepoConstants.R_REMOTES_ORIGIN)) {
+            return branchName.substring(RepoConstants.R_REMOTES_ORIGIN.length());
         }
         
         return branchName;
     }
     
     public boolean isLocal() {
-        return getFullName().startsWith(RepoConstants.LOCAL_PREFIX);
+        return getFullName().startsWith(RepoConstants.R_HEADS);
     }
 
     public boolean isRemote() {
-        return getFullName().startsWith(RepoConstants.REMOTE_PREFIX);
+        return getFullName().startsWith(RepoConstants.R_REMOTES_ORIGIN);
     }
 
     public boolean hasLocalRef() {
@@ -159,18 +158,18 @@ public class BranchInfo {
     }
     
     public String getRemoteBranchNameFor() {
-        return RepoConstants.REMOTE_PREFIX + getShortName();
+        return RepoConstants.R_REMOTES_ORIGIN + getShortName();
     }
     
     public String getLocalBranchNameFor() {
-        return RepoConstants.LOCAL_PREFIX + getShortName();
+        return RepoConstants.R_HEADS + getShortName();
     }
     
     @Override
     public boolean equals(Object obj) {
-        return (obj instanceof BranchInfo) &&
-                repoDir.equals(((BranchInfo)obj).repoDir) &&
-                getFullName().equals(((BranchInfo)obj).getFullName());
+        return obj instanceof BranchInfo branchInfo &&
+               repoDir.equals(branchInfo.repoDir) &&
+               getFullName().equals(branchInfo.getFullName());
     }
     
     // ======================================================================================
@@ -207,7 +206,7 @@ public class BranchInfo {
     }
     
     private void getIsPrimaryBranch(Repository repository) throws IOException {
-        // If this is "master" then determine it it is the primary branch
+        // If this is "master" then determine if it is the primary branch
         if(RepoConstants.MASTER.equals(getShortName())) {
             isPrimaryBranch = RepoConstants.MASTER.equals(GitUtils.wrap(repository).getPrimaryBranch());
         }

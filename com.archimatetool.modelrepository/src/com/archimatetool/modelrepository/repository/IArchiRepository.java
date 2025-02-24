@@ -25,7 +25,7 @@ public interface IArchiRepository {
     /**
      * Initialise this repository
      */
-    void init() throws GitAPIException, IOException;
+    IArchiRepository init() throws GitAPIException, IOException;
     
     /**
      * Clone a model
@@ -78,6 +78,11 @@ public interface IArchiRepository {
      * @return The repository's working directory
      */
     File getWorkingFolder();
+
+    /**
+     * Delete the contents of the local repository folder *but not* the .git folder
+     */
+    void deleteWorkingFolderContents() throws IOException;
 
     /**
      * @return The repository's ".git" directory

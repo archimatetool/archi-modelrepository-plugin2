@@ -8,7 +8,6 @@ package com.archimatetool.modelrepository.dialogs;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -22,6 +21,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.UIUtils;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Add Branch Dialog
@@ -72,7 +72,7 @@ public class AddBranchDialog extends TitleAreaDialog {
             boolean isValidRefName = !newText.isEmpty();
             
             if(isValidRefName) {
-                isValidRefName = Repository.isValidRefName(Constants.R_HEADS + newText);
+                isValidRefName = Repository.isValidRefName(RepoConstants.R_HEADS + newText);
                 if(!isValidRefName) {
                     if(newText.startsWith(".") || newText.endsWith(".")) { //$NON-NLS-1$ //$NON-NLS-2$
                         setMessage(Messages.AddBranchDialog_4, IMessageProvider.ERROR);

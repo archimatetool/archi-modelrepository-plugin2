@@ -9,6 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -17,7 +20,6 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
@@ -55,15 +57,20 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public void init() throws GitAPIException, IOException {
+    public IArchiRepository init() throws GitAPIException, IOException {
         // Init
-        try(Git git = Git.init().setInitialBranch(RepoConstants.MAIN).setDirectory(getWorkingFolder()).call()) {
+        try(Repository repository = Git.init()
+                .setInitialBranch(RepoConstants.MAIN)
+                .setDirectory(getWorkingFolder())
+                .call().getRepository()) {
             // Config Defaults
-            setDefaultConfigSettings(git.getRepository());
+            setDefaultConfigSettings(repository);
             
             // Exclude file
             createExcludeFile();
         }
+        
+        return this;
     }
     
     @Override
@@ -74,20 +81,20 @@ public class ArchiRepository implements IArchiRepository {
         cloneCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
         cloneCommand.setProgressMonitor(monitor);
         
-        try(Git git = cloneCommand.call()) {
+        try(Repository repository = cloneCommand.call().getRepository()) {
             // Config Defaults
-            setDefaultConfigSettings(git.getRepository());
+            setDefaultConfigSettings(repository);
             
             // Exclude file
             createExcludeFile();
             
             // If this is an empty repository, ensure that we have HEAD pointing to "main"
-            Ref refHead = git.getRepository().exactRef(Constants.HEAD); // What's HEAD referencing?
-            // This is an empty repo because HEAD file points to an unborn branch
+            Ref refHead = repository.exactRef(RepoConstants.HEAD); // What's HEAD referencing?
+            // This is an empty repo because HEAD file points to an non-existing branch
             if(refHead != null && refHead.getTarget().getObjectId() == null) {
                 // So write this ref to the HEAD file
                 String ref = "ref: refs/heads/main";
-                File headFile = new File(getGitFolder(), "HEAD");
+                File headFile = new File(getGitFolder(), RepoConstants.HEAD);
                 Files.write(headFile.toPath(), ref.getBytes());
             }
         }
@@ -145,6 +152,17 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public File getWorkingFolder() {
         return repoFolder;
+    }
+    
+    @Override
+    public void deleteWorkingFolderContents() throws IOException {
+        Path gitFolder = Path.of(getWorkingFolder().getPath(), ".git");
+        
+        Files.walk(getWorkingFolder().toPath())
+             .filter(path -> !path.startsWith(gitFolder)) // Not the .git folder
+             .sorted(Comparator.reverseOrder())           // Has to be sorted in reverse order to prevent removal of a non-empty directory
+             .map(Path::toFile)
+             .forEach(File::delete);
     }
     
     @Override
@@ -231,15 +249,13 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof ArchiRepository) {
-            return repoFolder != null && repoFolder.equals(((ArchiRepository)obj).getWorkingFolder());
-        }
-        return false;
+        // Equality based on repo (working) folder
+        return obj instanceof ArchiRepository repo ? Objects.equals(repoFolder, repo.repoFolder) : false;
     }
     
     @Override
     public int hashCode() {
-        // Equality for Java sets
+        // Equality based on repo (working) folder for Java sets
         return repoFolder != null ? repoFolder.hashCode() : super.hashCode();
     }
 
@@ -262,7 +278,7 @@ public class ArchiRepository implements IArchiRepository {
          */
         config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, PlatformUtils.isWindows() ? "true" : "input");
 
-        // Set ignore case on Mac/Windows
+        // Set ignore case for file names on Mac/Windows
         if(!PlatformUtils.isLinux()) {
             config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, "ignorecase", "true");
         }

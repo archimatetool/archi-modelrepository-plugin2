@@ -5,8 +5,6 @@
  */
 package com.archimatetool.modelrepository.repository;
 
-import org.eclipse.jgit.lib.Constants;
-
 /**
  * Repository Constants
  * 
@@ -41,12 +39,47 @@ public final class RepoConstants {
     public static final String MASTER = "master";
     
     /**
-     * Prefix for local branch Refs
+     * HEAD
      */
-    public static final String LOCAL_PREFIX = Constants.R_HEADS;
+    public static final String HEAD = "HEAD";
+
+    /**
+     * Prefix for local refs
+     */
+    public static final String R_HEADS = "refs/heads/";
     
     /**
-     * Prefix for remote branch Refs
+     * Prefix for remote refs
      */
-    public static final String REMOTE_PREFIX = Constants.R_REMOTES + ORIGIN + "/";
+    public static final String R_REMOTES = "refs/remotes/";
+
+    /**
+     * Ref prefix for origin remote
+     */
+    public static final String R_REMOTES_ORIGIN = "refs/remotes/origin/";
+    
+    /**
+     * Full ref of "refs/heads/main"
+     */
+    public static final String R_HEADS_MAIN = R_HEADS + MAIN;
+
+    /**
+     * Full ref of "refs/heads/master"
+     */
+    public static final String R_HEADS_MASTER = R_HEADS + MASTER;
+    
+    /**
+     * Ref prefix for origin remote main
+     */
+    public static final String R_REMOTES_ORIGIN_MAIN = "refs/remotes/origin/main";
+    
+    /**
+     * origin remote main
+     */
+    public static final String ORIGIN_MAIN = "origin/main";
+
+    /**
+     * Ref prefix for origin remote master
+     */
+    public static final String R_REMOTES_ORIGIN_MASTER = "refs/remotes/origin/master";
 }

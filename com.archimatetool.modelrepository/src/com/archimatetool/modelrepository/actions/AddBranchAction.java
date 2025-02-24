@@ -13,7 +13,6 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -23,6 +22,7 @@ import com.archimatetool.modelrepository.dialogs.AddBranchDialog;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Add a Branch
@@ -69,7 +69,7 @@ public class AddBranchAction extends AbstractModelAction {
             return;
         }
         
-        String fullName = Constants.R_HEADS + branchName;
+        String fullName = RepoConstants.R_HEADS + branchName;
     	
         try(Git git = Git.open(getRepository().getWorkingFolder())) {
             // If the branch exists show error

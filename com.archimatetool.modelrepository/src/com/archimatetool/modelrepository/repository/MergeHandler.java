@@ -34,7 +34,6 @@ import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.osgi.util.NLS;
@@ -85,7 +84,7 @@ public class MergeHandler {
         
         try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
             // If a FF merge is possible (head is reachable from the branch to merge) just move HEAD to the target branch ref
-            if(ALLOW_FF_MERGE && utils.isMergedInto(Constants.HEAD, branchToMerge.getFullName())) {
+            if(ALLOW_FF_MERGE && utils.isMergedInto(RepoConstants.HEAD, branchToMerge.getFullName())) {
                 logger.info("Doing a FastForward merge");
                 utils.resetToRef(branchToMerge.getFullName());
                 return MergeHandlerResult.MERGED_OK;
@@ -123,7 +122,7 @@ public class MergeHandler {
         logger.info("Handling 3Way merge...");
 
         // Load the three models...
-        IArchimateModel ourModel = loadModel(utils, Constants.HEAD);
+        IArchimateModel ourModel = loadModel(utils, RepoConstants.HEAD);
         IArchimateModel theirModel = loadModel(utils, branchToMerge.getFullName());
         IArchimateModel baseModel = loadBaseModel(utils, branchToMerge.getFullName());
         
@@ -154,7 +153,7 @@ public class MergeHandler {
         if(!isModelIntegral(ourModel)) {
             // Reset and clear for now
             logger.warning("Model was not integral");
-            utils.resetToRef(Constants.HEAD);
+            utils.resetToRef(RepoConstants.HEAD);
             MessageDialog.openError(null, "Merge", "Model was not integral. Merge cancelled.");
             return MergeHandlerResult.CANCELLED;
         }
@@ -270,7 +269,7 @@ public class MergeHandler {
      * Load the model at the base commit (common ancestor between HEAD and the branch to merge)
      */
     private IArchimateModel loadBaseModel(GitUtils utils, String revStr) throws IOException {
-        RevCommit mergeBase = utils.getBaseCommit(Constants.HEAD, revStr);
+        RevCommit mergeBase = utils.getBaseCommit(RepoConstants.HEAD, revStr);
         return mergeBase != null ? loadModel(utils, mergeBase.getName()) : null;
     }
     
@@ -313,7 +312,7 @@ public class MergeHandler {
         // Cancel
         if(response == -1 || response == 2) {
             // Reset and clear
-            utils.resetToRef(Constants.HEAD);
+            utils.resetToRef(RepoConstants.HEAD);
             return MergeHandlerResult.CANCELLED;
         }
         
