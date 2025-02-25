@@ -124,8 +124,7 @@ public class MergeBranchAction extends AbstractModelAction {
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         
         // Close and open model
-        OpenModelState modelState = closeModel(false);
-        restoreModel(modelState);
+        closeAndRestoreModel();
     }
     
     /**

@@ -160,8 +160,7 @@ public class RefreshModelAction extends AbstractModelAction {
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         
         // Close and re-open model
-        OpenModelState modelState = closeModel(false);
-        restoreModel(modelState);
+        closeAndRestoreModel();
         
         if(mergeHandlerResult == MergeHandlerResult.MERGED_OK) {
             MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_5);

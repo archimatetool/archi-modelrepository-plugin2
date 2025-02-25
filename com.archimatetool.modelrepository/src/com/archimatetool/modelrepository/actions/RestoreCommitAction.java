@@ -96,8 +96,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         }
         finally {
             // Close and re-open model
-            OpenModelState modelState = closeModel(false);
-            restoreModel(modelState);
+            closeAndRestoreModel();
         }
     }
     

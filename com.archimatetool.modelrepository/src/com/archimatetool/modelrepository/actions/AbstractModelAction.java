@@ -186,9 +186,9 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
                 else if(response == SWT.NO) {
                     logger.info("Resetting to HEAD"); //$NON-NLS-1$
                     getRepository().resetToRef(RepoConstants.HEAD);
+
                     // Close and re-open the reset model
-                    OpenModelState modelState = closeModel(false);
-                    restoreModel(modelState);
+                    closeAndRestoreModel();
                     
                     // Notify in case history was showing working tree
                     notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
@@ -285,16 +285,21 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
      * OpenModelState is returned in all cases.
      */
     protected OpenModelState closeModel(boolean askSaveModel) {
-        OpenModelState modelState = new OpenModelState();
-        modelState.closeModel(getRepository().getOpenModel(), askSaveModel);
-        return modelState;
+        return new OpenModelState().closeModel(getRepository(), askSaveModel);
     }
     
     /**
      * Re-open this repo's model in the models tree and any previously opened editors
      */
     protected IArchimateModel restoreModel(OpenModelState modelState) {
-        return modelState != null ? modelState.restoreModel(getRepository().getModelFile()) : null;
+        return modelState != null ? modelState.restoreModel() : null;
+    }
+    
+    /**
+     * If the model is open in the models tree, close it and re-open it without asking
+     */
+    protected IArchimateModel closeAndRestoreModel() {
+        return closeModel(false).restoreModel();
     }
     
     @Override

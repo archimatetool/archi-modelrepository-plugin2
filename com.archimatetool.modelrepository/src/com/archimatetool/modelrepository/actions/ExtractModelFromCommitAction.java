@@ -71,7 +71,7 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
             File tempFolder = Files.createTempDirectory("archi-").toFile(); //$NON-NLS-1$
             
             // Extract the commit
-            logger.info("Extracting the oommit"); //$NON-NLS-1$
+            logger.info("Extracting the commit"); //$NON-NLS-1$
             getRepository().extractCommit(fCommit, tempFolder, false);
             
             // If the model file exists, open it
