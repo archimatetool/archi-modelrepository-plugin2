@@ -60,7 +60,7 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
         String field;
         String localValue, globalValue;
 
-        Listener listener = (e) -> {
+        Listener listener = e -> {
             String newValue = text.getText();
 
             // Different value so save and store
@@ -86,17 +86,11 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
 
         void setText(String globalValue, String localValue) {
             this.globalValue = globalValue;
-            this.localValue = localValue;
+            this.localValue = globalValue.equals(localValue) ? "" : localValue; //$NON-NLS-1$
+            text.setText(this.localValue);
             
             // Hint
             text.setMessage(globalValue);
-            
-            if(!globalValue.equals(localValue)) {
-                text.setText(localValue);
-            }
-            else {
-                text.setText(""); //$NON-NLS-1$
-            }
         }
     }
     
