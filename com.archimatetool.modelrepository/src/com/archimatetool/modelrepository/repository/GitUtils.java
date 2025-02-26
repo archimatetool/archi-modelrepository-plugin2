@@ -13,12 +13,8 @@ import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import org.eclipse.jgit.api.CommitCommand;
-import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -84,18 +80,15 @@ public class GitUtils extends Git {
         //git.add().addFilepattern(RepoConstants.MODEL_FILENAME).addFilepattern(RepoConstants.IMAGES_FOLDER).call();
         
         // Add missing (deleted) files to the index
-        Status status = status().call();
-        for(String s : status.getMissing()) {
+        for(String s : status().call().getMissing()) {
             rm().addFilepattern(s).call();
         }
         
-        // Commit
-        CommitCommand commitCommand = commit();
-        PersonIdent userDetails = getUserDetails();
-        commitCommand.setAuthor(userDetails);
-        commitCommand.setMessage(commitMessage);
-        commitCommand.setAmend(amend);
-        return commitCommand.call();
+        return commit()
+                .setAuthor(getUserDetails())
+                .setMessage(commitMessage)
+                .setAmend(amend)
+                .call();
     }
 
     /**
@@ -111,10 +104,11 @@ public class GitUtils extends Git {
      *         As we're only pushing to one remote URI there should only be one PushResult
      */
     public PushResult pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
-        PushCommand pushCommand = push();
-        pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
-        pushCommand.setProgressMonitor(monitor);
-        Iterable<PushResult> results = pushCommand.call();
+        Iterable<PushResult> results = push()
+                .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .setProgressMonitor(monitor)
+                .call();
+        
         PushResult pushResult = results.iterator().next(); // Get the first one
         
         // If successful, ensure we are tracking the current branch
@@ -171,11 +165,11 @@ public class GitUtils extends Git {
      * Fetch from Remote
      */
     public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws GitAPIException, IOException {
-        FetchCommand fetchCommand = fetch();
-        fetchCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
-        fetchCommand.setProgressMonitor(monitor);
-        fetchCommand.setDryRun(isDryrun);
-        FetchResult fetchResult = fetchCommand.call();
+        FetchResult fetchResult = fetch()
+                .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .setProgressMonitor(monitor)
+                .setDryRun(isDryrun)
+                .call();
         
         // Ensure that the current branch is tracking its remote (if there is one) in case the remote ref was deleted and is fetched again
         if(fetchResult.getTrackingRefUpdate(RepoConstants.R_REMOTES_ORIGIN + getRepository().getBranch()) != null) {
@@ -276,13 +270,12 @@ public class GitUtils extends Git {
      * @param branchName Local type ref like "refs/heads/branch"
      */
     public Iterable<PushResult> deleteRemoteBranch(String branchName, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException {
-        PushCommand pushCommand = push();
-        pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
-        RefSpec refSpec = new RefSpec(":" + branchName);
-        pushCommand.setRefSpecs(refSpec);
-        pushCommand.setRemote(RepoConstants.ORIGIN);
-        pushCommand.setProgressMonitor(monitor);
-        return pushCommand.call();
+        return push()
+                .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .setRefSpecs(new RefSpec(":" + branchName))
+                .setRemote(RepoConstants.ORIGIN)
+                .setProgressMonitor(monitor)
+                .call();
     }
     
     /**
