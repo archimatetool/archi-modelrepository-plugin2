@@ -30,6 +30,14 @@ public class UsernamePassword {
         return username;
     }
     
+    public boolean isUsernameSet() {
+        return username != null && username.length() > 0;
+    }
+    
+    public boolean isPasswordSet() {
+        return password != null && password.length > 0;
+    }
+    
     /**
      * Destroy the saved username and password
      */

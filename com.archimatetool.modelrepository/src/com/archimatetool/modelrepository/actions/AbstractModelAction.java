@@ -262,11 +262,14 @@ public abstract class AbstractModelAction extends Action implements IModelReposi
         // Get credentials from storage
         UsernamePassword npw = CredentialsStorage.getInstance().getCredentials(getRepository());
         
-        // Else ask the user
-        if(npw == null) {
+        // Ask the user if no username set
+        if(!npw.isUsernameSet()) {
             UserNamePasswordDialog dialog = new UserNamePasswordDialog(fWindow.getShell(), getRepository());
             if(dialog.open() == Window.OK) {
                 npw = new UsernamePassword(dialog.getUsername(), dialog.getPassword());
+            }
+            else {
+                npw = null;
             }
         }
         

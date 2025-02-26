@@ -50,11 +50,11 @@ public class AuthSection extends AbstractArchiPropertySection {
         @Override
         public boolean select(Object object) {
             return object instanceof RepositoryRef ||
-                    (object instanceof IArchimateModel && RepoUtils.isModelInArchiRepository((IArchimateModel)object));
+                    (object instanceof IArchimateModel model && RepoUtils.isModelInArchiRepository(model));
         }
     }
     
-    private IArchiRepository fRepository;
+    private IArchiRepository repository;
     
     private Button prefsButton;
     
@@ -70,10 +70,6 @@ public class AuthSection extends AbstractArchiPropertySection {
         group.setLayout(new GridLayout(2, false));
         GridDataFactory.create(GridData.FILL_BOTH).span(2, 1).applyTo(group);
         
-        GridData gd = new GridData(GridData.FILL_BOTH);
-        gd.horizontalSpan = 2;
-        //group.setLayoutData(gd);
-        
         // User name
         createLabel(group, Messages.AuthSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
         textUserName = new UpdatingTextControl(createSingleTextControl(group, SWT.BORDER)) {
@@ -88,9 +84,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         textPassword = new UpdatingTextControl(createSingleTextControl(group, SWT.PASSWORD | SWT.BORDER)) {
             @Override
             protected void textChanged(String newText) {
-                setNotifications(false); // Setting the password might invoke the primary password dialog and cause a focus out event
                 storePassword(newText.toCharArray());
-                setNotifications(true);
             }
         };
 
@@ -114,17 +108,17 @@ public class AuthSection extends AbstractArchiPropertySection {
             return;
         }
         
-        if(selection.getFirstElement() instanceof RepositoryRef) {
-            fRepository = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
+        if(selection.getFirstElement() instanceof RepositoryRef ref) {
+            repository = ref.getArchiRepository();
         }
-        else if(selection.getFirstElement() instanceof IArchimateModel) {
-            fRepository = new ArchiRepository(RepoUtils.getWorkingFolderForModel((IArchimateModel)selection.getFirstElement()));
+        else if(selection.getFirstElement() instanceof IArchimateModel model) {
+            repository = new ArchiRepository(RepoUtils.getWorkingFolderForModel(model));
         }
         else {
-            fRepository = null;
+            repository = null;
         }
 
-        if(fRepository != null) {
+        if(repository != null) {
             updateControls();
         }
         else {
@@ -140,7 +134,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         boolean isHTTP = true;
         
         try {
-            isHTTP = RepoUtils.isHTTP(fRepository.getRemoteURL());
+            isHTTP = RepoUtils.isHTTP(repository.getRemoteURL());
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
@@ -156,13 +150,10 @@ public class AuthSection extends AbstractArchiPropertySection {
         // HTTP so show credentials
         if(isHTTP) {
             try {
-                UsernamePassword npw = CredentialsStorage.getInstance().getCredentials(fRepository);
-                if(npw != null) {
-                    textUserName.setText(npw.getUsername());
-
-                    if(npw.getPassword() != null && npw.getPassword().length > 0) {
-                        textPassword.setText("********"); //$NON-NLS-1$
-                    }
+                UsernamePassword npw = CredentialsStorage.getInstance().getCredentials(repository);
+                textUserName.setText(npw.getUsername());
+                if(npw.isPasswordSet()) {
+                    textPassword.setText("********"); //$NON-NLS-1$
                 }
             }
             catch(StorageException ex) {
@@ -173,7 +164,7 @@ public class AuthSection extends AbstractArchiPropertySection {
     
     private void storeUserName(String userName) {
         try {
-            CredentialsStorage.getInstance().storeUserName(fRepository, userName);
+            CredentialsStorage.getInstance().storeUserName(repository, userName);
         }
         catch(StorageException | IOException ex) {
             showError(ex);
@@ -182,7 +173,7 @@ public class AuthSection extends AbstractArchiPropertySection {
     
     private void storePassword(char[] password) {
         try {
-            CredentialsStorage.getInstance().storePassword(fRepository, password);
+            CredentialsStorage.getInstance().storePassword(repository, password);
         }
         catch(StorageException | IOException ex) {
             showError(ex);

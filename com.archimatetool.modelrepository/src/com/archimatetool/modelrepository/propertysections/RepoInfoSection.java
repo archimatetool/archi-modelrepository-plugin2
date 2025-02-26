@@ -48,7 +48,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         }
     }
     
-    private IArchiRepository fRepository;
+    private IArchiRepository repository;
     
     private Text textFile, textCurrentBranch;
     private UpdatingTextControl textURL;
@@ -69,10 +69,10 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         textURL = new UpdatingTextControl(createSingleTextControl(group, SWT.BORDER)) {
             @Override
             protected void textChanged(String newText) {
-                if(fRepository != null) {
+                if(repository != null) {
                     try {
                         logger.info("Setting remote URL to: " + newText); //$NON-NLS-1$
-                        fRepository.setRemote(newText);
+                        repository.setRemote(newText);
                     }
                     catch(IOException | GitAPIException | URISyntaxException ex) {
                         logger.log(Level.SEVERE, "Set Remote", ex); //$NON-NLS-1$
@@ -91,20 +91,20 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
             return;
         }
         
-        if(selection.getFirstElement() instanceof RepositoryRef) {
-            fRepository = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
+        if(selection.getFirstElement() instanceof RepositoryRef ref) {
+            repository = ref.getArchiRepository();
         }
-        else if(selection.getFirstElement() instanceof IArchimateModel) {
-            fRepository = new ArchiRepository(RepoUtils.getWorkingFolderForModel((IArchimateModel)selection.getFirstElement()));
+        else if(selection.getFirstElement() instanceof IArchimateModel model) {
+            repository = new ArchiRepository(RepoUtils.getWorkingFolderForModel(model));
         }
         else {
-            fRepository = null;
+            repository = null;
         }
         
-        if(fRepository != null) {
-            textFile.setText(fRepository.getWorkingFolder().getAbsolutePath());
+        if(repository != null) {
+            textFile.setText(repository.getWorkingFolder().getAbsolutePath());
 
-            try(GitUtils utils = GitUtils.open(fRepository.getWorkingFolder())) {
+            try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
                 textURL.setText(StringUtils.safeString(utils.getRemoteURL()));
                 textCurrentBranch.setText(StringUtils.safeString(utils.getCurrentLocalBranchName()));
             }

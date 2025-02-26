@@ -248,7 +248,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         // If SSH password changed
         if(sshPasswordChanged) {
             try {
-                CredentialsStorage.getInstance().setSSHIdentityFilePassword(fSSHIdentityPasswordTextField.getTextChars());
+                CredentialsStorage.getInstance().storeSSHIdentityFilePassword(fSSHIdentityPasswordTextField.getTextChars());
             }
             catch(StorageException | IOException ex) {
                 ex.printStackTrace();
