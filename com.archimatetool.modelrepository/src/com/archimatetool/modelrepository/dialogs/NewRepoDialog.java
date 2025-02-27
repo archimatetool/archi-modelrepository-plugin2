@@ -6,11 +6,15 @@
 package com.archimatetool.modelrepository.dialogs;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
 import com.archimatetool.editor.utils.PlatformUtils;
+import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 
 /**
  * New Repo from Model Dialog
@@ -23,6 +27,17 @@ public class NewRepoDialog extends CloneDialog {
     
     public NewRepoDialog(Shell parentShell, String title) {
         super(parentShell, title);
+    }
+    
+    @Override
+    protected Control createDialogArea(Composite parent) {
+        Control control = super.createDialogArea(parent);
+        
+        setMessage(super.getMessage() + "\n"  //$NON-NLS-1$
+                + NLS.bind(Messages.NewRepoDialog_2, ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder()),
+                IMessageProvider.INFORMATION);
+        
+        return control;
     }
     
     @Override
