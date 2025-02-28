@@ -70,7 +70,7 @@ public class RestoreCommitAction extends AbstractModelAction {
             getRepository().deleteWorkingFolderContents();
             
             // Extract the contents of the commit
-            logger.info("Extracting the oommit"); //$NON-NLS-1$
+            logger.info("Extracting the commit"); //$NON-NLS-1$
             getRepository().extractCommit(fCommit, getRepository().getWorkingFolder(), false);
             
             // Check that we actually restored the model in case there is no model file in this commit
