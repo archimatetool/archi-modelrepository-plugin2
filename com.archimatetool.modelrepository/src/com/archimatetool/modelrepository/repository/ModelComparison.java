@@ -183,7 +183,7 @@ public class ModelComparison {
      * Load the two models to be compared and create the Comparison
      * @throws IOException
      */
-    public Comparison init() throws IOException {
+    public ModelComparison init() throws IOException {
         if(comparison == null) {
             try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
                 // Load the model from first commit
@@ -205,7 +205,7 @@ public class ModelComparison {
             }
         }
         
-        return comparison;
+        return this;
     }
     
     /**
