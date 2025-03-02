@@ -42,7 +42,7 @@ public class BranchesTableViewer extends TableViewer {
     private static Logger logger = Logger.getLogger(BranchesTableViewer.class.getName());
     
     public BranchesTableViewer(Composite parent) {
-        super(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
+        super(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
         
         getTable().setHeaderVisible(true);
         getTable().setLinesVisible(false);
