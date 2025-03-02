@@ -28,17 +28,10 @@ public class RestoreCommitAction extends AbstractRepositoryAction {
         setToolTipText(getText());
     }
 
-    @Override
-    public void setRepository(IArchiRepository repository) {
-        revCommit = null;
-        workflow = null;
-        super.setRepository(repository);
-    }
-    
-    public void setCommit(RevCommit commit) {
+    public void setCommit(IArchiRepository archiRepository, RevCommit commit) {
         if(revCommit != commit) {
             revCommit = commit;
-            workflow = revCommit != null ? new RestoreCommitWorkflow(workbenchWindow, archiRepository, revCommit) : null;
+            workflow = archiRepository != null && revCommit != null ? new RestoreCommitWorkflow(workbenchWindow, archiRepository, revCommit) : null;
             setEnabled(shouldBeEnabled());
         }
     }

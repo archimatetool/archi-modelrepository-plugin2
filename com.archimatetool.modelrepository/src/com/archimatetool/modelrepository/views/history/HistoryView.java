@@ -197,6 +197,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         fBranchesViewer = new BranchesViewer(mainComp);
         GridData gd = new GridData(SWT.END);
         fBranchesViewer.getControl().setLayoutData(gd);
+        fBranchesViewer.getControl().setToolTipText(Messages.HistoryView_5);
         
         /*
          * Listen to Branch Selections and forward on to History Viewer
@@ -206,7 +207,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             public void selectionChanged(SelectionChangedEvent event) {
                 BranchInfo branchInfo = (BranchInfo)event.getStructuredSelection().getFirstElement();
                 getHistoryViewer().setSelectedBranch(branchInfo);
-                updateActions();
             }
         });
     }
@@ -328,46 +328,35 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
      */
     private void updateActions() {
         IStructuredSelection selection = getHistoryViewer().getStructuredSelection();
-        Object firstSelected = selection.getFirstElement();
         boolean isSingleSelection = selection.size() == 1;
+        boolean isCurrentBranch = getBranchesViewer().getStructuredSelection().getFirstElement() instanceof BranchInfo selectedBranchInfo
+                && selectedBranchInfo.isCurrentBranch();
         
-        fActionCompare.setText(Messages.HistoryView_3);
-        
-        // Selected Working tree
-        if(!(firstSelected instanceof RevCommit revCommit)) {
+        fActionUndoLastCommit.setRepository(isCurrentBranch ? fSelectedRepository : null);
+        fActionResetToRemoteCommit.setRepository(isCurrentBranch ? fSelectedRepository : null);
+
+        // Selected Working tree or an empty selection, not a RevCommit
+        if(!(selection.getFirstElement() instanceof RevCommit revCommit)) {
+            fActionExtractCommit.setCommit(null, null);
+            fActionRestoreCommit.setCommit(null, null);
+            
+            fActionCompare.setEnabled(isSingleSelection || selection.size() == 2);
+            fActionCompare.setText(isSingleSelection ? Messages.HistoryView_4 : Messages.HistoryView_3);
+            
+            // Comment Viewer
             fCommentViewer.setCommit(null);
-            fActionExtractCommit.setCommit(null);
-            fActionRestoreCommit.setCommit(null);
-            fActionUndoLastCommit.setEnabled(false);
-            fActionResetToRemoteCommit.setEnabled(false);
-            fActionCompare.setEnabled(selection.size() > 0 && selection.size() < 3);
-            if(isSingleSelection) {
-                fActionCompare.setText(Messages.HistoryView_4);
-            }
+            
             return;
         }
         
-        // Set the commit in the Comment Viewer
-        fCommentViewer.setCommit(isSingleSelection ? revCommit : null);
+        fActionExtractCommit.setCommit(fSelectedRepository, isSingleSelection ? revCommit : null);
+        fActionRestoreCommit.setCommit(fSelectedRepository, isSingleSelection && isCurrentBranch ? revCommit : null);
         
-        fActionExtractCommit.setCommit(isSingleSelection ? revCommit : null);
-        
-        // Enable these actions if our selected branch in the combo is the current branch
-        BranchInfo selectedBranch = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
-        if(selectedBranch != null && selectedBranch.isCurrentBranch()) {
-            fActionRestoreCommit.setCommit(isSingleSelection ? revCommit : null);
-            fActionUndoLastCommit.update();
-            fActionResetToRemoteCommit.update();
-        }
-        // Else disable
-        else {
-            fActionRestoreCommit.setCommit(null);
-            fActionUndoLastCommit.setEnabled(false);
-            fActionResetToRemoteCommit.setEnabled(false);
-        }
-        
-        // Compare
+        fActionCompare.setText(Messages.HistoryView_3);
         fActionCompare.setEnabled(selection.size() == 2);
+        
+        // Comment Viewer
+        fCommentViewer.setCommit(isSingleSelection ? revCommit : null);
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -428,12 +417,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             // Set label text
             updateLabel();
             
-            // Set repository in actions *first*
-            fActionExtractCommit.setRepository(selectedRepository);
-            fActionUndoLastCommit.setRepository(selectedRepository);
-            fActionRestoreCommit.setRepository(selectedRepository);
-            fActionResetToRemoteCommit.setRepository(selectedRepository);
-
             // Set History
             getHistoryViewer().setRepository(selectedRepository);
             
