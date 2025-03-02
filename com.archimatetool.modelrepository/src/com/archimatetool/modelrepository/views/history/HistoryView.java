@@ -5,7 +5,6 @@
  */
 package com.archimatetool.modelrepository.views.history;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -45,7 +44,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.IContributedContentsView;
 import org.eclipse.ui.part.ViewPart;
 
-import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.ExtractModelFromCommitAction;
@@ -53,14 +51,13 @@ import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
 import com.archimatetool.modelrepository.actions.RestoreCommitAction;
 import com.archimatetool.modelrepository.actions.UndoLastCommitAction;
 import com.archimatetool.modelrepository.dialogs.CompareDialog;
-import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.ModelComparison;
-import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
+import com.archimatetool.modelrepository.views.PartUtils;
 
 
 /**
@@ -384,28 +381,11 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     
     @Override
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        if(part == null || part == this || selection == null) {
+        if(part == this) {
             return;
         }
         
-        IArchiRepository selectedRepository = null;
-        
-        // Repository selected in another part
-        if(part.getAdapter(IArchiRepository.class) != null) {
-            selectedRepository = part.getAdapter(IArchiRepository.class);
-        }
-        // Model selected in another part, but is it in a git repo?
-        else if(part.getAdapter(IArchimateModel.class) != null) {
-            IArchimateModel model = part.getAdapter(IArchimateModel.class);
-            File folder = RepoUtils.getWorkingFolderForModel(model);
-            if(folder != null) {
-                selectedRepository = new ArchiRepository(folder);
-            }
-        }
-        // Repository wrapped in a Repository Ref from Branches View
-        else if(part.getAdapter(RepositoryRef.class) != null) {
-            selectedRepository = part.getAdapter(RepositoryRef.class).getArchiRepository();
-        }
+        IArchiRepository selectedRepository = PartUtils.getSelectedArchiRepositoryInWorkbenchPart(part);
         
         // Update if selectedRepository is different 
         if(selectedRepository != null && !selectedRepository.equals(fSelectedRepository)) {

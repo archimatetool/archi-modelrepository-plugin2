@@ -36,7 +36,7 @@ public abstract class AbstractModelHandler extends AbstractHandler {
             return new ArchiRepository(folder);
         }
         
-        // Part contains IArchiRepository objects (ModelRepositoryView)
+        // Part contains IArchiRepository objects
         IWorkbenchPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().getActivePart();
         return part != null ? part.getAdapter(IArchiRepository.class) : null;
     }
