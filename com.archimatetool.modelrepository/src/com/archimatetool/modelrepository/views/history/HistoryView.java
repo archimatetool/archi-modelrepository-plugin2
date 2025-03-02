@@ -329,11 +329,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     private void updateActions() {
         IStructuredSelection selection = getHistoryViewer().getStructuredSelection();
         boolean isSingleSelection = selection.size() == 1;
-        boolean isCurrentBranch = getBranchesViewer().getStructuredSelection().getFirstElement() instanceof BranchInfo selectedBranchInfo
-                && selectedBranchInfo.isCurrentBranch();
         
-        fActionUndoLastCommit.setRepository(isCurrentBranch ? fSelectedRepository : null);
-        fActionResetToRemoteCommit.setRepository(isCurrentBranch ? fSelectedRepository : null);
+        fActionUndoLastCommit.setRepository(fSelectedRepository);
+        fActionResetToRemoteCommit.setRepository(fSelectedRepository);
 
         // Selected Working tree or an empty selection, not a RevCommit
         if(!(selection.getFirstElement() instanceof RevCommit revCommit)) {
@@ -350,7 +348,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         }
         
         fActionExtractCommit.setCommit(fSelectedRepository, isSingleSelection ? revCommit : null);
-        fActionRestoreCommit.setCommit(fSelectedRepository, isSingleSelection && isCurrentBranch ? revCommit : null);
+        fActionRestoreCommit.setCommit(fSelectedRepository, isSingleSelection ? revCommit : null);
         
         fActionCompare.setText(Messages.HistoryView_3);
         fActionCompare.setEnabled(selection.size() == 2);

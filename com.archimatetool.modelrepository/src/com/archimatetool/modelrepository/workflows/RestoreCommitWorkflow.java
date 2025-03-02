@@ -87,7 +87,10 @@ public class RestoreCommitWorkflow extends AbstractRepositoryWorkflow {
         
         try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
             // Commit is not at HEAD and is part of the local branch's history (HEAD)
-            return !utils.isCommitAtHead(revCommit) && utils.isMergedInto(revCommit.getName(), RepoConstants.HEAD);
+            //return !utils.isCommitAtHead(revCommit) && utils.isMergedInto(revCommit.getName(), RepoConstants.HEAD);
+            
+            // Commit is not at HEAD
+            return !utils.isCommitAtHead(revCommit);
         }
         catch(IOException ex) {
             ex.printStackTrace();
