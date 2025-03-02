@@ -5,140 +5,45 @@
  */
 package com.archimatetool.modelrepository.actions;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
-import com.archimatetool.modelrepository.repository.IArchiRepository;
-import com.archimatetool.modelrepository.repository.IRepositoryListener;
-import com.archimatetool.modelrepository.repository.MergeHandler;
-import com.archimatetool.modelrepository.repository.MergeHandler.MergeHandlerResult;
+import com.archimatetool.modelrepository.workflows.IRepositoryWorkflow;
+import com.archimatetool.modelrepository.workflows.MergeBranchWorkflow;
 
 /**
- * Merge a Branch
+ * Merge a BranchAction
  */
-public class MergeBranchAction extends AbstractModelAction {
+public class MergeBranchAction extends AbstractRepositoryAction {
     
-    private static Logger logger = Logger.getLogger(MergeBranchAction.class.getName());
-    
-    private BranchInfo fBranchInfo;
+    private BranchInfo selectedBranchInfo;
+    private IRepositoryWorkflow workflow;
 	
     public MergeBranchAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_MERGE));
         setText(Messages.MergeBranchAction_0);
-        setToolTipText(Messages.MergeBranchAction_0);
+        setToolTipText(getText());
     }
 
     public void setBranch(BranchInfo branchInfo) {
-        if(fBranchInfo != branchInfo) {
-            fBranchInfo = branchInfo;
+        if(selectedBranchInfo != branchInfo) {
+            selectedBranchInfo = branchInfo;
+            workflow = branchInfo != null ? new MergeBranchWorkflow(workbenchWindow, branchInfo) : null;
             setEnabled(shouldBeEnabled());
         }
     }
 
     @Override
-    public void setRepository(IArchiRepository repository) {
-        fBranchInfo = null;
-        super.setRepository(repository);
-    }
-    
-    @Override
     public void run() {
-        if(!shouldBeEnabled()) {
-            setEnabled(false);
-            return;
+        if(shouldBeEnabled()) {
+            workflow.run();
         }
-
-        // Ask user to merge online, local or cancel
-        int response = MessageDialog.open(MessageDialog.QUESTION,
-                fWindow.getShell(),
-                Messages.MergeBranchAction_1,
-                Messages.MergeBranchAction_2,
-                SWT.NONE,
-                Messages.MergeBranchAction_3,
-                Messages.MergeBranchAction_4,
-                Messages.MergeBranchAction_5);
-        
-        // Cancel
-        if(response == -1 || response == 2) {
-            return;
-        }
-
-        // Online merge
-        if(response == 0) {
-            doOnlineMerge(fBranchInfo);
-        }
-        // Local merge
-        else {
-            doLocalMerge(fBranchInfo);
-        }
-    }
-    
-    /**
-     * Local Merge
-     */
-    private void doLocalMerge(BranchInfo branchToMerge) {
-        // Check if the model is open and needs saving
-        if(!checkModelNeedsSaving()) {
-            return;
-        }
-
-        // Check if there are uncommitted changes
-        if(!checkIfCommitNeeded()) {
-            return;
-        }
-
-        logger.info("Starting Local Merge of " + branchToMerge.getShortName()); //$NON-NLS-1$
-
-        MergeHandlerResult mergeHandlerResult = MergeHandlerResult.MERGED_OK;
-        
-        // Do the merge
-        try {
-            mergeHandlerResult = MergeHandler.getInstance().merge(getRepository(), branchToMerge);
-        }
-        catch(IOException | GitAPIException ex) {
-            logger.log(Level.SEVERE, "Merge", ex); //$NON-NLS-1$
-            displayErrorDialog(Messages.MergeBranchAction_1, ex);
-        }
-        
-        // User cancelled
-        if(mergeHandlerResult == MergeHandlerResult.CANCELLED) {
-            return;
-        }
-        
-        // Already up to date
-        if(mergeHandlerResult == MergeHandlerResult.ALREADY_UP_TO_DATE) {
-            MessageDialog.openInformation(fWindow.getShell(),  Messages.MergeBranchAction_1, Messages.MergeBranchAction_7);
-            return;
-        }
-        
-        // Notify
-        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-        
-        // Close and open model
-        closeAndRestoreModel();
-    }
-    
-    /**
-     * Online Merge
-     */
-    private void doOnlineMerge(BranchInfo branchToMerge) {
-        MessageDialog.openInformation(fWindow.getShell(), "Online Merge", "Not implemented yet!"); //$NON-NLS-1$ //$NON-NLS-2$
     }
     
     @Override
     protected boolean shouldBeEnabled() {
-        return fBranchInfo != null
-                && fBranchInfo.isLocal()          // Has to be local
-                && !fBranchInfo.isRefAtHead()     // Not same ref as HEAD ref (ie. at the same commit)
-                && super.shouldBeEnabled();
+        return workflow != null && workflow.canRun();
     }
 }

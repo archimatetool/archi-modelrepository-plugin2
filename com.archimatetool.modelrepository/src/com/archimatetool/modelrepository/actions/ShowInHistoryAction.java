@@ -16,7 +16,7 @@ import com.archimatetool.modelrepository.views.history.HistoryView;
  * 
  * @author Phillip Beauvoir
  */
-public class ShowInHistoryAction extends AbstractModelAction {
+public class ShowInHistoryAction extends AbstractRepositoryAction {
     
     public ShowInHistoryAction(IWorkbenchWindow window) {
         super(window);

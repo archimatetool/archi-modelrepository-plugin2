@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.actions;
+package com.archimatetool.modelrepository.workflows;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -15,7 +15,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.FileUtils;
-import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
@@ -33,44 +32,31 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
  * 
  * @author Phillip Beauvoir
  */
-public class DeleteModelAction extends AbstractModelAction {
+public class DeleteModelWorkflow extends AbstractRepositoryWorkflow {
     
-    private static Logger logger = Logger.getLogger(DeleteModelAction.class.getName());
+    private static Logger logger = Logger.getLogger(DeleteModelWorkflow.class.getName());
     
-    public DeleteModelAction(IWorkbenchWindow window) {
-        super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE));
-        setText(Messages.DeleteModelAction_0);
-        setToolTipText(Messages.DeleteModelAction_0);
-    }
-
-    public DeleteModelAction(IWorkbenchWindow window, IArchiRepository repository) {
-        this(window);
-        setRepository(repository);
+    public DeleteModelWorkflow(IWorkbenchWindow workbenchWindow, IArchiRepository archiRepository) {
+        super(workbenchWindow, archiRepository);
     }
 
     @Override
     public void run() {
-        if(!shouldBeEnabled()) {
-            setEnabled(false);
-            return;
-        }
-        
         boolean deleteRepo = false;
         
         // Do we have an entry in the RepositoryTreeModel?
-        RepositoryRef repoRef = RepositoryTreeModel.getInstance().findRepositoryRef(getRepository().getWorkingFolder());
+        RepositoryRef repoRef = RepositoryTreeModel.getInstance().findRepositoryRef(archiRepository.getWorkingFolder());
         
         // If the repo is present in the RepositoryTreeModel offer to remove or delete
         if(repoRef != null) {
             int response = MessageDialog.open(MessageDialog.QUESTION,
-                    fWindow.getShell(),
-                    Messages.DeleteModelAction_0,
-                    Messages.DeleteModelAction_2,
+                    workbenchWindow.getShell(),
+                    Messages.DeleteModelWorkflow_0,
+                    Messages.DeleteModelWorkflow_1,
                     SWT.NONE,
-                    Messages.DeleteModelAction_3,
-                    Messages.DeleteModelAction_4,
-                    Messages.DeleteModelAction_5);
+                    Messages.DeleteModelWorkflow_2,
+                    Messages.DeleteModelWorkflow_3,
+                    Messages.DeleteModelWorkflow_4);
 
             // Cancel
             if(response == -1 || response == 2) {
@@ -82,7 +68,7 @@ public class DeleteModelAction extends AbstractModelAction {
         }
         // Model is open but not present in the RepositoryTreeModel
         else {
-            if(!MessageDialog.openConfirm(fWindow.getShell(), Messages.DeleteModelAction_0, Messages.DeleteModelAction_1)) {
+            if(!MessageDialog.openConfirm(workbenchWindow.getShell(), Messages.DeleteModelWorkflow_0, Messages.DeleteModelWorkflow_5)) {
                 return;
             }
             
@@ -91,11 +77,11 @@ public class DeleteModelAction extends AbstractModelAction {
         
         try {
             // Close model without asking to save
-            IEditorModelManager.INSTANCE.closeModel(getRepository().getOpenModel(), false);
+            IEditorModelManager.INSTANCE.closeModel(archiRepository.getOpenModel(), false);
             
             // Delete repo
             if(deleteRepo) {
-                FileUtils.deleteFolder(getRepository().getWorkingFolder());
+                FileUtils.deleteFolder(archiRepository.getWorkingFolder());
             }
             
             // Delete from RepositoryTreeModel
@@ -105,7 +91,7 @@ public class DeleteModelAction extends AbstractModelAction {
             }
             
             // Notify deleted
-            RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, getRepository());
+            RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, archiRepository);
         }
         catch(IOException ex) {
             ex.printStackTrace();

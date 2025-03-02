@@ -16,7 +16,7 @@ import com.archimatetool.modelrepository.views.branches.BranchesView;
  * 
  * @author Phillip Beauvoir
  */
-public class ShowInBranchesViewAction extends AbstractModelAction {
+public class ShowInBranchesViewAction extends AbstractRepositoryAction {
     
     public ShowInBranchesViewAction(IWorkbenchWindow window) {
         super(window);

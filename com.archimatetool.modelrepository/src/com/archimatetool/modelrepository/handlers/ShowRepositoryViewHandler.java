@@ -27,5 +27,4 @@ public class ShowRepositoryViewHandler extends AbstractHandler {
         return null;
     }
 
-
 }

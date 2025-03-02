@@ -9,8 +9,9 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import com.archimatetool.modelrepository.actions.DiscardChangesAction;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.workflows.DiscardChangesWorkflow;
+import com.archimatetool.modelrepository.workflows.IRepositoryWorkflow;
 
 
 /**
@@ -24,8 +25,10 @@ public class DiscardChangesHandler extends AbstractModelHandler {
     public Object execute(ExecutionEvent event) throws ExecutionException {
         IArchiRepository repository = getActiveArchiRepository();
         if(repository != null) {
-            DiscardChangesAction action = new DiscardChangesAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), repository);
-            action.run();
+            IRepositoryWorkflow workflow = new DiscardChangesWorkflow(HandlerUtil.getActiveWorkbenchWindowChecked(event), repository);
+            if(workflow.canRun()) {
+                workflow.run();
+            }
         }
         
         return null;

@@ -9,8 +9,9 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import com.archimatetool.modelrepository.actions.DeleteModelAction;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.workflows.DeleteModelWorkflow;
+import com.archimatetool.modelrepository.workflows.IRepositoryWorkflow;
 
 
 /**
@@ -24,8 +25,10 @@ public class DeleteModelHandler extends AbstractModelHandler {
     public Object execute(ExecutionEvent event) throws ExecutionException {
         IArchiRepository repository = getActiveArchiRepository();
         if(repository != null) {
-            DeleteModelAction action = new DeleteModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), repository);
-            action.run();
+            IRepositoryWorkflow workflow = new DeleteModelWorkflow(HandlerUtil.getActiveWorkbenchWindowChecked(event), repository);
+            if(workflow.canRun()) {
+                workflow.run();
+            }
         }
         
         return null;

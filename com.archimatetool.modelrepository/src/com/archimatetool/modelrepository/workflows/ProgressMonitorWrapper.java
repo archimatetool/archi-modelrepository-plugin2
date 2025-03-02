@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.actions;
+package com.archimatetool.modelrepository.workflows;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jgit.lib.EmptyProgressMonitor;

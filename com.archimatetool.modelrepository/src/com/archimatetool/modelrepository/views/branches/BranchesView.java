@@ -199,11 +199,11 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
      */
     private void updateActions() {
         BranchInfo branchInfo = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
-        fActionSwitchBranch.setBranch(branchInfo);
         fActionAddBranch.setBranch(branchInfo);
-        fActionDeleteBranch.setBranch(branchInfo);
+        fActionSwitchBranch.setBranch(branchInfo);
         fActionMergeBranch.setBranch(branchInfo);
-        //fActionDeleteStaleBranches.setSelection(getBranchesViewer().getStructuredSelection());
+        fActionDeleteBranch.setBranch(branchInfo);
+        //fActionDeleteStaleBranches.setBranch(branchInfo);
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -261,13 +261,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             
             // Set Branches
             getBranchesViewer().doSetInput(selectedRepository);
-            
-            // Update actions
-            fActionAddBranch.setRepository(selectedRepository);
-            fActionSwitchBranch.setRepository(selectedRepository);
-            fActionDeleteBranch.setRepository(selectedRepository);
-            fActionMergeBranch.setRepository(selectedRepository);
-            //fActionDeleteStaleBranches.setRepository(selectedRepository);
         }
     }
     

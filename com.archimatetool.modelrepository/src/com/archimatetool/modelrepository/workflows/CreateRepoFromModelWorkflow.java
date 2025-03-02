@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.actions;
+package com.archimatetool.modelrepository.workflows;
 
 import java.io.File;
 import java.util.logging.Level;
@@ -21,7 +21,6 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.NewRepoDialog;
@@ -35,25 +34,20 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
  * 
  * @author Phillip Beauvoir
  */
-public class CreateRepoFromModelAction extends AbstractModelAction {
+public class CreateRepoFromModelWorkflow extends AbstractRepositoryWorkflow {
     
-    private static Logger logger = Logger.getLogger(CreateRepoFromModelAction.class.getName());
+    private static Logger logger = Logger.getLogger(CreateRepoFromModelWorkflow.class.getName());
     
-    private IArchimateModel fModel;
+    private IArchimateModel model;
 	
-    public CreateRepoFromModelAction(IWorkbenchWindow window, IArchimateModel model) {
-        super(window);
-        
-        fModel = model;
-        
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CREATE_REPOSITORY));
-        setText(Messages.CreateRepoFromModelAction_0);
-        setToolTipText(getText());
+    public CreateRepoFromModelWorkflow(IWorkbenchWindow window, IArchimateModel model) {
+        super(window, null);
+        this.model = model;
     }
 
     @Override
     public void run() {
-        NewRepoDialog dialog = new NewRepoDialog(fWindow.getShell(), Messages.CreateRepoFromModelAction_0);
+        NewRepoDialog dialog = new NewRepoDialog(workbenchWindow.getShell(), Messages.CreateRepoFromModelWorkflow_0);
         int response = dialog.open();
         if(response == Window.CANCEL) {
             return;
@@ -61,12 +55,11 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         
         logger.info("Adding model to workspace..."); //$NON-NLS-1$
         
-        final File folder = RepoUtils.generateNewRepoFolder();
-        final String repoURL = dialog.getURL();
-        final boolean storeCredentials = dialog.doStoreCredentials();
-        final UsernamePassword npw = dialog.getUsernamePassword();
-        
-        setRepository(new ArchiRepository(folder));
+        File folder = RepoUtils.generateNewRepoFolder();
+        String repoURL = dialog.getURL();
+        boolean storeCredentials = dialog.doStoreCredentials();
+        UsernamePassword npw = dialog.getUsernamePassword();
+        archiRepository = new ArchiRepository(folder);
         
         try {
             // Ensure folder exists
@@ -74,27 +67,27 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             
             // Init
             logger.info("Initialising new repository at: " + folder.getPath()); //$NON-NLS-1$
-            getRepository().init();
+            archiRepository.init();
             
             // Add the remote if it's set
             if(StringUtils.isSetAfterTrim(repoURL)) {
                 logger.info("Adding remote: " + repoURL); //$NON-NLS-1$
-                getRepository().setRemote(repoURL);
+                archiRepository.setRemote(repoURL);
             }
             
             // Set new file location
-            fModel.setFile(getRepository().getModelFile());
+            model.setFile(archiRepository.getModelFile());
             
             // Save the model
-            logger.info("Saving the model to: " + fModel.getFile()); //$NON-NLS-1$
-            IEditorModelManager.INSTANCE.saveModel(fModel);
+            logger.info("Saving the model to: " + model.getFile()); //$NON-NLS-1$
+            IEditorModelManager.INSTANCE.saveModel(model);
             
             // Commit changes
             logger.info("Doing a first commit"); //$NON-NLS-1$
-            getRepository().commitChanges(Messages.CreateRepoFromModelAction_1, false);
+            archiRepository.commitChanges(Messages.CreateRepoFromModelWorkflow_1, false);
             
             // Add to the Tree Model
-            RepositoryTreeModel.getInstance().addNewRepositoryRef(getRepository());
+            RepositoryTreeModel.getInstance().addNewRepositoryRef(archiRepository);
 
             // If we want to publish now then push...
             if(response == NewRepoDialog.ADD_AND_PUBLISH_ID) {
@@ -103,7 +96,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             
             // Store repo credentials if HTTP and option is set
             if(RepoUtils.isHTTP(repoURL) && storeCredentials) {
-                CredentialsStorage.getInstance().storeCredentials(getRepository(), npw);
+                CredentialsStorage.getInstance().storeCredentials(archiRepository, npw);
             }
             
             logger.info("Finished creating repository from model"); //$NON-NLS-1$
@@ -113,13 +106,13 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             
             // In case of an exception remove the remote
             try {
-                getRepository().setRemote(null);
+                archiRepository.setRemote(null);
             }
             catch(Exception ex1) {
                 ex.printStackTrace();
             }
             
-            displayErrorDialog(Messages.CreateRepoFromModelAction_0, ex);
+            displayErrorDialog(Messages.CreateRepoFromModelWorkflow_0, ex);
         }
         finally {
             // If the folder is empty because of an error, delete it
@@ -135,12 +128,12 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
     private void push(final String repoURL, final UsernamePassword npw) throws Exception {
         logger.info("Pushing to remote: " + repoURL); //$NON-NLS-1$
         
-        ProgressMonitorDialog dialog = new ProgressMonitorDialog(fWindow.getShell());
+        ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
         IRunnable.run(dialog, monitor -> {
-            monitor.beginTask(Messages.CreateRepoFromModelAction_2, IProgressMonitor.UNKNOWN);
+            monitor.beginTask(Messages.CreateRepoFromModelWorkflow_2, IProgressMonitor.UNKNOWN);
             
-            PushResult pushResult = getRepository().pushToRemote(npw, new ProgressMonitorWrapper(monitor));
+            PushResult pushResult = archiRepository.pushToRemote(npw, new ProgressMonitorWrapper(monitor));
             
             // Get any errors in Push Result and set exception
             Status status = GitUtils.getPushResultStatus(pushResult);
@@ -153,4 +146,10 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             }
         }, true);
     }
+    
+    @Override
+    public boolean canRun() {
+        return model != null;
+    }
+
 }

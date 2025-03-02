@@ -10,8 +10,9 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.modelrepository.actions.CreateRepoFromModelAction;
 import com.archimatetool.modelrepository.repository.RepoUtils;
+import com.archimatetool.modelrepository.workflows.CreateRepoFromModelWorkflow;
+import com.archimatetool.modelrepository.workflows.IRepositoryWorkflow;
 
 
 /**
@@ -26,8 +27,10 @@ public class CreateRepoFromModelHandler extends AbstractModelHandler {
         IArchimateModel model = getActiveArchimateModel();
         
         if(model != null) {
-            CreateRepoFromModelAction action = new CreateRepoFromModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
-            action.run();
+            IRepositoryWorkflow workflow = new CreateRepoFromModelWorkflow(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
+            if(workflow.canRun()) {
+                workflow.run();
+            }
         }
         
         return null;

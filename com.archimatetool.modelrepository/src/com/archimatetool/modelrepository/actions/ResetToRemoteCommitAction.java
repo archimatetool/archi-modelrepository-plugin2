@@ -5,24 +5,19 @@
  */
 package com.archimatetool.modelrepository.actions;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
-import com.archimatetool.modelrepository.repository.GitUtils;
-import com.archimatetool.modelrepository.repository.IRepositoryListener;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.workflows.IRepositoryWorkflow;
+import com.archimatetool.modelrepository.workflows.ResetToRemoteCommitWorkflow;
 
 /**
  * Reset HEAD to the remote commit if there is one
  */
-public class ResetToRemoteCommitAction extends AbstractModelAction {
+public class ResetToRemoteCommitAction extends AbstractRepositoryAction {
     
-    private static Logger logger = Logger.getLogger(ResetToRemoteCommitAction.class.getName());
+    private IRepositoryWorkflow workflow;
     
     public ResetToRemoteCommitAction(IWorkbenchWindow window) {
         super(window);
@@ -30,60 +25,22 @@ public class ResetToRemoteCommitAction extends AbstractModelAction {
         setText(Messages.ResetToRemoteCommitAction_0);
         setToolTipText(Messages.ResetToRemoteCommitAction_0);
     }
+    
+    @Override
+    public void setRepository(IArchiRepository archiRepository) {
+        workflow = new ResetToRemoteCommitWorkflow(workbenchWindow, archiRepository);
+        super.setRepository(archiRepository);
+    }
 
     @Override
     public void run() {
-        if(!shouldBeEnabled()) {
-            setEnabled(false);
-            return;
+        if(shouldBeEnabled()) {
+            workflow.run();
         }
-
-        if(!MessageDialog.openConfirm(fWindow.getShell(),
-                Messages.ResetToRemoteCommitAction_0,
-                Messages.ResetToRemoteCommitAction_1)) {
-            return;
-        }
-        
-        logger.info("Resetting to a remote commit..."); //$NON-NLS-1$
-        
-        // Close the model if it's open in the tree
-        OpenModelState modelState = closeModel(true);
-        if(modelState.cancelled()) {
-            return;
-        }
-        
-        try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
-            String remoteRefName = utils.getRemoteRefNameForCurrentBranch();
-            logger.info("Resetting to: " + remoteRefName); //$NON-NLS-1$
-            utils.resetToRef(remoteRefName);
-        }
-        catch(IOException | GitAPIException ex) {
-            ex.printStackTrace();
-            logger.log(Level.SEVERE, "Reset to Ref", ex); //$NON-NLS-1$
-        }
-        
-        // Reload the model
-        restoreModel(modelState);
-        
-        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }
     
     @Override
     protected boolean shouldBeEnabled() {
-        if(!super.shouldBeEnabled()) {
-            return false;
-        }
-
-        // Return true if here is a remote Ref for the current branch && HEAD and the remote Ref are not the same
-        try(GitUtils utils = GitUtils.open(getRepository().getWorkingFolder())) {
-            // We have to check there is actually is a remote Ref or the logic doesn't work
-            return utils.getRemoteRefForCurrentBranch() != null && !utils.isRemoteRefForCurrentBranchAtHead();
-        }
-        catch(IOException ex) {
-            ex.printStackTrace();
-            logger.log(Level.SEVERE, "Branch Status", ex); //$NON-NLS-1$
-        }
-        
-        return false;
+        return workflow != null && workflow.canRun();
     }
 }

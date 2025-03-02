@@ -14,7 +14,7 @@ import com.archimatetool.modelrepository.repository.IArchiRepository;
  * 
  * @author Phillip Beauvoir
  */
-public interface IModelRepositoryAction extends IAction {
+public interface IRepositoryAction extends IAction {
 
     /**
      * Set the repository
@@ -23,17 +23,7 @@ public interface IModelRepositoryAction extends IAction {
     void setRepository(IArchiRepository repository);
     
     /**
-     * @return The repository
-     */
-    IArchiRepository getRepository();
-    
-    /**
      * Update enabled state
      */
     void update();
-
-    /**
-     * Dispose of action
-     */
-    void dispose();
 }

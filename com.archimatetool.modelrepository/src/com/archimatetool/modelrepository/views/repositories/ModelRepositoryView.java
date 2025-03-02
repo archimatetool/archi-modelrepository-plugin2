@@ -61,7 +61,7 @@ import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.CloneModelAction;
 import com.archimatetool.modelrepository.actions.CommitModelAction;
 import com.archimatetool.modelrepository.actions.DiscardChangesAction;
-import com.archimatetool.modelrepository.actions.IModelRepositoryAction;
+import com.archimatetool.modelrepository.actions.IRepositoryAction;
 import com.archimatetool.modelrepository.actions.PushModelAction;
 import com.archimatetool.modelrepository.actions.RefreshModelAction;
 import com.archimatetool.modelrepository.actions.ShowInBranchesViewAction;
@@ -97,14 +97,14 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     /*
      * Actions
      */
-    private IModelRepositoryAction fActionClone;
-    private IModelRepositoryAction fActionRefresh;
-    private IModelRepositoryAction fActionCommit;
-    private IModelRepositoryAction fActionPush;
-    private IModelRepositoryAction fActionDiscardChanges;
+    private IRepositoryAction fActionClone;
+    private IRepositoryAction fActionRefresh;
+    private IRepositoryAction fActionCommit;
+    private IRepositoryAction fActionPush;
+    private IRepositoryAction fActionDiscardChanges;
 
-    private IModelRepositoryAction fActionShowInHistory;
-    private IModelRepositoryAction fActionShowInBranches;
+    private IRepositoryAction fActionShowInHistory;
+    private IRepositoryAction fActionShowInBranches;
     
     private IAction fActionOpen;
     private IAction fActionAddGroup;

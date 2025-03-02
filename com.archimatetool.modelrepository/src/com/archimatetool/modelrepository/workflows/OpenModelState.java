@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.actions;
+package com.archimatetool.modelrepository.workflows;
 
 import java.io.File;
 import java.io.IOException;
@@ -149,7 +149,7 @@ public class OpenModelState {
             }
             
             if(activeEditor != null) {
-                getActivePage().activate(activeEditor);
+                getActivePage().bringToTop(activeEditor);
             }
         }
     }
