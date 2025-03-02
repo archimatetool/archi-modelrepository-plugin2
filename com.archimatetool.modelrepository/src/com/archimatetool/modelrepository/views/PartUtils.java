@@ -41,9 +41,7 @@ public class PartUtils {
             return folder != null ? new ArchiRepository(folder) : null;
         }
         
-        // Repository is selected wrapped in a Repository Ref in BranchesView or HistoryView.
-        // Ensures that BranchesView updates in response to selections in HistoryView and vice-versa
-        // Otherwise BranchesView will be empty when it is opened when HistoryView has the focus and vice-versa
+        // Repository is selected wrapped in a Repository Ref
         if(part.getAdapter(RepositoryRef.class) instanceof RepositoryRef ref) {
             return ref.getArchiRepository();
         }

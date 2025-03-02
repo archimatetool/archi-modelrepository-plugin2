@@ -56,7 +56,6 @@ import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.ModelComparison;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
-import com.archimatetool.modelrepository.treemodel.RepositoryRef;
 import com.archimatetool.modelrepository.views.PartUtils;
 
 
@@ -454,11 +453,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     
     @Override
     public <T> T getAdapter(Class<T> adapter) {
-        /*
-         * Return the active repository wrapped in a RepositoryRef so that we don't enable main toolbar/menu items
-         */
-        if(adapter == RepositoryRef.class) {
-            return adapter.cast(new RepositoryRef((IArchiRepository)getHistoryViewer().getInput()));
+        if(adapter == IArchiRepository.class) {
+            return adapter.cast(getHistoryViewer().getInput());
         }
         
         return super.getAdapter(adapter);
