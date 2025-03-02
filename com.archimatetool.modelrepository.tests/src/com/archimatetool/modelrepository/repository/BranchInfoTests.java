@@ -50,6 +50,7 @@ public class BranchInfoTests {
         assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getRemoteBranchNameFor());
         assertEquals(RepoConstants.MAIN, branchInfo.getShortName());
         assertTrue(branchInfo.hasFullStatus());
+        assertEquals(repo.getWorkingFolder(), branchInfo.getWorkingFolder());
         assertTrue(branchInfo.hasLocalRef());
         assertFalse(branchInfo.hasRemoteRef());
         assertFalse(branchInfo.hasRemoteCommits());
@@ -77,6 +78,7 @@ public class BranchInfoTests {
         assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getRemoteBranchNameFor());
         assertEquals(RepoConstants.MAIN, branchInfo.getShortName());
         assertTrue(branchInfo.hasFullStatus());
+        assertEquals(repo.getWorkingFolder(), branchInfo.getWorkingFolder());
         assertTrue(branchInfo.hasLocalRef());
         assertTrue(branchInfo.hasRemoteRef());
         assertFalse(branchInfo.hasRemoteCommits());

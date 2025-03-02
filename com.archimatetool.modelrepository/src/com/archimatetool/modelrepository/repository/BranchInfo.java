@@ -109,6 +109,10 @@ public class BranchInfo {
         return hasFullStatus;
     }
     
+    public File getWorkingFolder() {
+        return repoDir;
+    }
+    
     public Ref getRef() {
         return ref;
     }
