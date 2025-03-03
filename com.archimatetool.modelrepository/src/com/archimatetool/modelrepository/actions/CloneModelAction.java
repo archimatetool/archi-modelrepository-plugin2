@@ -18,6 +18,7 @@ public class CloneModelAction extends AbstractRepositoryAction {
     public CloneModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CLONE));
+        setActionDefinitionId("com.archimatetool.modelrepository.command.cloneModel"); //$NON-NLS-1$
         setText(Messages.CloneModelAction_0);
         setToolTipText(getText());
     }

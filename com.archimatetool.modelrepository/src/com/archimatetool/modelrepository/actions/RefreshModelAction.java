@@ -21,6 +21,7 @@ public class RefreshModelAction extends AbstractRepositoryAction {
     public RefreshModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_REFRESH));
+        setActionDefinitionId("com.archimatetool.modelrepository.command.refreshModel"); //$NON-NLS-1$
         setText(Messages.RefreshModelAction_0);
         setToolTipText(Messages.RefreshModelAction_0);
     }

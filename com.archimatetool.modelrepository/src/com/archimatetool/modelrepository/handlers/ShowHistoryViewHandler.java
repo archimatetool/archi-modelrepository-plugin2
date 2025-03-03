@@ -14,7 +14,7 @@ import com.archimatetool.modelrepository.views.history.HistoryView;
 
 
 /**
- * Show History View
+ * Simply show this View in all cases
  * 
  * @author Phillip Beauvoir
  */

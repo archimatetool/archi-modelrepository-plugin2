@@ -33,5 +33,4 @@ public class DeleteModelHandler extends AbstractModelHandler {
         
         return null;
     }
-    
 }

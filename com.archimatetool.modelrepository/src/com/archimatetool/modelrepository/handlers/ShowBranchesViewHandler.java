@@ -14,7 +14,7 @@ import com.archimatetool.modelrepository.views.branches.BranchesView;
 
 
 /**
- * Show Branches View
+ * Simply show this View in all cases
  * 
  * @author Phillip Beauvoir
  */
@@ -26,6 +26,5 @@ public class ShowBranchesViewHandler extends AbstractHandler {
         ViewManager.toggleViewPart(BranchesView.ID, false);
         return null;
     }
-
 
 }

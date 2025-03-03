@@ -14,7 +14,7 @@ import com.archimatetool.modelrepository.views.repositories.ModelRepositoryView;
 
 
 /**
- * Show Repository View
+ * Simply show this View in all cases
  * 
  * @author Phillip Beauvoir
  */

@@ -28,11 +28,6 @@ public class Messages extends NLS {
     
     public static String RestoreCommitAction_0;
 
-    public static String ShowInBranchesViewAction_0;
-    public static String ShowInBranchesViewAction_1;
-
-    public static String ShowInHistoryAction_0;
-
     public static String SwitchBranchAction_0;
 
     public static String UndoLastCommitAction_0;

@@ -3,6 +3,10 @@
 <plugin>
    <extension
          point="org.eclipse.ui.commands">
+      <category
+            id="com.archimatetool.modelrepository.category"
+            name="coArchi 2">
+      </category>
       <command
             categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowRepositoryViewHandler"
@@ -19,7 +23,7 @@
             categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowBranchesViewHandler"
             id="com.archimatetool.modelrepository.command.showBranchesView"
-            name="Toggle Branches View">
+            name="Toggle Branches">
       </command>
       <command
             categoryId="com.archimatetool.modelrepository.category"
@@ -31,13 +35,13 @@
             categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowInHistoryViewHandler"
             id="com.archimatetool.modelrepository.command.showInHistoryView"
-            name="Show Change History">
+            name="Show in Change History">
       </command>
       <command
             categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowInBranchesViewHandler"
             id="com.archimatetool.modelrepository.command.showInBranchesView"
-            name="Show Branches">
+            name="Show in Branches">
       </command>
       <command
             categoryId="com.archimatetool.modelrepository.category"
@@ -81,10 +85,16 @@
             id="com.archimatetool.modelrepository.command.deleteModel"
             name="Delete Model from Workspace">
       </command>
-      <category
-            id="com.archimatetool.modelrepository.category"
-            name="coArchi">
-      </category>
+      <command
+            categoryId="com.archimatetool.modelrepository.category"
+            id="com.archimatetool.modelrepository.newGroup"
+            name="New Group">
+      </command>
+      <command
+            categoryId="com.archimatetool.modelrepository.category"
+            id="com.archimatetool.modelrepository.addExistingRepository"
+            name="Add Existing Repository">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.commandImages">
@@ -139,6 +149,14 @@
       <image
             commandId="com.archimatetool.modelrepository.command.deleteModel"
             icon="img/delete.png">
+      </image>
+      <image
+            commandId="com.archimatetool.modelrepository.newGroup"
+            icon="img/group.png">
+      </image>
+      <image
+            commandId="com.archimatetool.modelrepository.addExistingRepository"
+            icon="img/elements_obj.png">
       </image>
    </extension>
    <extension
@@ -273,7 +291,7 @@
                   style="push">
             </command>
             <command
-                  commandId="com.archimatetool.modelrepository.command.showInBranchesView"
+                  commandId="com.archimatetool.modelrepository.command.showBranchesView"
                   icon="img/branches_obj.png"
                   style="push">
             </command>

@@ -21,6 +21,7 @@ public class PushModelAction extends AbstractRepositoryAction {
     public PushModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_PUSH));
+        setActionDefinitionId("com.archimatetool.modelrepository.command.pushModel"); //$NON-NLS-1$
         setText(Messages.PushModelAction_0);
         setToolTipText(Messages.PushModelAction_0);
     }

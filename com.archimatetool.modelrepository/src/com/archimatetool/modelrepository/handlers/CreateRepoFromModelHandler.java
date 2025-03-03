@@ -39,6 +39,6 @@ public class CreateRepoFromModelHandler extends AbstractModelHandler {
     @Override
     public boolean isEnabled() {
         IArchimateModel model = getActiveArchimateModel();
-        return model != null && !RepoUtils.isModelInArchiRepository(model);
+        return model != null && !RepoUtils.isModelInArchiRepository(model); // Model is *not* in repository
     }
 }

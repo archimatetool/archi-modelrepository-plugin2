@@ -20,6 +20,7 @@ public class CommitModelAction extends AbstractRepositoryAction {
     public CommitModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_COMMIT));
+        setActionDefinitionId("com.archimatetool.modelrepository.command.commitModel"); //$NON-NLS-1$
         setText(Messages.CommitModelAction_0);
         setToolTipText(getText());
     }

@@ -7,13 +7,13 @@ package com.archimatetool.modelrepository.handlers;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.ui.handlers.HandlerUtil;
 
-import com.archimatetool.modelrepository.actions.ShowInBranchesViewAction;
+import com.archimatetool.editor.ui.services.ViewManager;
+import com.archimatetool.modelrepository.views.branches.BranchesView;
 
 
 /**
- * Show In Branches View Handler
+ * This extends AbstractModelHandler so it is active only when in a repository context
  * 
  * @author Phillip Beauvoir
  */
@@ -21,9 +21,14 @@ public class ShowInBranchesViewHandler extends AbstractModelHandler {
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        ShowInBranchesViewAction action = new ShowInBranchesViewAction(HandlerUtil.getActiveWorkbenchWindowChecked(event));
-        action.run();
+        // activate = false to keep originating part in focus so we can update based on current selection
+        ViewManager.showViewPart(BranchesView.ID, false);
         return null;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return getActiveArchiRepository() != null;
     }
 
 }

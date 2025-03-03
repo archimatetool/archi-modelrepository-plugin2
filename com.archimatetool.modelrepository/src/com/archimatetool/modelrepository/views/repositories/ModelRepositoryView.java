@@ -64,8 +64,6 @@ import com.archimatetool.modelrepository.actions.DiscardChangesAction;
 import com.archimatetool.modelrepository.actions.IRepositoryAction;
 import com.archimatetool.modelrepository.actions.PushModelAction;
 import com.archimatetool.modelrepository.actions.RefreshModelAction;
-import com.archimatetool.modelrepository.actions.ShowInBranchesViewAction;
-import com.archimatetool.modelrepository.actions.ShowInHistoryAction;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -74,6 +72,8 @@ import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 import com.archimatetool.modelrepository.treemodel.Group;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
 import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
+import com.archimatetool.modelrepository.views.branches.BranchesView;
+import com.archimatetool.modelrepository.views.history.HistoryView;
 import com.archimatetool.modelrepository.views.repositories.ModelRepositoryTreeViewer.ModelRepoTreeLabelProvider;
 
 
@@ -103,8 +103,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private IRepositoryAction fActionPush;
     private IRepositoryAction fActionDiscardChanges;
 
-    private IRepositoryAction fActionShowInHistory;
-    private IRepositoryAction fActionShowInBranches;
+    private IAction fActionShowInHistory;
+    private IAction fActionShowInBranches;
     
     private IAction fActionOpen;
     private IAction fActionAddGroup;
@@ -173,19 +173,15 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         
         // Refresh
         fActionRefresh = new RefreshModelAction(getViewSite().getWorkbenchWindow());
-        fActionRefresh.setEnabled(false);
 
         // Commit
         fActionCommit = new CommitModelAction(getViewSite().getWorkbenchWindow());
-        fActionCommit.setEnabled(false);
         
         // Push
         fActionPush = new PushModelAction(getViewSite().getWorkbenchWindow());
-        fActionPush.setEnabled(false);
 
         // Discard changes
         fActionDiscardChanges = new DiscardChangesAction(getViewSite().getWorkbenchWindow());
-        fActionDiscardChanges.setEnabled(false);
         
         // Open Model
         fActionOpen = new Action(Messages.ModelRepositoryView_13) {
@@ -209,6 +205,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             public void run() {
                 addNewGroup();
             }
+            
+            @Override
+            public String getActionDefinitionId() {
+                return "com.archimatetool.modelrepository.newGroup"; //$NON-NLS-1$
+            }
         };
         
         // Add Existing Repository
@@ -217,6 +218,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             public void run() {
                 addNewRepositoryRef();
             }
+            
+            @Override
+            public String getActionDefinitionId() {
+                return "com.archimatetool.modelrepository.addExistingRepository"; //$NON-NLS-1$
+            }
         };
         
         // Delete
@@ -224,6 +230,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             @Override
             public void run() {
                 deleteSelected();
+            }
+            
+            @Override
+            public String getActionDefinitionId() {
+                return "org.eclipse.ui.edit.delete"; // Ensures key binding is displayed //$NON-NLS-1$
             }
         };
         
@@ -270,12 +281,30 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         };
         
         // Show in History
-        fActionShowInHistory = new ShowInHistoryAction(getViewSite().getWorkbenchWindow());
-        fActionShowInHistory.setEnabled(false);
+        fActionShowInHistory = new Action(Messages.ModelRepositoryView_20, IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_HISTORY_VIEW)) {
+            @Override
+            public void run() {
+                ViewManager.showViewPart(HistoryView.ID, false);
+            }
+            
+            @Override
+            public String getActionDefinitionId() {
+                return "com.archimatetool.modelrepository.command.showInHistoryView"; //$NON-NLS-1$
+            }
+        };
         
         // Show in Branches
-        fActionShowInBranches = new ShowInBranchesViewAction(getViewSite().getWorkbenchWindow());
-        fActionShowInBranches.setEnabled(false);
+        fActionShowInBranches = new Action(Messages.ModelRepositoryView_21, IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_BRANCHES)) {
+            @Override
+            public void run() {
+                ViewManager.showViewPart(BranchesView.ID, false);
+            }
+            
+            @Override
+            public String getActionDefinitionId() {
+                return "com.archimatetool.modelrepository.command.showInBranchesView"; //$NON-NLS-1$
+            }
+        };
         
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
@@ -443,7 +472,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     }
 
     /**
-     * Register Global Action Handlers
+     * Register Global Action Handlers for key bindings
      */
     private void registerGlobalActions() {
         IActionBars actionBars = getViewSite().getActionBars();
@@ -451,7 +480,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         // Register our interest in the global menu actions
         actionBars.setGlobalActionHandler(ActionFactory.PROPERTIES.getId(), fActionProperties);
         actionBars.setGlobalActionHandler(ActionFactory.RENAME.getId(), fActionRenameEntry);
+        actionBars.setGlobalActionHandler(ActionFactory.DELETE.getId(), fActionDelete);
         actionBars.setGlobalActionHandler(ActionFactory.SELECT_ALL.getId(), fActionSelectAll);
+        
+        actionBars.setGlobalActionHandler(fActionAddGroup.getActionDefinitionId(), fActionAddGroup);
+        actionBars.setGlobalActionHandler(fActionAddRepository.getActionDefinitionId(), fActionAddRepository);
     }
 
     /**
@@ -539,8 +572,6 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             fActionCommit.setRepository(repo);
             fActionPush.setRepository(repo);
             fActionDiscardChanges.setRepository(repo);
-            fActionShowInHistory.setRepository(repo);
-            fActionShowInBranches.setRepository(repo);
         }
     }
     

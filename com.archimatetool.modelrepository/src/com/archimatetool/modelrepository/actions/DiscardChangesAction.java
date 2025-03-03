@@ -21,6 +21,7 @@ public class DiscardChangesAction extends AbstractRepositoryAction {
     public DiscardChangesAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_ABORT));
+        setActionDefinitionId("com.archimatetool.modelrepository.command.discardChanges"); //$NON-NLS-1$
         setText(Messages.DiscardChangesAction_0);
         setToolTipText(Messages.DiscardChangesAction_0);
     }
