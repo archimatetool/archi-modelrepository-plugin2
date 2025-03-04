@@ -322,15 +322,9 @@ public class ModelComparison {
     }
 
     private IArchimateModel getWorkingTreeModel() throws IOException {
-        // Do we have the model open in the UI?
-        IArchimateModel model = repository.getOpenModel();
-        
-        // No, so load it
-        if(model == null) {
-            model = IEditorModelManager.INSTANCE.load(repository.getModelFile());
-        }
-        
-        return model;
+        // Load it from file in all cases, not from the open model in the Models Tree
+        // For example, if we do a model comparison when we restore a commit the restored commit is written to the working folder
+        return IEditorModelManager.INSTANCE.load(repository.getModelFile());
     }
     
     /**
