@@ -23,6 +23,7 @@ import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CloneDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
+import com.archimatetool.modelrepository.repository.CommitManifest;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
@@ -102,7 +103,8 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
                 
                 // Commit changes
                 logger.info("Initial commit on new model"); //$NON-NLS-1$
-                archiRepository.commitChanges(Messages.CloneModelWorkflow_2, false);
+                String manifest = CommitManifest.createManifestForInitialCommit(model);
+                archiRepository.commitChanges(Messages.CloneModelWorkflow_2 + manifest, false);
             }
             
             // Add to the Tree Model

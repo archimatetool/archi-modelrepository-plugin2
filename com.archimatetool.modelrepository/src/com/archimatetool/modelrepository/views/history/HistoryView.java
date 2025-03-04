@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -44,6 +45,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.IContributedContentsView;
 import org.eclipse.ui.part.ViewPart;
 
+import com.archimatetool.model.IArchimateModelObject;
+import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.ExtractModelFromCommitAction;
@@ -75,6 +78,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
      * Selected repository
      */
     private IArchiRepository fSelectedRepository;
+    
+    // Last selection in the workbench
+    private ISelection fLastSelection;
     
     private Label fRepoLabel;
 
@@ -141,6 +147,20 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         };
     };
     
+    private IAction fActionFilter = new Action("Show history of selected object", IAction.AS_CHECK_BOX) {
+        @Override
+        public void run() {
+            if(isChecked()) {
+                setSelectedModelObject(fLastSelection, true);
+            }
+            else {
+                getHistoryViewer().setFilteredModelObjectId(null, true);
+            }
+            
+            updateLabel();
+        }
+    };
+    
     @Override
     public void createPartControl(Composite parent) {
         parent.setLayout(new GridLayout());
@@ -153,7 +173,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
 
         makeActions();
         hookContextMenu();
-        //makeLocalMenuActions();
+        makeLocalMenuActions();
         makeLocalToolBarActions();
         
         // Register us as a selection provider so that Actions can pick us up
@@ -285,19 +305,13 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     /**
      * Make Any Local Bar Menu Actions
      */
-//    protected void makeLocalMenuActions() {
-//        IActionBars actionBars = getViewSite().getActionBars();
-//
-//        // Local menu items go here
-//        IMenuManager manager = actionBars.getMenuManager();
-//        manager.add(new Action("&View Management...") {
-//            public void run() {
-//                MessageDialog.openInformation(getViewSite().getShell(),
-//                        "View Management",
-//                        "This is a placeholder for the View Management Dialog");
-//            }
-//        });
-//    }
+    private void makeLocalMenuActions() {
+        IActionBars actionBars = getViewSite().getActionBars();
+
+        // Local menu items go here
+        IMenuManager manager = actionBars.getMenuManager();
+        manager.add(fActionFilter);
+    }
 
     /**
      * Make Local Toolbar items
@@ -338,7 +352,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             fActionCompare.setText(isSingleSelection ? Messages.HistoryView_4 : Messages.HistoryView_3);
             
             // Comment Viewer
-            fCommentViewer.setCommit(null);
+            fCommentViewer.setMessage(null);
             
             return;
         }
@@ -350,7 +364,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         fActionCompare.setEnabled(selection.size() == 2);
         
         // Comment Viewer
-        fCommentViewer.setCommit(isSingleSelection ? revCommit : null);
+        fCommentViewer.setMessage(isSingleSelection ? revCommit.getFullMessage() : null);
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -361,6 +375,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
+        manager.add(new Separator());
+        manager.add(fActionFilter);
     }
 
     HistoryTableViewer getHistoryViewer() {
@@ -394,6 +410,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             // Set label text
             updateLabel();
             
+            // Set filtered model object
+            setSelectedModelObject(selection, false);
+            
             // Set History
             getHistoryViewer().setRepository(selectedRepository);
             
@@ -405,6 +424,51 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
                 updateActions();
             }
         }
+        else {
+            // Set filtered model object
+            setSelectedModelObject(selection, true);
+        }
+        
+        fLastSelection = selection;
+    }
+    
+    /**
+     * If the object filter is active set the history filter object's id to that in the selection if it's a model object in the selected model.
+     */
+    private void setSelectedModelObject(ISelection selection, boolean doUpdate) {
+        if(!fActionFilter.isChecked()) {
+            return;
+        }
+        
+        if(fSelectedRepository != null && selection instanceof IStructuredSelection sel) {
+            Object selected = sel.getFirstElement();
+            IArchimateModelObject modelObject = null;
+            
+            if(selected instanceof IArchimateModelObject) {
+                modelObject = (IArchimateModelObject)selected;
+            }
+            
+            // If it's an EditPart...
+            else if(selected instanceof IAdaptable adaptable) {
+                boolean getDiagramModelForDiagramComponents = true;
+                
+                // If it's a diagram model component get the DiagramModel
+                if(getDiagramModelForDiagramComponents) {
+                    modelObject = adaptable.getAdapter(IDiagramModelComponent.class);
+                    if(modelObject instanceof IDiagramModelComponent dmc) {
+                        modelObject = dmc.getDiagramModel();
+                    }
+                }
+                // Else get the ArchimateConcept if it's an Archimate diagram model component, or null if a plain diagram model compenent
+                else {
+                    modelObject = adaptable.getAdapter(IArchimateModelObject.class);
+                }
+            }
+            
+            if(modelObject != null && modelObject.getArchimateModel() == fSelectedRepository.getOpenModel()) {
+                getHistoryViewer().setFilteredModelObjectId(modelObject.getId(), doUpdate);
+            }
+        }
     }
     
     /**
@@ -414,6 +478,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         String text = Messages.HistoryView_0 + " "; //$NON-NLS-1$
         if(fSelectedRepository != null) {
             text += fSelectedRepository.getName();
+            if(fActionFilter.isChecked()) {
+                text += " (Filtering on selected object)";
+            }
         }
         fRepoLabel.setText(text);
     }
@@ -424,7 +491,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             switch(eventName) {
                 case IRepositoryListener.HISTORY_CHANGED:
                     getHistoryViewer().setInput(repository);
-                    fCommentViewer.setCommit(null);
+                    fCommentViewer.setMessage(null);
                     updateLabel();
                     break;
                     

@@ -108,6 +108,13 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
+    public RevCommit commitChangesWithManifest(String commitMessage, boolean amend) throws GitAPIException, IOException {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
+            return utils.commitChangesWithManifest(commitMessage, amend);
+        }
+    }
+
+    @Override
     public boolean hasChangesToCommit() throws IOException, GitAPIException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.hasChangesToCommit();

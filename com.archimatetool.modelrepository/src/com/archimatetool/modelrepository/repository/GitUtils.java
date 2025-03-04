@@ -92,6 +92,17 @@ public class GitUtils extends Git {
     }
 
     /**
+     * Commit any changes with the manifest
+     * @param commitMessage
+     * @param amend If true, previous commit is amended
+     * @return RevCommit
+     */
+    public RevCommit commitChangesWithManifest(String commitMessage, boolean amend) throws GitAPIException, IOException {
+        String manifest = CommitManifest.createManifestForCommit(this, amend);
+        return commitChanges(commitMessage + manifest, amend);
+    }
+
+    /**
      * @return true if there are changes to commit in the working tree
      */
     public boolean hasChangesToCommit() throws GitAPIException {

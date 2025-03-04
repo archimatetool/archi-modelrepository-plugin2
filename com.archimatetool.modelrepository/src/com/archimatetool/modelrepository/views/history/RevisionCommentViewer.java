@@ -6,7 +6,6 @@
 package com.archimatetool.modelrepository.views.history;
 
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
@@ -18,34 +17,37 @@ import org.eclipse.swt.widgets.Composite;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class RevisionCommentViewer {
 
-    private StyledText fText;
+    private StyledText styledText;
     
     public RevisionCommentViewer(Composite parent) {
-        fText = new StyledText(parent, SWT.V_SCROLL | SWT.READ_ONLY | SWT.WRAP | SWT.BORDER);
-        fText.setLayoutData(new GridData(GridData.FILL_BOTH));
-        fText.setMargins(5, 5, 5, 5);
-        fText.setFont(JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT));
+        styledText = new StyledText(parent, SWT.V_SCROLL | SWT.READ_ONLY | SWT.WRAP | SWT.BORDER);
+        styledText.setLayoutData(new GridData(GridData.FILL_BOTH));
+        styledText.setMargins(5, 5, 5, 5);
+        styledText.setFont(JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT));
     }
     
-    public void setCommit(RevCommit commit) {
-        if(commit != null) {
-            String fullMessage = commit.getFullMessage();
-            fText.setText(fullMessage);
-            
-            // The first line is bold
-            int firstLineLength = fullMessage.indexOf('\n');
-            firstLineLength = firstLineLength == -1 ? fullMessage.length() : firstLineLength;
-            
-            StyleRange style = new StyleRange();
-            style.start = 0;
-            style.length = firstLineLength;
-            style.fontStyle = SWT.BOLD;
-            fText.setStyleRange(style);
+    public void setMessage(String message) {
+        if(message == null) {
+            styledText.setText("");
+            return;
         }
-        else {
-            fText.setText(""); //$NON-NLS-1$
-        }
+        
+        // TODO:
+        // message = CommitManifest.getCommitMessageWithoutManifest(message);
+
+        styledText.setText(message);
+
+        // The first line is bold
+        int firstLineLength = message.indexOf('\n');
+        firstLineLength = firstLineLength == -1 ? message.length() : firstLineLength;
+
+        StyleRange style = new StyleRange();
+        style.start = 0;
+        style.length = firstLineLength;
+        style.fontStyle = SWT.BOLD;
+        styledText.setStyleRange(style);
     }
 }

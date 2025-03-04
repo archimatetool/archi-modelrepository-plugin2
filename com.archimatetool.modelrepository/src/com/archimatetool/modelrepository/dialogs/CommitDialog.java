@@ -30,6 +30,7 @@ import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.repository.CommitManifest;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoConstants;
@@ -143,9 +144,13 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
                 if(previousCommitMessage != null) {
                     fAmendLastCommitCheckbox.addSelectionListener(widgetSelectedAdapter(event -> {
                         if(fAmendLastCommitCheckbox.getSelection()) {
-                            if(fTextCommitMessage.getText().isEmpty() || (!fTextCommitMessage.getText().equals(previousCommitMessage) && MessageDialog.openQuestion(getShell(),
+                            // Get commit message stripped of manifest
+                            String actualCommitMessage = CommitManifest.getCommitMessageWithoutManifest(previousCommitMessage);
+                            
+                            // If text box is empty or text box string doesn't equal commit string offer to replace
+                            if(fTextCommitMessage.getText().isEmpty() || (!fTextCommitMessage.getText().equals(actualCommitMessage) && MessageDialog.openQuestion(getShell(),
                                     Messages.CommitDialog_0, Messages.CommitDialog_7))) {
-                                fTextCommitMessage.setText(previousCommitMessage);
+                                fTextCommitMessage.setText(actualCommitMessage);
                             }
                         }
                     }));
