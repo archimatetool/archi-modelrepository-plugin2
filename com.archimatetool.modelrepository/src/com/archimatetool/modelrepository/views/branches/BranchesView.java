@@ -5,6 +5,8 @@
  */
 package com.archimatetool.modelrepository.views.branches;
 
+import java.util.Objects;
+
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -122,7 +124,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         /*
          * Listen to Table Selections to update local Actions
          */
-        fBranchesTableViewer.addSelectionChangedListener((event) -> {
+        fBranchesTableViewer.addSelectionChangedListener(event -> {
             updateActions();
         });
         
@@ -230,12 +232,12 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         IArchiRepository selectedRepository = PartUtils.getSelectedArchiRepositoryInWorkbenchPart(part);
         
         // Update if selectedRepository is different 
-        if(selectedRepository != null && !selectedRepository.equals(fSelectedRepository)) {
+        if(!Objects.equals(selectedRepository, fSelectedRepository)) {
             // Store last selected
             fSelectedRepository = selectedRepository;
 
             // Set label text
-            fRepoLabel.setText(Messages.BranchesView_0 + " " + selectedRepository.getName()); //$NON-NLS-1$
+            fRepoLabel.setText(selectedRepository != null ? Messages.BranchesView_0 + " " + selectedRepository.getName() : Messages.BranchesView_0); //$NON-NLS-1$
             
             // Set Branches
             getBranchesViewer().doSetInput(selectedRepository);

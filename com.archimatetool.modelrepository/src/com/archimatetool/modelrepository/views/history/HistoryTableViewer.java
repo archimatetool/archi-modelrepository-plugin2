@@ -101,6 +101,12 @@ public class HistoryTableViewer extends TableViewer {
     }
     
     void setRepository(IArchiRepository archiRepo) {
+        if(archiRepo == null) {
+            fSelectedBranch = null;
+            setInput(null);
+            return;
+        }
+        
         // Get basic current LocalBranch Info
         try {
             fSelectedBranch = BranchInfo.currentLocalBranchInfo(archiRepo.getWorkingFolder(), false);

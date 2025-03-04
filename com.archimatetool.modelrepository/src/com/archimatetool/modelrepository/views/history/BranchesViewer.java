@@ -83,6 +83,11 @@ public class BranchesViewer extends ComboViewer {
     }
 
     void setRepository(IArchiRepository archiRepo) {
+        if(archiRepo == null) {
+            setInput(null);
+            return;
+        }
+        
         // Get BranchStatus
         BranchStatus branchStatus = null;
         

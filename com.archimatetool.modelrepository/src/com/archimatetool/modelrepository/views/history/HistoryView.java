@@ -387,7 +387,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         IArchiRepository selectedRepository = PartUtils.getSelectedArchiRepositoryInWorkbenchPart(part);
         
         // Update if selectedRepository is different 
-        if(selectedRepository != null && !selectedRepository.equals(fSelectedRepository)) {
+        if(!Objects.equals(selectedRepository, fSelectedRepository)) {
             // Store last selected
             fSelectedRepository = selectedRepository;
 
@@ -399,6 +399,11 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             
             // Set Branches
             getBranchesViewer().setRepository(selectedRepository);
+            
+            // If selectedRepository isn't null actions will be updated on first selection
+            if(selectedRepository == null) {
+                updateActions();
+            }
         }
     }
     
@@ -424,10 +429,11 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
                     break;
                     
                 case IRepositoryListener.REPOSITORY_DELETED:
-                    getHistoryViewer().setInput(null);
-                    fCommentViewer.setCommit(null);
                     fSelectedRepository = null; // Reset this
                     updateLabel();
+                    getHistoryViewer().setRepository(null);
+                    getBranchesViewer().setRepository(null);
+                    updateActions();
                     break;
                     
                 case IRepositoryListener.MODEL_RENAMED:
