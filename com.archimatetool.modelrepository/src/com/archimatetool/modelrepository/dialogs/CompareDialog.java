@@ -37,7 +37,6 @@ public class CompareDialog extends ExtendedTitleAreaDialog {
     
     public CompareDialog(Shell parentShell, ModelComparison modelComparison) {
         super(parentShell, "CompareDialog");
-        setTitle("Compare");
         this.modelComparison = modelComparison;
     }
     
@@ -53,6 +52,7 @@ public class CompareDialog extends ExtendedTitleAreaDialog {
         
         setMessage("Compare commit '" + modelComparison.getFirstRevCommit().getShortMessage() + "' with " + message, IMessageProvider.NONE);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
+        setTitle("Compare");
 
         Composite area = (Composite) super.createDialogArea(parent);
         Composite container = new Composite(area, SWT.NONE);

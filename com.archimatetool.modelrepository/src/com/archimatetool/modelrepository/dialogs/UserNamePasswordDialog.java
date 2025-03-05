@@ -48,7 +48,6 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     
     public UserNamePasswordDialog(Shell parentShell, IArchiRepository repo) {
         super(parentShell);
-        setTitle(Messages.UserNamePasswordDialog_0);
         fRepository = repo;
     }
 
@@ -62,6 +61,7 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     protected Control createDialogArea(Composite parent) {
         setMessage(Messages.UserNamePasswordDialog_1, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
+        setTitle(Messages.UserNamePasswordDialog_0);
 
         Composite area = (Composite) super.createDialogArea(parent);
         Composite container = new Composite(area, SWT.NONE);

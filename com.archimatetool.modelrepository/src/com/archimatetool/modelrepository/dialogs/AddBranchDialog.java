@@ -38,7 +38,6 @@ public class AddBranchDialog extends TitleAreaDialog {
 	
     public AddBranchDialog(Shell parentShell) {
         super(parentShell);
-        setTitle(Messages.AddBranchDialog_0);
     }
 
     @Override
@@ -49,6 +48,7 @@ public class AddBranchDialog extends TitleAreaDialog {
 
     @Override
     protected Control createDialogArea(Composite parent) {
+        setTitle(Messages.AddBranchDialog_0);
         setMessage(Messages.AddBranchDialog_2, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
 

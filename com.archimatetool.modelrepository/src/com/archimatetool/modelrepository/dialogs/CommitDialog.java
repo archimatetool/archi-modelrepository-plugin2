@@ -57,7 +57,6 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     
     public CommitDialog(Shell parentShell, IArchiRepository repo) {
         super(parentShell, DIALOG_ID);
-        setTitle(Messages.CommitDialog_0);
         fRepository = repo;
     }
 
@@ -69,6 +68,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
 
     @Override
     protected Control createDialogArea(Composite parent) {
+        setTitle(Messages.CommitDialog_0);
         setMessage(Messages.CommitDialog_1, IMessageProvider.INFORMATION);
         setTitleImage(IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.BANNER_COMMIT));
 
