@@ -38,7 +38,7 @@ public class GitHelper {
                 .setInitialBranch(RepoConstants.MAIN)
                 .call()) {
         }
-        return "file://" + repoFolder;
+        return repoFolder.getPath();
     }
     
     public static File getTempTestsFolder() throws IOException {
