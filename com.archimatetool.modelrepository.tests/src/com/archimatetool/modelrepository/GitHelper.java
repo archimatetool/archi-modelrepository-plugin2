@@ -15,6 +15,10 @@ import java.nio.file.StandardOpenOption;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
+import com.archimatetool.editor.model.IArchiveManager;
+import com.archimatetool.model.IArchimateDiagramModel;
+import com.archimatetool.model.IArchimateFactory;
+import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoConstants;
@@ -57,5 +61,32 @@ public class GitHelper {
         Path filePath = Path.of(repo.getWorkingFolder().getPath(), fileName);
         Files.writeString(filePath, contents, option);
         return filePath.toFile();
+    }
+    
+    public static IArchimateModel createSimpleModel() {
+        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
+        model.setAdapter(IArchiveManager.class, IArchiveManager.FACTORY.createArchiveManager(model));        
+        model.setDefaults();
+        
+        // One diagram model
+        IArchimateDiagramModel dm = IArchimateFactory.eINSTANCE.createArchimateDiagramModel();
+        model.getDefaultFolderForObject(dm).getElements().add(dm);
+        
+        return model;
+    }
+    
+    public static IArchimateModel createSimpleModelInTestRepo(IArchiRepository repo) throws IOException {
+        return saveModelToTestRepo(createSimpleModel(), repo);
+    }
+    
+    public static IArchimateModel saveModelToTestRepo(IArchimateModel model, IArchiRepository repo) throws IOException {
+        model.setFile(repo.getModelFile());
+        saveModel(model);
+        return model;
+    }
+    
+    public static void saveModel(IArchimateModel model) throws IOException {
+        IArchiveManager archiveManager = (IArchiveManager)model.getAdapter(IArchiveManager.class);
+        archiveManager.saveModel();
     }
 }
