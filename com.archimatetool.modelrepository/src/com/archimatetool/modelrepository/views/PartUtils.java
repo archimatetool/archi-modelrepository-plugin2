@@ -36,17 +36,20 @@ public class PartUtils {
         }
         
         // Repository is selected in part
-        if(part.getAdapter(IArchiRepository.class) instanceof IArchiRepository archiRepository) {
+        IArchiRepository archiRepository = part.getAdapter(IArchiRepository.class);
+        if(archiRepository != null) {
             return archiRepository;
         }
         
         // Model is selected in part
-        if(part.getAdapter(IArchimateModel.class) instanceof IArchimateModel model) {
+        IArchimateModel model = part.getAdapter(IArchimateModel.class);
+        if(model != null) {
             return getSelectedArchiRepositoryForModel(model);
         }
         
         // Repository is selected wrapped in a Repository Ref
-        if(part.getAdapter(RepositoryRef.class) instanceof RepositoryRef ref) {
+        RepositoryRef ref = part.getAdapter(RepositoryRef.class);
+        if(ref != null) {
             return ref.getArchiRepository();
         }
         
@@ -59,8 +62,9 @@ public class PartUtils {
         }
         
         // Go through each ViewPart and see if any adapts to IArchimateModel.class
-        for(IViewReference ref : PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences()) {
-            if(ref.getPart(false).getAdapter(IArchimateModel.class) instanceof IArchimateModel model) {
+        for(IViewReference viewRef : PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences()) {
+            model = viewRef.getPart(false).getAdapter(IArchimateModel.class);
+            if(model != null) {
                 return getSelectedArchiRepositoryForModel(model);
             }
         }
