@@ -79,7 +79,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     private Label fRepoLabel;
 
     private HistoryTableViewer fHistoryTableViewer;
-    private RevisionCommentViewer fCommentViewer;
+    private CommitViewer fCommitViewer;
     private BranchesViewer fBranchesViewer;
     
     /*
@@ -223,8 +223,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         // History Table
         fHistoryTableViewer = new HistoryTableViewer(tableComp);
         
-        // Comments Viewer
-        fCommentViewer = new RevisionCommentViewer(tableSash);
+        // Commit Viewer
+        fCommitViewer = new CommitViewer(tableSash);
         
         tableSash.setWeights(new int[] { 80, 20 });
         
@@ -337,8 +337,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             fActionCompare.setEnabled(isSingleSelection || selection.size() == 2);
             fActionCompare.setText(isSingleSelection ? Messages.HistoryView_4 : Messages.HistoryView_3);
             
-            // Comment Viewer
-            fCommentViewer.setCommit(null);
+            // Commit Viewer
+            fCommitViewer.setCommit(null);
             
             return;
         }
@@ -349,8 +349,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         fActionCompare.setText(Messages.HistoryView_3);
         fActionCompare.setEnabled(selection.size() == 2);
         
-        // Comment Viewer
-        fCommentViewer.setCommit(isSingleSelection ? revCommit : null);
+        // Commit Viewer
+        fCommitViewer.setCommit(isSingleSelection ? revCommit : null);
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -424,7 +424,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             switch(eventName) {
                 case IRepositoryListener.HISTORY_CHANGED:
                     getHistoryViewer().setInput(repository);
-                    fCommentViewer.setCommit(null);
                     updateLabel();
                     break;
                     

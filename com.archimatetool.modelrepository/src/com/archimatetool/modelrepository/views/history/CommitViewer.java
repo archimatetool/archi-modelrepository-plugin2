@@ -14,38 +14,39 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 
 /**
- * Revision Comment Viewer
+ * Revision Commit Viewer
  * 
  * @author Phillip Beauvoir
  */
-public class RevisionCommentViewer {
+@SuppressWarnings("nls")
+public class CommitViewer {
 
     private StyledText fText;
     
-    public RevisionCommentViewer(Composite parent) {
+    public CommitViewer(Composite parent) {
         fText = new StyledText(parent, SWT.V_SCROLL | SWT.READ_ONLY | SWT.WRAP | SWT.BORDER);
         fText.setLayoutData(new GridData(GridData.FILL_BOTH));
         fText.setMargins(5, 5, 5, 5);
         fText.setFont(JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT));
     }
     
-    public void setCommit(RevCommit commit) {
-        if(commit != null) {
-            String fullMessage = commit.getFullMessage();
-            fText.setText(fullMessage);
-            
-            // The first line is bold
-            int firstLineLength = fullMessage.indexOf('\n');
-            firstLineLength = firstLineLength == -1 ? fullMessage.length() : firstLineLength;
-            
-            StyleRange style = new StyleRange();
-            style.start = 0;
-            style.length = firstLineLength;
-            style.fontStyle = SWT.BOLD;
-            fText.setStyleRange(style);
+    public void setCommit(RevCommit revCommit) {
+        if(revCommit == null) {
+            fText.setText("");
+            return;
         }
-        else {
-            fText.setText(""); //$NON-NLS-1$
-        }
+        
+        String message = revCommit.getFullMessage();
+        fText.setText(message);
+
+        // The first line is bold
+        int firstLineLength = message.indexOf('\n');
+        firstLineLength = firstLineLength == -1 ? message.length() : firstLineLength;
+
+        StyleRange style = new StyleRange();
+        style.start = 0;
+        style.length = firstLineLength;
+        style.fontStyle = SWT.BOLD;
+        fText.setStyleRange(style);
     }
 }
