@@ -6,7 +6,7 @@ Bundle-Localization: plugin
 Bundle-Version: 0.7.0.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
- com.archimatetool.editor;bundle-version="5.2.0",
+ com.archimatetool.editor;bundle-version="5.4.0",
  com.archimatetool.jdom,
  org.eclipse.emf.compare,
  org.eclipse.jgit,
