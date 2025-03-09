@@ -41,6 +41,22 @@ public interface IArchiRepository {
     RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException;
 
     /**
+     * Commit any changes with the manifest
+     * @param commitMessage
+     * @param amend If true, previous commit is amended
+     * @return RevCommit
+     */
+    RevCommit commitChangesWithManifest(String commitMessage, boolean amend) throws GitAPIException, IOException;
+    
+    /**
+     * Make the initial commit of a model and add the manifest to the commit message
+     * @param model
+     * @param commitMessage
+     * @return RevCommit
+     */
+    RevCommit commitModelWithManifest(IArchimateModel model, String commitMessage) throws GitAPIException, IOException;
+
+    /**
      * @return true if there are changes to commit in the working tree
      */
     boolean hasChangesToCommit() throws IOException, GitAPIException;

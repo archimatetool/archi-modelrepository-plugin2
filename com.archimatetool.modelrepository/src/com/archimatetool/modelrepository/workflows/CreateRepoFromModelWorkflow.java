@@ -84,7 +84,7 @@ public class CreateRepoFromModelWorkflow extends AbstractRepositoryWorkflow {
             
             // Commit changes
             logger.info("Doing a first commit"); //$NON-NLS-1$
-            archiRepository.commitChanges(Messages.CreateRepoFromModelWorkflow_1, false);
+            archiRepository.commitModelWithManifest(model, Messages.CreateRepoFromModelWorkflow_1);
             
             // Add to the Tree Model
             RepositoryTreeModel.getInstance().addNewRepositoryRef(archiRepository);

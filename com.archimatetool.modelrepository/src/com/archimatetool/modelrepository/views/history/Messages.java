@@ -35,6 +35,10 @@ public class Messages extends NLS {
     public static String HistoryView_4;
 
     public static String HistoryView_5;
+
+    public static String HistoryView_6;
+
+    public static String HistoryView_7;
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);
