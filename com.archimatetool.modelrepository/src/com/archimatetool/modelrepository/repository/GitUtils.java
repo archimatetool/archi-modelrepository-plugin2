@@ -41,6 +41,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.io.EolStreamTypeUtil;
 
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsAuthenticator;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 
@@ -89,6 +90,28 @@ public class GitUtils extends Git {
                 .setMessage(commitMessage)
                 .setAmend(amend)
                 .call();
+    }
+
+    /**
+     * Commit any changes with the manifest
+     * @param commitMessage
+     * @param amend If true, previous commit is amended
+     * @return RevCommit
+     */
+    public RevCommit commitChangesWithManifest(String commitMessage, boolean amend) throws GitAPIException, IOException {
+        String manifest = CommitManifest.createManifestForCommit(this, amend);
+        return commitChanges(commitMessage + manifest, amend);
+    }
+    
+    /**
+     * Make the initial commit of a model and add the manifest to the commit message
+     * @param model
+     * @param commitMessage
+     * @return RevCommit
+     */
+    public RevCommit commitModelWithManifest(IArchimateModel model, String commitMessage) throws GitAPIException {
+        String manifest = CommitManifest.createManifestForInitialCommit(model);
+        return commitChanges(commitMessage + manifest, false);
     }
 
     /**

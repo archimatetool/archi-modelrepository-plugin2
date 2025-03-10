@@ -195,7 +195,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
             
             try {
                 logger.info("Commiting changes for: " + archiRepository.getModelFile()); //$NON-NLS-1$
-                archiRepository.commitChanges(commitMessage, amend);
+                archiRepository.commitChangesWithManifest(commitMessage, amend);
             }
             catch(Exception ex) {
                 logger.log(Level.SEVERE, "Commit Exception", ex); //$NON-NLS-1$

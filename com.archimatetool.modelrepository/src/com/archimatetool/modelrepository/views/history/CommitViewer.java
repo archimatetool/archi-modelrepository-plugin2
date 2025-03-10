@@ -21,23 +21,25 @@ import org.eclipse.swt.widgets.Composite;
 @SuppressWarnings("nls")
 public class CommitViewer {
 
-    private StyledText fText;
+    private StyledText styledText;
     
     public CommitViewer(Composite parent) {
-        fText = new StyledText(parent, SWT.V_SCROLL | SWT.READ_ONLY | SWT.WRAP | SWT.BORDER);
-        fText.setLayoutData(new GridData(GridData.FILL_BOTH));
-        fText.setMargins(5, 5, 5, 5);
-        fText.setFont(JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT));
+        styledText = new StyledText(parent, SWT.V_SCROLL | SWT.READ_ONLY | SWT.WRAP | SWT.BORDER);
+        styledText.setLayoutData(new GridData(GridData.FILL_BOTH));
+        styledText.setMargins(5, 5, 5, 5);
+        styledText.setFont(JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT));
     }
     
     public void setCommit(RevCommit revCommit) {
         if(revCommit == null) {
-            fText.setText("");
+            styledText.setText("");
             return;
         }
         
+        // TODO:
+        //String message = CommitManifest.getCommitMessageWithoutManifest(revCommit.getFullMessage());
         String message = revCommit.getFullMessage();
-        fText.setText(message);
+        styledText.setText(message);
 
         // The first line is bold
         int firstLineLength = message.indexOf('\n');
@@ -47,6 +49,6 @@ public class CommitViewer {
         style.start = 0;
         style.length = firstLineLength;
         style.fontStyle = SWT.BOLD;
-        fText.setStyleRange(style);
+        styledText.setStyleRange(style);
     }
 }
