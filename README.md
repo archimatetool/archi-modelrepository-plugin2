@@ -1,12 +1,9 @@
-﻿![archi-model-repository](https://user-images.githubusercontent.com/600504/27026905-4e29ff4e-4f57-11e7-84aa-b840aaa2a4b3.png)
-
 # coArchi 2
 
-## What is this?
-This is an extension to Archi that allows collaborative work on Archi through sharing and versioning of models in a Repository.
+﻿<img alt="coArchi2" src="https://github.com/user-attachments/assets/345b19fc-fb18-4ff2-936d-7e89f3ce8e65" />
 
-## How to use it
-Binaries will be made available soon.
+## What is this?
+This is an extension to Archi that allows collaborative work on Archi through sharing and versioning of models in a Git repository. Please refer to the Wiki for details on the roadmap and how to download the binary plug-in.
 
 ## Contributing code to Archi and Plug-ins
 
