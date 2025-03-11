@@ -59,7 +59,7 @@ public class RestoreCommitWorkflow extends AbstractRepositoryWorkflow {
             
             // Commit changes
             logger.info("Committing changes..."); //$NON-NLS-1$
-            archiRepository.commitChanges(Messages.RestoreCommitWorkflow_3 + " '" + revCommit.getShortMessage() + "'", false); //$NON-NLS-1$ //$NON-NLS-2$
+            archiRepository.commitChangesWithManifest(Messages.RestoreCommitWorkflow_3 + " '" + revCommit.getShortMessage() + "'", false); //$NON-NLS-1$ //$NON-NLS-2$
             
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         }

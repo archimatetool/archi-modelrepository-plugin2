@@ -7,6 +7,7 @@ package com.archimatetool.modelrepository.handlers;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.archimatetool.editor.ui.services.ViewManager;
 import com.archimatetool.modelrepository.views.history.HistoryView;
@@ -22,7 +23,11 @@ public class ShowInHistoryViewHandler extends AbstractModelHandler {
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         // activate = false to keep originating part in focus so we can update based on current selection
-        ViewManager.showViewPart(HistoryView.ID, false);
+        HistoryView view = (HistoryView)ViewManager.showViewPart(HistoryView.ID, false);
+        if(view != null) {
+            view.setFilteredModelObject(HandlerUtil.getCurrentSelection(event));
+        }
+        
         return null;
     }
 

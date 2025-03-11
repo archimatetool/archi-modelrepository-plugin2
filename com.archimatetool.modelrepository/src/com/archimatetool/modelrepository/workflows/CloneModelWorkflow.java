@@ -102,7 +102,7 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
                 
                 // Commit changes
                 logger.info("Initial commit on new model"); //$NON-NLS-1$
-                archiRepository.commitChanges(Messages.CloneModelWorkflow_2, false);
+                archiRepository.commitModelWithManifest(model, Messages.CloneModelWorkflow_2);
             }
             
             // Add to the Tree Model

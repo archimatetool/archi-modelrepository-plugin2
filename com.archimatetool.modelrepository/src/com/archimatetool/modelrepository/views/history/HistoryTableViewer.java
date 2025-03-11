@@ -45,6 +45,7 @@ import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.ModelObjectIdFilter;
 
 
 /**
@@ -60,6 +61,8 @@ public class HistoryTableViewer extends TableViewer {
     private Set<RevCommit> unmergedCommits;
     
     private boolean hasWorkingTree;
+    
+    private String filteredObjectId;
     
     private Color unmergedColor = new Color(0, 124, 250);
     private Color mergedColor = ThemeUtils.isDarkTheme() ? new Color(250, 250, 250) : new Color(0, 0, 0);
@@ -152,6 +155,18 @@ public class HistoryTableViewer extends TableViewer {
         });
     }
     
+    /**
+     * Set an object's id to filter on
+     */
+    void setFilteredModelObject(String objectId, boolean doUpdate) {
+        if(!Objects.equals(objectId, filteredObjectId)) {
+            filteredObjectId = objectId;
+            if(doUpdate) {
+                setInputAndSelect((IArchiRepository)getInput());
+            }
+        }
+    }
+    
     private boolean hasWorkingTree(IArchiRepository repo) {
         try {
             return repo != null && repo.hasChangesToCommit() && fSelectedBranch != null && fSelectedBranch.isCurrentBranch();
@@ -221,6 +236,11 @@ public class HistoryTableViewer extends TableViewer {
             try(Repository repository = Git.open(repo.getWorkingFolder()).getRepository()) {
                 try(RevWalk revWalk = new RevWalk(repository)) {
                     revWalk.setRetainBody(false); // Don't load the body of commits that are being counted
+                    
+                    // Add a filter to show only commits that contain an object's Id
+                    if(filteredObjectId != null) {
+                        revWalk.setRevFilter(new ModelObjectIdFilter(filteredObjectId));
+                    }
 
                     // Set the local branch commit start
                     ObjectId localCommitID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());

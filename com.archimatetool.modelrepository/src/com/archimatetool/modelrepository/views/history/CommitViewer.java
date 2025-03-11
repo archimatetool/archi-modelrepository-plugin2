@@ -13,6 +13,8 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 
+import com.archimatetool.modelrepository.repository.CommitManifest;
+
 /**
  * Revision Commit Viewer
  * 
@@ -21,23 +23,26 @@ import org.eclipse.swt.widgets.Composite;
 @SuppressWarnings("nls")
 public class CommitViewer {
 
-    private StyledText fText;
+    private StyledText styledText;
+    
+    // Set to true to show the manifest
+    private boolean showManifest = false;
     
     public CommitViewer(Composite parent) {
-        fText = new StyledText(parent, SWT.V_SCROLL | SWT.READ_ONLY | SWT.WRAP | SWT.BORDER);
-        fText.setLayoutData(new GridData(GridData.FILL_BOTH));
-        fText.setMargins(5, 5, 5, 5);
-        fText.setFont(JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT));
+        styledText = new StyledText(parent, SWT.V_SCROLL | SWT.READ_ONLY | SWT.WRAP | SWT.BORDER);
+        styledText.setLayoutData(new GridData(GridData.FILL_BOTH));
+        styledText.setMargins(5, 5, 5, 5);
+        styledText.setFont(JFaceResources.getFontRegistry().get(JFaceResources.TEXT_FONT));
     }
     
     public void setCommit(RevCommit revCommit) {
         if(revCommit == null) {
-            fText.setText("");
+            styledText.setText("");
             return;
         }
         
-        String message = revCommit.getFullMessage();
-        fText.setText(message);
+        String message = showManifest ? revCommit.getFullMessage() : CommitManifest.getCommitMessageWithoutManifest(revCommit.getFullMessage());
+        styledText.setText(message);
 
         // The first line is bold
         int firstLineLength = message.indexOf('\n');
@@ -47,6 +52,6 @@ public class CommitViewer {
         style.start = 0;
         style.length = firstLineLength;
         style.fontStyle = SWT.BOLD;
-        fText.setStyleRange(style);
+        styledText.setStyleRange(style);
     }
 }

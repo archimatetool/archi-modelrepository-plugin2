@@ -7,6 +7,7 @@ package com.archimatetool.modelrepository.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.archimatetool.editor.utils.FileUtils;
+import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.GitHelper;
 
 
@@ -75,6 +77,43 @@ public class GitUtilsTests {
         assertEquals(2, utils.getCommitCount());
     }
     
+    @Test
+    public void commitChangesWithManifest_ShouldNotHaveManifest() throws Exception {
+        // Should not have a manifest on inital commit. We should add one manually.
+        GitHelper.createSimpleModelInTestRepo(repo);
+        RevCommit commit = utils.commitChangesWithManifest("Commit 1", false);
+        assertEquals("Commit 1", commit.getFullMessage());
+    }
+    
+    @Test
+    public void commitChangesWithManifest_ShouldHaveManifest() throws Exception {
+        IArchimateModel model = GitHelper.createSimpleModelInTestRepo(repo);
+        String manifest = CommitManifest.createManifestForInitialCommit(model);
+        
+        // Initial commit has manifest
+        RevCommit commit = utils.commitModelWithManifest(model, "Commit 1");
+        assertEquals("Commit 1", commit.getShortMessage());
+        assertEquals("Commit 1" + manifest, commit.getFullMessage());
+        
+        // Next commit should have one too
+        model.setName("changed");
+        GitHelper.saveModel(model);
+        commit = utils.commitChangesWithManifest("Commit 2", false);
+        
+        assertEquals("Commit 2", commit.getShortMessage());
+        assertNotEquals("Commit 2", commit.getFullMessage());
+    }
+    
+    @Test
+    public void commitModelWithManifest() throws Exception {
+        IArchimateModel model = GitHelper.createSimpleModelInTestRepo(repo);
+        RevCommit commit = utils.commitModelWithManifest(model, "Commit 1");
+        String manifest = CommitManifest.createManifestForInitialCommit(model);
+        
+        assertEquals("Commit 1", commit.getShortMessage());
+        assertEquals("Commit 1" + manifest, commit.getFullMessage());
+    }
+
     @Test
     public void hasChangesToCommit() throws Exception {
         // No files creates so false

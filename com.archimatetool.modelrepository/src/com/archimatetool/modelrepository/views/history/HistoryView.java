@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -46,6 +47,8 @@ import org.eclipse.ui.SelectionListenerFactory.Predicates;
 import org.eclipse.ui.part.IContributedContentsView;
 import org.eclipse.ui.part.ViewPart;
 
+import com.archimatetool.model.IArchimateModelObject;
+import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.ExtractModelFromCommitAction;
@@ -77,6 +80,12 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
      * Selected repository
      */
     private IArchiRepository fSelectedRepository;
+    
+    // Last selection in the workbench
+    private ISelection fLastSelection;
+    
+    // Is filtering on an object but not permanently
+    private boolean isFilteringObject;
     
     private Label fRepoLabel;
 
@@ -143,6 +152,20 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         };
     };
     
+    private IAction fActionFilter = new Action(Messages.HistoryView_6, IAction.AS_CHECK_BOX) {
+        @Override
+        public void run() {
+            if(isChecked()) {
+                setFilteredModelObject(fLastSelection, true);
+            }
+            else {
+                getHistoryViewer().setFilteredModelObject(null, true);
+            }
+            
+            updateLabel();
+        }
+    };
+    
     @Override
     public void createPartControl(Composite parent) {
         parent.setLayout(new GridLayout());
@@ -155,7 +178,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
 
         makeActions();
         hookContextMenu();
-        //makeLocalMenuActions();
+        makeLocalMenuActions();
         makeLocalToolBarActions();
         
         // Register us as a selection provider so that Actions can pick us up
@@ -228,7 +251,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         // Commit Viewer
         fCommitViewer = new CommitViewer(tableSash);
         
-        tableSash.setWeights(new int[] { 80, 20 });
+        tableSash.setWeights(new int[] { 75, 25 });
         
         /*
          * Listen to History Selections to update local Actions
@@ -287,19 +310,13 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     /**
      * Make Any Local Bar Menu Actions
      */
-//    protected void makeLocalMenuActions() {
-//        IActionBars actionBars = getViewSite().getActionBars();
-//
-//        // Local menu items go here
-//        IMenuManager manager = actionBars.getMenuManager();
-//        manager.add(new Action("&View Management...") {
-//            public void run() {
-//                MessageDialog.openInformation(getViewSite().getShell(),
-//                        "View Management",
-//                        "This is a placeholder for the View Management Dialog");
-//            }
-//        });
-//    }
+    private void makeLocalMenuActions() {
+        IActionBars actionBars = getViewSite().getActionBars();
+
+        // Local menu items go here
+        IMenuManager manager = actionBars.getMenuManager();
+        manager.add(fActionFilter);
+    }
 
     /**
      * Make Local Toolbar items
@@ -363,6 +380,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
+        manager.add(new Separator());
+        manager.add(fActionFilter);
     }
 
     HistoryTableViewer getHistoryViewer() {
@@ -389,18 +408,91 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             // Store last selected
             fSelectedRepository = selectedRepository;
 
+            // Set filtered model object
+            updateObjectFilter(selection, false);
+            
             // Set label text
             updateLabel();
-            
+
             // Set History
             getHistoryViewer().setRepository(selectedRepository);
             
             // Set Branches
             getBranchesViewer().setRepository(selectedRepository);
             
-            // If selectedRepository isn't null actions will be updated on first selection
+            // If selectedRepository is null update actions, if it isn't null actions will be updated on first selection
             if(selectedRepository == null) {
                 updateActions();
+            }
+        }
+        else {
+            // Set filtered model object if we are filtering
+            updateObjectFilter(selection, true);
+        }
+        
+        fLastSelection = selection;
+    }
+    
+    /**
+     * Called from the external menu item "Show In History"
+     * This sets the filtered object on a single selection and then unsets it when another selection is made
+     */
+    public void setFilteredModelObject(ISelection selection) {
+        if(!fActionFilter.isChecked()) {
+            isFilteringObject = true;
+            setFilteredModelObject(selection, true);
+            updateLabel();
+        }
+    }
+    
+    private void updateObjectFilter(ISelection selection, boolean doUpdate) {
+        // If we are filtering all the time
+        if(fActionFilter.isChecked()) {
+            setFilteredModelObject(selection, doUpdate);
+        }
+        // If we are doing a one-off single selection filter then unset it
+        else if(isFilteringObject && !Objects.equals(selection, fLastSelection)) {
+            getHistoryViewer().setFilteredModelObject(null, true);
+            isFilteringObject = false;
+            updateLabel();
+        }
+    }
+    
+    /**
+     * If the object filter is active set the history filter object's id to that in the selection if it's a model object in the selected model.
+     */
+    private void setFilteredModelObject(ISelection selection, boolean doUpdate) {
+        if(fSelectedRepository != null && selection instanceof IStructuredSelection sel) {
+            Object selected = sel.getFirstElement();
+            IArchimateModelObject modelObject = null;
+            
+            if(selected instanceof IArchimateModelObject) {
+                modelObject = (IArchimateModelObject)selected;
+            }
+            
+            // If it's an EditPart...
+            else if(selected instanceof IAdaptable adaptable) {
+                boolean getDiagramModelForDiagramComponents = true;
+                
+                // If it's a diagram model component get the DiagramModel
+                if(getDiagramModelForDiagramComponents) {
+                    modelObject = adaptable.getAdapter(IDiagramModelComponent.class);
+                    if(modelObject instanceof IDiagramModelComponent dmc) {
+                        modelObject = dmc.getDiagramModel();
+                    }
+                }
+                // Else get the ArchimateConcept if it's an Archimate diagram model component, or null if a plain diagram model compenent
+                else {
+                    modelObject = adaptable.getAdapter(IArchimateModelObject.class);
+                }
+            }
+            
+            if(modelObject != null && modelObject.getArchimateModel() == fSelectedRepository.getOpenModel()) {
+                getHistoryViewer().setFilteredModelObject(modelObject.getId(), doUpdate);
+            }
+            // No selected object in a repo part
+            else {
+                getHistoryViewer().setFilteredModelObject(null, true);
             }
         }
     }
@@ -412,6 +504,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         String text = Messages.HistoryView_0 + " "; //$NON-NLS-1$
         if(fSelectedRepository != null) {
             text += fSelectedRepository.getName();
+            if(fActionFilter.isChecked() || isFilteringObject) {
+                text += " " + Messages.HistoryView_7; //$NON-NLS-1$
+            }
         }
         fRepoLabel.setText(text);
     }

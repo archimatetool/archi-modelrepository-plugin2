@@ -190,7 +190,7 @@ public class MergeHandler {
                         branchToMerge.getShortName(), utils.getCurrentLocalBranchName()} );
         
         logger.info("Committing merge " + fullMessage);
-        utils.commitChanges(fullMessage, false);
+        utils.commitChangesWithManifest(fullMessage, false);
     }
     
     /**
