@@ -63,9 +63,12 @@ public class PartUtils {
         
         // Go through each ViewPart and see if any adapts to IArchimateModel.class
         for(IViewReference viewRef : PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences()) {
-            model = viewRef.getPart(false).getAdapter(IArchimateModel.class);
-            if(model != null) {
-                return getSelectedArchiRepositoryForModel(model);
+            part = viewRef.getPart(false);
+            if(part != null) {
+                model = part.getAdapter(IArchimateModel.class);
+                if(model != null) {
+                    return getSelectedArchiRepositoryForModel(model);
+                }
             }
         }
         
