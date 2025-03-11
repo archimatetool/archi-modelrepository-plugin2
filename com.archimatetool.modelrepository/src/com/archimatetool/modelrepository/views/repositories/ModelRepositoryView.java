@@ -45,6 +45,8 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.SelectionListenerFactory;
+import org.eclipse.ui.SelectionListenerFactory.Predicates;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
@@ -139,12 +141,12 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             }
         });
         
-        // Listen to workbench selections
-        getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
+        // Listen to workbench selections using a SelectionListenerFactory
+        getSite().getPage().addSelectionListener(SelectionListenerFactory.createListener(this,
+                                                 Predicates.alreadyDeliveredAnyPart.and(Predicates.selfMute)));
         
         // Initialise with whatever is selected in the workbench
-        selectionChanged(getSite().getWorkbenchWindow().getPartService().getActivePart(),
-                getSite().getWorkbenchWindow().getSelectionService().getSelection());
+        selectionChanged(getSite().getPage().getActivePart(), getSite().getPage().getSelection());
         
         /*
          * Listen to Double-click Action
@@ -636,13 +638,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
 
     @Override
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        if(part == null || part == this) {
-            return;
-        }
-        
         // Model selected
-        IArchimateModel model = part.getAdapter(IArchimateModel.class);
-        selectObject(model);
+        if(part != null) {
+            IArchimateModel model = part.getAdapter(IArchimateModel.class);
+            selectObject(model);
+        }
     }
 
     public void selectObject(Object object) {
@@ -698,12 +698,6 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         }
         
         return super.getAdapter(adapter);
-    }
-
-    @Override
-    public void dispose() {
-        super.dispose();
-        getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(this);
     }
 
     // =================================================================================

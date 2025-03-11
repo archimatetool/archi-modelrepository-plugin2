@@ -41,6 +41,8 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.SelectionListenerFactory;
+import org.eclipse.ui.SelectionListenerFactory.Predicates;
 import org.eclipse.ui.part.IContributedContentsView;
 import org.eclipse.ui.part.ViewPart;
 
@@ -159,15 +161,15 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         // Register us as a selection provider so that Actions can pick us up
         getSite().setSelectionProvider(getHistoryViewer());
         
-        // Listen to workbench selections
-        getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
+        // Listen to workbench selections using a SelectionListenerFactory
+        getSite().getPage().addSelectionListener(SelectionListenerFactory.createListener(this,
+                                                 Predicates.alreadyDeliveredAnyPart.and(Predicates.selfMute)));
 
         // Register Help Context
         PlatformUI.getWorkbench().getHelpSystem().setHelp(getHistoryViewer().getControl(), HELP_ID);
         
         // Initialise with whatever is selected in the workbench
-        selectionChanged(getSite().getWorkbenchWindow().getPartService().getActivePart(),
-                getSite().getWorkbenchWindow().getSelectionService().getSelection());
+        selectionChanged(getSite().getPage().getActivePart(), getSite().getPage().getSelection());
         
         // Add listener
         RepositoryListenerManager.INSTANCE.addListener(this);
@@ -380,10 +382,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     
     @Override
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        if(part == this) {
-            return;
-        }
-        
         IArchiRepository selectedRepository = PartUtils.getSelectedArchiRepositoryInWorkbenchPart(part);
         
         // Update if selectedRepository is different 
@@ -476,7 +474,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     @Override
     public void dispose() {
         super.dispose();
-        getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(this);
         RepositoryListenerManager.INSTANCE.removeListener(this);
     }
     
