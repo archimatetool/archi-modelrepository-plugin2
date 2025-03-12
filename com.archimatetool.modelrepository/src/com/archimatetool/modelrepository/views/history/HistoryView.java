@@ -17,7 +17,6 @@ import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
@@ -25,9 +24,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
@@ -121,16 +118,16 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             // Selected two objects
             else if(selection.size() == 2) {
                 // Two RevCommits
-                if(selection.get(0) instanceof RevCommit && selection.get(1) instanceof RevCommit) {
-                    mc = new ModelComparison(fSelectedRepository, (RevCommit)selection.get(0), (RevCommit)selection.get(1));
+                if(selection.get(0) instanceof RevCommit revCommit1 && selection.get(1) instanceof RevCommit revCommit2) {
+                    mc = new ModelComparison(fSelectedRepository, revCommit1, revCommit2);
                 }
                 // One RevCommit and Working Tree
-                else if(selection.get(0) instanceof RevCommit) {
-                    mc = new ModelComparison(fSelectedRepository, (RevCommit)selection.get(0));
+                else if(selection.get(0) instanceof RevCommit revCommit) {
+                    mc = new ModelComparison(fSelectedRepository, revCommit);
                 }
                 // One RevCommit and Working Tree
-                else if(selection.get(1) instanceof RevCommit) {
-                    mc = new ModelComparison(fSelectedRepository, (RevCommit)selection.get(1));
+                else if(selection.get(1) instanceof RevCommit revCommit) {
+                    mc = new ModelComparison(fSelectedRepository, revCommit);
                 }
             }
             
@@ -223,12 +220,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         /*
          * Listen to Branch Selections and forward on to History Viewer
          */
-        fBranchesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                BranchInfo branchInfo = (BranchInfo)event.getStructuredSelection().getFirstElement();
-                getHistoryViewer().setSelectedBranch(branchInfo);
-            }
+        fBranchesViewer.addSelectionChangedListener(event -> {
+            BranchInfo branchInfo = (BranchInfo)event.getStructuredSelection().getFirstElement();
+            getHistoryViewer().setSelectedBranch(branchInfo);
         });
     }
     
@@ -256,11 +250,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         /*
          * Listen to History Selections to update local Actions
          */
-        fHistoryTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                updateActions();
-            }
+        fHistoryTableViewer.addSelectionChangedListener(event -> {
+            updateActions();
         });
     }
     
@@ -294,11 +285,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         MenuManager menuMgr = new MenuManager("#HistoryPopupMenu"); //$NON-NLS-1$
         menuMgr.setRemoveAllWhenShown(true);
         
-        menuMgr.addMenuListener(new IMenuListener() {
-            @Override
-            public void menuAboutToShow(IMenuManager manager) {
-                fillContextMenu(manager);
-            }
+        menuMgr.addMenuListener(manager -> {
+            fillContextMenu(manager);
         });
         
         Menu menu = menuMgr.createContextMenu(getHistoryViewer().getControl());
@@ -403,7 +391,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
         IArchiRepository selectedRepository = PartUtils.getSelectedArchiRepositoryInWorkbenchPart(part);
         
-        // Update if selectedRepository is different 
+        // Update if selectedRepository is not the currently selected one 
         if(!Objects.equals(selectedRepository, fSelectedRepository)) {
             // Store last selected
             fSelectedRepository = selectedRepository;
@@ -425,8 +413,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
                 updateActions();
             }
         }
+        // If it is the currently selected one then...
         else {
-            // Set filtered model object if we are filtering
+            // ...set filtered model object if we are filtering
             updateObjectFilter(selection, true);
         }
         
@@ -513,40 +502,40 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
-        if(Objects.equals(repository, fSelectedRepository)) {
-            switch(eventName) {
-                case IRepositoryListener.HISTORY_CHANGED:
-                    getHistoryViewer().setInput(repository);
-                    updateLabel();
-                    break;
-                    
-                case IRepositoryListener.REPOSITORY_DELETED:
-                    fSelectedRepository = null; // Reset this
-                    updateLabel();
-                    getHistoryViewer().setRepository(null);
-                    getBranchesViewer().setRepository(null);
-                    updateActions();
-                    break;
-                    
-                case IRepositoryListener.MODEL_RENAMED:
-                    updateLabel();
-                    break;
-                    
-                case IRepositoryListener.MODEL_SAVED:
-                    getHistoryViewer().modelSaved();
-                    break;
+        // Update only if the repository change is the currently selected one
+        if(!Objects.equals(repository, fSelectedRepository)) {
+            return;
+        }
 
-                case IRepositoryListener.BRANCHES_CHANGED:
-                    getBranchesViewer().setRepository(repository);
-                    break;
-                    
-                default:
-                    break;
+        switch(eventName) {
+            case IRepositoryListener.HISTORY_CHANGED -> {
+                getHistoryViewer().setInput(repository);
+                updateLabel();
+            }
+            
+            case IRepositoryListener.REPOSITORY_DELETED -> {
+                fSelectedRepository = null; // Reset this
+                updateLabel();
+                getHistoryViewer().setRepository(null);
+                getBranchesViewer().setRepository(null);
+                updateActions();
+            }
+                
+            case IRepositoryListener.MODEL_RENAMED -> {
+                updateLabel();
+            }
+                
+            case IRepositoryListener.MODEL_SAVED -> {
+                getHistoryViewer().modelSaved();
             }
 
-            // Actions need to be updated
-            updateActions();
+            case IRepositoryListener.BRANCHES_CHANGED -> {
+                getBranchesViewer().setRepository(repository);
+            }
         }
+
+        // Actions need to be updated
+        updateActions();
     }
     
     @Override

@@ -153,8 +153,8 @@ public class ModelRepositoryTreeViewerDragDropHandler {
      */
     private void moveTreeObjects(Group newParent, Object[] objects) {
         for(Object o : objects) {
-            if(o instanceof IModelRepositoryTreeEntry) {
-                newParent.add((IModelRepositoryTreeEntry)o);
+            if(o instanceof IModelRepositoryTreeEntry treeEntry) {
+                newParent.add(treeEntry);
             }
         }
         
@@ -178,7 +178,7 @@ public class ModelRepositoryTreeViewerDragDropHandler {
             return (Group)fViewer.getInput();
         }
         
-        return event.item.getData() instanceof Group ? (Group)event.item.getData() : null;
+        return event.item.getData() instanceof Group group ? group : null;
     }
 
     /**

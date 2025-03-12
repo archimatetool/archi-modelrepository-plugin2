@@ -128,12 +128,12 @@ public class HistoryTableViewer extends TableViewer {
         }
 
         fSelectedBranch = branchInfo;
-        setInputAndSelect((IArchiRepository)getInput());
+        setInputAndSelect(getInput());
     }
     
     void modelSaved() {
-        // If we have working tree then update history view
-        if(hasWorkingTree((IArchiRepository)getInput()) != hasWorkingTree) {
+        // If we have a working tree then update history view
+        if(hasWorkingTree(getInput()) != hasWorkingTree) {
             setInput(getInput());
         }
     }
@@ -162,7 +162,7 @@ public class HistoryTableViewer extends TableViewer {
         if(!Objects.equals(objectId, filteredObjectId)) {
             filteredObjectId = objectId;
             if(doUpdate) {
-                setInputAndSelect((IArchiRepository)getInput());
+                setInputAndSelect(getInput());
             }
         }
     }
@@ -176,6 +176,11 @@ public class HistoryTableViewer extends TableViewer {
             logger.log(Level.SEVERE, "Has changes to commit", ex); //$NON-NLS-1$
             return false;
         }
+    }
+    
+    @Override
+    public IArchiRepository getInput() {
+        return (IArchiRepository)super.getInput();
     }
     
     // ===============================================================================================
@@ -312,7 +317,7 @@ public class HistoryTableViewer extends TableViewer {
             int realIndex = hasWorkingTree ? index - 1 : index;
             
             if(realIndex >= commits.size()) {
-                loadCommits((IArchiRepository)getInput(), realIndex);
+                loadCommits(getInput(), realIndex);
             }
             
             replace(commits.get(realIndex), index);
@@ -332,31 +337,36 @@ public class HistoryTableViewer extends TableViewer {
 	// ===============================================================================================
 
     private class HistoryLabelProvider extends StyledCellLabelProvider {
-        
         DateFormat dateFormat = DateFormat.getDateTimeInstance();
         
         private String getColumnText(RevCommit commit, int columnIndex) {
-            switch(columnIndex) {
-                case 0:
-                    return commit.getShortMessage();
-                    
-                case 1:
-                    return commit.getAuthorIdent().getName();
-                    
-                case 2:
-                    return dateFormat.format(new Date(commit.getCommitTime() * 1000L));
-                
-                case 3:
-                    return commit.getName().substring(0, 8);
-                    
-                default:
-                    return null;
-            }
+            return switch(columnIndex) {
+                // Short Message
+                case 0 -> {
+                    yield commit.getShortMessage();
+                }
+                // Author Name
+                case 1 -> {
+                    yield commit.getAuthorIdent().getName();
+                }
+                // Date
+                case 2 -> {
+                    yield dateFormat.format(new Date(commit.getCommitTime() * 1000L));
+                }
+                // Short SHA-1
+                case 3 -> {
+                    yield commit.getName().substring(0, 8);
+                }
+                default -> {
+                    yield null;
+                }
+            };
         }
 
         @Override
         public void update(ViewerCell cell) {
-            if(!(cell.getElement() instanceof RevCommit)) {
+            // Working Tree
+            if(!(cell.getElement() instanceof RevCommit commit)) {
                 if(cell.getColumnIndex() == 0) {
                     cell.setForeground(null);
                     cell.setText(Messages.HistoryTableViewer_7);
@@ -366,8 +376,6 @@ public class HistoryTableViewer extends TableViewer {
                 }
                 return;
             }
-            
-            RevCommit commit = (RevCommit)cell.getElement();
             
             cell.setForeground(null);
             cell.setText(getColumnText(commit, cell.getColumnIndex()));
@@ -398,13 +406,13 @@ public class HistoryTableViewer extends TableViewer {
         
         @Override
         protected void paint(Event event, Object element) {
-            if(!(element instanceof RevCommit)) {
+            // Working Tree
+            if(!(element instanceof RevCommit commit)) {
                 super.paint(event, element);
                 return;
             }
             
             // Draw a line denoting a branch for unmerged commits (i.e remote commits)
-            RevCommit commit = (RevCommit)element;
             
             // Each OS has a different image indent
             final int imageGap = PlatformUtils.isWindows() ? 8 : PlatformUtils.isMac() ? 11 : 10;
@@ -448,11 +456,11 @@ public class HistoryTableViewer extends TableViewer {
         
         @Override
         public String getToolTipText(Object element) {
-            if(!(element instanceof RevCommit)) {
+            // Working Tree
+            if(!(element instanceof RevCommit commit)) {
                 return null;
             }
             
-            RevCommit commit = (RevCommit)element;
             String s = ""; //$NON-NLS-1$
             
             // Local/Remote are same commit

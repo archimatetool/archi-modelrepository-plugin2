@@ -192,25 +192,28 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
         switch(eventName) {
-            case IRepositoryListener.MODEL_RENAMED:
-            case IRepositoryListener.MODEL_SAVED:
-            case IRepositoryListener.BRANCHES_CHANGED:
-            case IRepositoryListener.HISTORY_CHANGED:
+            case IRepositoryListener.MODEL_RENAMED,
+                 IRepositoryListener.MODEL_SAVED,
+                 IRepositoryListener.BRANCHES_CHANGED,
+                 IRepositoryListener.HISTORY_CHANGED -> {
+                     
                 RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(repository.getWorkingFolder());
                 if(ref != null) {
                     updateStatusCache(ref.getArchiRepository());
                     update(ref, null);
                     setSelection(getSelection()); // This will update the selection and the status bar
                 }
-                break;
-                
-            case IRepositoryListener.REPOSITORY_DELETED:
+            }
+            
+            case IRepositoryListener.REPOSITORY_DELETED -> {
                 statusCache.remove(repository);
-                // fall through
-            default:
                 refresh();
+            }
+            
+            default -> {
+                refresh();
+            }
         }
-
     }
     
     @Override
@@ -264,18 +267,14 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         }
         
         @Override
-        public void dispose() {
-        }
-        
-        @Override
         public Object[] getElements(Object parent) {
             return getChildren(parent);
         }
         
         @Override
         public Object getParent(Object child) {
-            if(child instanceof IModelRepositoryTreeEntry) {
-                return ((IModelRepositoryTreeEntry)child).getParent();
+            if(child instanceof IModelRepositoryTreeEntry treeEntry) {
+                return treeEntry.getParent();
             }
             
             return null;
@@ -283,8 +282,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         @Override
         public Object[] getChildren(Object parent) {
-            if(parent instanceof Group) {
-                return ((Group)parent).getAll().toArray();
+            if(parent instanceof Group group) {
+                return group.getAll().toArray();
             }
             
             return new Object[0];
@@ -292,8 +291,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         @Override
         public boolean hasChildren(Object parent) {
-            if(parent instanceof Group) {
-                return !((Group)parent).getAll().isEmpty();
+            if(parent instanceof Group group) {
+                return !group.getAll().isEmpty();
             }
             
             return false;
@@ -362,8 +361,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             // Need to clear this
             cell.setForeground(null);
             
-            if(cell.getElement() instanceof RepositoryRef) {
-                IArchiRepository repo = ((RepositoryRef)cell.getElement()).getArchiRepository();
+            if(cell.getElement() instanceof RepositoryRef ref) {
+                IArchiRepository repo = ref.getArchiRepository();
                 
                 // Local repo was perhaps deleted or the commit doesn;t contain a model file
                 if(!repo.getModelFile().exists()) {
@@ -398,8 +397,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         @Override
         public String getToolTipText(Object element) {
-            if(element instanceof RepositoryRef) {
-                IArchiRepository repo = ((RepositoryRef)element).getArchiRepository();
+            if(element instanceof RepositoryRef ref) {
+                IArchiRepository repo = ref.getArchiRepository();
                 
                 String s = repo.getName();
                 
@@ -410,8 +409,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 
                 return s;
             }
-            else if(element instanceof Group) {
-                return ((Group)element).getName();
+            else if(element instanceof Group group) {
+                return group.getName();
             }
             
             return null;

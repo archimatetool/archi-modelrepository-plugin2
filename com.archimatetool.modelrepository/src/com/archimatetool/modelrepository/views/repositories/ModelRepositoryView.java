@@ -17,7 +17,6 @@ import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
@@ -26,9 +25,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.osgi.util.NLS;
@@ -133,12 +130,9 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         /*
          * Listen to Selections to update local Actions
          */
-        getViewer().addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                updateActions(event.getSelection());
-                updateStatusBar(event.getSelection());
-            }
+        getViewer().addSelectionChangedListener(event -> {
+            updateActions(event.getSelection());
+            updateStatusBar(event.getSelection());
         });
         
         // Listen to workbench selections using a SelectionListenerFactory
@@ -151,7 +145,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         /*
          * Listen to Double-click Action
          */
-        getViewer().addDoubleClickListener((event) -> {
+        getViewer().addDoubleClickListener(event -> {
             Object obj = ((IStructuredSelection)event.getSelection()).getFirstElement();
             if(obj instanceof RepositoryRef) {
                 IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
@@ -189,12 +183,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         fActionOpen = new Action(Messages.ModelRepositoryView_13) {
             @Override
             public void run() {
-                Object selected = ((IStructuredSelection)getViewer().getSelection()).getFirstElement();
-                if(selected instanceof RepositoryRef) {
+                if(getViewer().getStructuredSelection().getFirstElement() instanceof RepositoryRef ref) {
                     BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
                         @Override
                         public void run() {
-                            IEditorModelManager.INSTANCE.openModel(((RepositoryRef)selected).getArchiRepository().getModelFile());
+                            IEditorModelManager.INSTANCE.openModel(ref.getArchiRepository().getModelFile());
                         }
                     });
                 }
@@ -244,7 +237,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         fActionRenameEntry = new Action(Messages.ModelRepositoryView_5) {
             @Override
             public void run() {
-                Object o = ((IStructuredSelection)getViewer().getSelection()).getFirstElement();
+                Object o = getViewer().getStructuredSelection().getFirstElement();
                 if(o != null) {
                     getViewer().editElement(o, 0);
                 }
@@ -365,14 +358,13 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         boolean delete = false;
 
         // Get all selected Repository Refs and Groups
-        for(Object object : ((IStructuredSelection)getViewer().getSelection()).toArray()) {
+        for(Object object : getViewer().getStructuredSelection().toArray()) {
             // Selected RepositoryRef
-            if(object instanceof RepositoryRef) {
-                refsToDelete.add((RepositoryRef)object);
+            if(object instanceof RepositoryRef ref) {
+                refsToDelete.add(ref);
             }
             // Selected Group and its sub-groups and sub-RepositoryRefs
-            if(object instanceof Group) {
-                Group group = (Group)object;
+            if(object instanceof Group group) {
                 groupsToDelete.add(group);
                 groupsToDelete.addAll(group.getAllChildGroups());
                 refsToDelete.addAll(group.getAllChildRepositoryRefs());
@@ -460,14 +452,14 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
      * @return The current selection's parent group
      */
     private Group getSelectedParentGroup() {
-        Object object = ((IStructuredSelection)getViewer().getSelection()).getFirstElement();
+        Object object = getViewer().getStructuredSelection().getFirstElement();
         
-        if(object instanceof Group) {
-            return ((Group)object);
+        if(object instanceof Group group) {
+            return group;
         }
         
-        if(object instanceof RepositoryRef) {
-            return ((RepositoryRef)object).getParent();
+        if(object instanceof RepositoryRef ref) {
+            return ref.getParent();
         }
         
         return RepositoryTreeModel.getInstance();
@@ -496,11 +488,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         MenuManager menuMgr = new MenuManager("#RepoViewerPopupMenu"); //$NON-NLS-1$
         menuMgr.setRemoveAllWhenShown(true);
         
-        menuMgr.addMenuListener(new IMenuListener() {
-            @Override
-            public void menuAboutToShow(IMenuManager manager) {
-                fillContextMenu(manager);
-            }
+        menuMgr.addMenuListener(manager -> {
+            fillContextMenu(manager);
         });
         
         Menu menu = menuMgr.createContextMenu(getViewer().getControl());
@@ -567,8 +556,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private void updateActions(ISelection selection) {
         Object obj = ((IStructuredSelection)selection).getFirstElement();
         
-        if(obj instanceof RepositoryRef) {
-            IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
+        if(obj instanceof RepositoryRef ref) {
+            IArchiRepository repo = ref.getArchiRepository();
             
             fActionRefresh.setRepository(repo);
             fActionCommit.setRepository(repo);
@@ -580,15 +569,15 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private void updateStatusBar(ISelection selection) {
         Object obj = ((IStructuredSelection)selection).getFirstElement();
         
-        if(obj instanceof RepositoryRef) {
-            IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
+        if(obj instanceof RepositoryRef ref) {
+            IArchiRepository repo = ref.getArchiRepository();
             ModelRepoTreeLabelProvider labelProvider = (ModelRepoTreeLabelProvider)getViewer().getLabelProvider();
             Image image = labelProvider.getImage(repo);
             String text = repo.getName() + " - " + labelProvider.getStatusText(repo); //$NON-NLS-1$
             getViewSite().getActionBars().getStatusLineManager().setMessage(image, text);
         }
-        else if(obj instanceof Group) {
-            getViewSite().getActionBars().getStatusLineManager().setMessage(IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_GROUP), ((Group)obj).getName());
+        else if(obj instanceof Group group) {
+            getViewSite().getActionBars().getStatusLineManager().setMessage(IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_GROUP), group.getName());
         }
         else {
             getViewSite().getActionBars().getStatusLineManager().setMessage(null, ""); //$NON-NLS-1$
@@ -647,12 +636,12 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
 
     public void selectObject(Object object) {
         // Model
-        if(object instanceof IArchimateModel) {
-            object = RepositoryTreeModel.getInstance().findRepositoryRef(RepoUtils.getWorkingFolderForModel((IArchimateModel)object));
+        if(object instanceof IArchimateModel model) {
+            object = RepositoryTreeModel.getInstance().findRepositoryRef(RepoUtils.getWorkingFolderForModel(model));
         }
         // Repository
-        else if(object instanceof IArchiRepository) {
-            object = RepositoryTreeModel.getInstance().findRepositoryRef(((IArchiRepository)object).getWorkingFolder());
+        else if(object instanceof IArchiRepository repo) {
+            object = RepositoryTreeModel.getInstance().findRepositoryRef(repo.getWorkingFolder());
         }
         
         if(object != null) {

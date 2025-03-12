@@ -108,18 +108,8 @@ public class BranchesTableViewer extends TableViewer {
      */
    private static class BranchesContentProvider implements IStructuredContentProvider {
         @Override
-        public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-        }
-
-        @Override
-        public void dispose() {
-        }
-        
-        @Override
         public Object[] getElements(Object parent) {
-            if(parent instanceof IArchiRepository) {
-                IArchiRepository repo = (IArchiRepository)parent;
-                
+            if(parent instanceof IArchiRepository repo) {
                 // Local Repo was deleted
                 if(!repo.getWorkingFolder().exists()) {
                     return new Object[0];
@@ -144,38 +134,46 @@ public class BranchesTableViewer extends TableViewer {
 	// ===============================================================================================
 
     private static class BranchesLabelProvider extends CellLabelProvider {
-        
         DateFormat dateFormat = DateFormat.getDateTimeInstance();
         
-        public String getColumnText(BranchInfo branchInfo, int columnIndex) {
+        private String getColumnText(BranchInfo branchInfo, int columnIndex) {
             RevCommit latestCommit = branchInfo.getLatestCommit();
             
-            switch(columnIndex) {
-                case 0:
+            return switch(columnIndex) {
+                // Branch Name
+                case 0 -> {
                     String name = branchInfo.getShortName();
                     if(branchInfo.isCurrentBranch()) {
                         name += " " + Messages.BranchesTableViewer_2; //$NON-NLS-1$
                     }
-                    return name;
-
-                case 1:
+                    yield name;
+                }
+                
+                // Branch Status
+                case 1 -> {
                     if(branchInfo.isRemoteDeleted()) {
-                        return Messages.BranchesTableViewer_3;
+                        yield Messages.BranchesTableViewer_3;
                     }
                     if(branchInfo.hasRemoteRef()) {
-                        return Messages.BranchesTableViewer_4;
+                        yield Messages.BranchesTableViewer_4;
                     }
                     else {
-                        return Messages.BranchesTableViewer_5;
+                        yield Messages.BranchesTableViewer_5;
                     }
-                 
-                case 2:
-                    return latestCommit == null ? "" : latestCommit.getCommitterIdent().getName(); //$NON-NLS-1$
-                    
-                case 3:
-                    return latestCommit == null ? "" : dateFormat.format(new Date(latestCommit.getCommitTime() * 1000L)); //$NON-NLS-1$
-                    
-                case 4:
+                }
+                
+                // Latest Commit Author
+                case 2 -> {
+                    yield latestCommit == null ? "" : latestCommit.getCommitterIdent().getName(); //$NON-NLS-1$
+                }
+                
+                // Latest Commit Date
+                case 3 -> {
+                    yield latestCommit == null ? "" : dateFormat.format(new Date(latestCommit.getCommitTime() * 1000L)); //$NON-NLS-1$
+                }
+                
+                // Commit Status
+                case 4 -> {
                     String text;
                     
                     if(branchInfo.hasUnpushedCommits()) {
@@ -194,14 +192,18 @@ public class BranchesTableViewer extends TableViewer {
                         text = Messages.BranchesTableViewer_14;
                     }
                     
-                    return text;
-                    
-                case 5:
-                    return branchInfo.isMerged() ? Messages.BranchesTableViewer_15 : Messages.BranchesTableViewer_16;
-                    
-                default:
-                    return ""; //$NON-NLS-1$
-            }
+                    yield text;
+                }
+                
+                // Merge Status
+                case 5 -> {
+                    yield branchInfo.isMerged() ? Messages.BranchesTableViewer_15 : Messages.BranchesTableViewer_16;
+                }
+                
+                default -> {
+                    yield ""; //$NON-NLS-1$
+                }
+            };
         }
 
         @Override
@@ -209,9 +211,7 @@ public class BranchesTableViewer extends TableViewer {
             // Need to clear this first
             cell.setForeground(null);
             
-            if(cell.getElement() instanceof BranchInfo) {
-                BranchInfo branchInfo = (BranchInfo)cell.getElement();
-                
+            if(cell.getElement() instanceof BranchInfo branchInfo) {
                 cell.setText(getColumnText(branchInfo, cell.getColumnIndex()));
                 
                 if(branchInfo.isCurrentBranch() && cell.getColumnIndex() == 0) {

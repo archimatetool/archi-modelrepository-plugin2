@@ -39,21 +39,12 @@ public class BranchesViewer extends ComboViewer {
         
         setContentProvider(new IStructuredContentProvider() {
             @Override
-            public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-            }
-
-            @Override
-            public void dispose() {
-            }
-
-            @Override
             public Object[] getElements(Object inputElement) {
-                if(!(inputElement instanceof BranchStatus)) {
-                    return new Object[0];
+                if(inputElement instanceof BranchStatus branchStatus) {
+                    return branchStatus.getLocalAndUntrackedRemoteBranches().toArray();
                 }
                 
-                BranchStatus branchStatus = (BranchStatus)inputElement;
-                return branchStatus.getLocalAndUntrackedRemoteBranches().toArray();
+                return new Object[0];
             }
         });
         

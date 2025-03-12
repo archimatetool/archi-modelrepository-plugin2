@@ -10,7 +10,6 @@ import java.util.Objects;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
-import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
@@ -164,11 +163,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         MenuManager menuMgr = new MenuManager("#BranchesPopupMenu"); //$NON-NLS-1$
         menuMgr.setRemoveAllWhenShown(true);
         
-        menuMgr.addMenuListener(new IMenuListener() {
-            @Override
-            public void menuAboutToShow(IMenuManager manager) {
-                fillContextMenu(manager);
-            }
+        menuMgr.addMenuListener(manager -> {
+            fillContextMenu(manager);
         });
         
         Menu menu = menuMgr.createContextMenu(getBranchesViewer().getControl());
@@ -244,29 +240,29 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
-        if(repository.equals(fSelectedRepository)) {
-            switch(eventName) {
-                case IRepositoryListener.HISTORY_CHANGED:
-                    getBranchesViewer().doSetInput(repository);
-                    break;
-                    
-                case IRepositoryListener.REPOSITORY_DELETED:
-                    fRepoLabel.setText(Messages.BranchesView_0);
-                    getBranchesViewer().setInput(null);
-                    fSelectedRepository = null; // Reset this
-                    break;
-                    
-                case IRepositoryListener.MODEL_RENAMED:
-                    fRepoLabel.setText(Messages.BranchesView_0 + " " + repository.getName()); //$NON-NLS-1$
-                    break;
+        // Update only if the repository change is the currently selected one
+        if(!Objects.equals(repository, fSelectedRepository)) {
+            return;
+        }
+        
+        switch(eventName) {
+            case IRepositoryListener.HISTORY_CHANGED -> {
+                getBranchesViewer().doSetInput(repository);
+            }
 
-                case IRepositoryListener.BRANCHES_CHANGED:
-                    getBranchesViewer().doSetInput(repository);
-                    updateActions(); // These need to be updated (switching branch doesn't generate a new selection event)
-                    break;
-                    
-                default:
-                    break;
+            case IRepositoryListener.REPOSITORY_DELETED -> {
+                fRepoLabel.setText(Messages.BranchesView_0);
+                getBranchesViewer().setInput(null);
+                fSelectedRepository = null; // Reset this
+            }
+
+            case IRepositoryListener.MODEL_RENAMED -> {
+                fRepoLabel.setText(Messages.BranchesView_0 + " " + repository.getName()); //$NON-NLS-1$
+            }
+
+            case IRepositoryListener.BRANCHES_CHANGED -> {
+                getBranchesViewer().doSetInput(repository);
+                updateActions(); // These need to be updated (switching branch doesn't generate a new selection event)
             }
         }
     }
