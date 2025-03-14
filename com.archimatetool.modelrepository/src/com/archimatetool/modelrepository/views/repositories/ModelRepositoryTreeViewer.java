@@ -29,12 +29,12 @@ import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TreeItem;
 import org.jdom2.JDOMException;
 
-import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.components.TreeTextCellEditor;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
@@ -304,6 +304,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
     // ===============================================================================================
 
     class ModelRepoTreeLabelProvider extends CellLabelProvider {
+        Color alertColor = new Color(255, 64, 0);
+        
         Image getImage(IArchiRepository repo) {
             Image image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
             
@@ -378,7 +380,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     
                     // Red text
                     if(sc.branchInfo.hasUnpushedCommits() || sc.branchInfo.hasRemoteCommits() || sc.hasChangesToCommit) {
-                        cell.setForeground(ColorFactory.get(255, 64, 0));
+                        cell.setForeground(alertColor);
                     }
                 }
                 else {

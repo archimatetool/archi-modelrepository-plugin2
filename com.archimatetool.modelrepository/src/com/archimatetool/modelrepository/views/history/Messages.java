@@ -12,6 +12,8 @@ public class Messages extends NLS {
 
     public static String HistoryTableViewer_1;
 
+    public static String HistoryTableViewer_10;
+
     public static String HistoryTableViewer_2;
 
     public static String HistoryTableViewer_3;
@@ -23,6 +25,10 @@ public class Messages extends NLS {
     public static String HistoryTableViewer_6;
 
     public static String HistoryTableViewer_7;
+
+    public static String HistoryTableViewer_8;
+
+    public static String HistoryTableViewer_9;
 
     public static String HistoryView_0;
 
