@@ -30,12 +30,14 @@ import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.jdom.JDOMUtils;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimatePackage;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
+import com.archimatetool.model.IProfile;
 
 /**
  * Create Commit manifest to include in a commit message
@@ -190,6 +192,20 @@ public class CommitManifest {
     }
     
     /**
+     * @return an ObjectChange in the given set matching id and type.
+     *         Because we use a Set there should be only one match.
+     */
+    private static ObjectChange getObjectChange(Set<ObjectChange> changes, String id, String type) {
+        for(ObjectChange change : changes) {
+            if(change.id().equals(id) && change.type().equals(type)) {
+                return change;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
      * @return a Set of ObjectChanges from the ModelComparison comparing the working tree with the latest commit
      */
     private static Set<ObjectChange> getChangedObjects(ModelComparison modelComparison) {
@@ -204,31 +220,31 @@ public class CommitManifest {
                 System.out.println("diff: " + diff);
             }
             
-            if(match.getLeft() instanceof IIdentifier left) { // Left is the most recent, can be null
+            // Left is the most recent
+            EObject left = match.getLeft();
+            if(left != null) {
                 if(debug) {
                     System.out.println("left: " + left);
                 }
-                
-                IIdentifier object = getActualObject(left, diff);
-                if(object != null) {
+                if(getActualObject(left, diff) instanceof IIdentifier id) {
                     if(debug) {
-                        System.out.println("actual: " + object);
+                        System.out.println("actual: " + id);
                     }
-                    changes.add(new ObjectChange(object.getId(), getChangeType(left, diff)));
+                    changes.add(new ObjectChange(id.getId(), getChangeType(left, diff))); // must use left for change type
                 }
             }
             
-            if(match.getRight() instanceof IIdentifier right) { // Right is previous, can be null
+            // Right is previous
+            EObject right = match.getRight();
+            if(right != null) {
                 if(debug) {
                     System.out.println("right: " + right);
                 }
-                
-                IIdentifier object = getActualObject(right, diff);
-                if(object != null) {
+                if(getActualObject(right, diff) instanceof IIdentifier id) {
                     if(debug) {
-                        System.out.println("actual: " + object);
+                        System.out.println("actual: " + id);
                     }
-                    changes.add(new ObjectChange(object.getId(), getChangeType(right, diff)));
+                    changes.add(new ObjectChange(id.getId(), getChangeType(right, diff))); // must use right for change type
                 }
             }
             
@@ -245,47 +261,40 @@ public class CommitManifest {
      * If it's a diagram object, get the diagram itself.
      * If it's a folder member object, get that rather than the folder.
      */
-    private static IIdentifier getActualObject(IIdentifier object, Diff diff) {
+    private static EObject getActualObject(EObject eObject, Diff diff) {
         // Name change in IDiagramModelArchimateComponent, so ignore this change because it's actually a name change in the linked concept
-        if(object instanceof IDiagramModelArchimateComponent && diff instanceof AttributeChange attChange
-                                                             && attChange.getAttribute().equals(IArchimatePackage.eINSTANCE.getNameable_Name())) {
+        if(eObject instanceof IDiagramModelArchimateComponent && diff instanceof AttributeChange attChange
+                                                              && attChange.getAttribute().equals(IArchimatePackage.eINSTANCE.getNameable_Name())) {
             return null;
         }
         
+        // Get the parent eContainer if eObject is Bounds, Properties, Feature, Profile
+        if((!(eObject instanceof IArchimateModelObject) || eObject instanceof IProfile)) {
+            eObject = eObject.eContainer();
+        }
+        
         // DiagramModelComponent, so get parent DiagramModel
-        if(object instanceof IDiagramModelComponent dmc) {
-            object = dmc.getDiagramModel();
+        if(eObject instanceof IDiagramModelComponent dmc) {
+            eObject = dmc.getDiagramModel();
         }
         
         // Folder member added or deleted, so get member object
-        if(object instanceof IFolder && diff instanceof ReferenceChange refChange
-                                     && refChange.getValue() instanceof IIdentifier member) {
-            object = member;
+        if(eObject instanceof IFolder && diff instanceof ReferenceChange refChange
+                                      && refChange.getValue() instanceof IArchimateModelObject member) {
+            eObject = member;
         }
         
-        return isValidObject(object) ? object : null;
-    }
-    
-    /**
-     * @return an ObjectChange in the given set matching id and type.
-     *         Because we use a Set there should be only one match.
-     */
-    private static ObjectChange getObjectChange(Set<ObjectChange> changes, String id, String type) {
-        for(ObjectChange change : changes) {
-            if(change.id().equals(id) && change.type().equals(type)) {
-                return change;
-            }
-        }
-        
-        return null;
+        return isValidObject(eObject) ? eObject : null;
     }
     
     /**
      * @return The change type for a Diff
      */
-    private static String getChangeType(IIdentifier object, Diff diff) {
-        // These are only allowed for folders
-        if(object instanceof IFolder) {
+    private static String getChangeType(EObject eObject, Diff diff) {
+        // Folders when a child member is added, deleted or moved
+        if(eObject instanceof IFolder
+                              && diff instanceof ReferenceChange refChange // ReferenceChange is a member object
+                              && refChange.getValue() instanceof IArchimateModelObject) {
             return switch (diff.getKind()) {
                 case ADD -> ADDED;
                 case DELETE -> DELETED;
@@ -301,6 +310,9 @@ public class CommitManifest {
      * @return The provided commit message with the manifest removed
      */
     public static String getCommitMessageWithoutManifest(String commitMessage) {
+        if(commitMessage == null) {
+            return "";
+        }
         int index = commitMessage.lastIndexOf(PRE_CR + MANIFEST_START); // Get last index in case user was a smartarse and added it to their commit message
         return index == -1 ? commitMessage : commitMessage.substring(0, index);
     }
@@ -362,6 +374,9 @@ public class CommitManifest {
      * @return The manifest as Strig from the commit message, or null if not found
      */
     static String getManifestFromCommitMessage(String commitMessage) {
+        if(commitMessage == null) {
+            return null;
+        }
         int start = commitMessage.lastIndexOf(MANIFEST_START); // Get last index in case user was a smartarse and added it to their commit message
         int end = commitMessage.lastIndexOf(MANIFEST_END);
         return start != -1 && end != -1 ? commitMessage.substring(start, end + MANIFEST_END.length()) : null;

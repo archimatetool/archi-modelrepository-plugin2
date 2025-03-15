@@ -5,6 +5,7 @@
  */
 package com.archimatetool.modelrepository.views.history;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
@@ -26,7 +27,7 @@ public class CommitViewer {
     private StyledText styledText;
     
     // Set to true to show the manifest
-    private boolean showManifest = false;
+    private boolean showManifest = Platform.inDevelopmentMode();
     
     public CommitViewer(Composite parent) {
         styledText = new StyledText(parent, SWT.V_SCROLL | SWT.READ_ONLY | SWT.WRAP | SWT.BORDER);
