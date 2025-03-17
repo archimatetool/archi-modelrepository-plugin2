@@ -42,17 +42,17 @@ public class MergeBranchWorkflow extends AbstractRepositoryWorkflow {
                 Messages.MergeBranchWorkflow_0,
                 Messages.MergeBranchWorkflow_1,
                 SWT.NONE,
-                Messages.MergeBranchWorkflow_2,
                 Messages.MergeBranchWorkflow_3,
+                Messages.MergeBranchWorkflow_2,
                 Messages.MergeBranchWorkflow_4);
         
-        // Online merge
-        if(response == 0) {
-            doOnlineMerge(currentBranchInfo);
-        }
         // Local merge
-        else if(response == 1) {
+        if(response == 0) {
             doLocalMerge(currentBranchInfo);
+        }
+        // Online merge
+        else if(response == 1) {
+            doOnlineMerge(currentBranchInfo);
         }
     }
     

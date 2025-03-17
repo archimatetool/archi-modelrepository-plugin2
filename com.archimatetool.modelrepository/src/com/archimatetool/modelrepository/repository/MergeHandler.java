@@ -147,15 +147,13 @@ public class MergeHandler {
         fixMissingImages(ourModel, theirModel);
         
         /*
-         * If the result is a non-integral model then return cancelled
+         * If the result is a non-integral model then ask the user to use ours or theirs
          * TODO: Show and resolve conflicts
          */
         if(!isModelIntegral(ourModel)) {
             // Reset and clear for now
             logger.warning("Model was not integral");
-            utils.resetToRef(RepoConstants.HEAD);
-            MessageDialog.openError(null, "Merge", "Model was not integral. Merge cancelled.");
-            return MergeHandlerResult.CANCELLED;
+            return handleConflictingMerge(utils, branchToMerge);
         }
         
         // If OK, save the model
@@ -191,21 +189,6 @@ public class MergeHandler {
         
         logger.info("Committing merge " + fullMessage);
         utils.commitChangesWithManifest(fullMessage, false);
-    }
-    
-    /**
-     * Try to load the model after a merge.
-     * @return false if an exception is thrown when loading, an image is missing, or the ModelChecker fails
-     */
-    @SuppressWarnings("unused")
-    private boolean isModelIntegral(File modelFile) {
-        try {
-            IArchimateModel model = IEditorModelManager.INSTANCE.load(modelFile);
-            return isModelIntegral(model);
-        }
-        catch(IOException ex) {
-            return false;
-        }
     }
     
     /**
@@ -295,23 +278,23 @@ public class MergeHandler {
     
     /**
      * This is placeholder code. TODO: remove this.
-     * It means we can at least work with the code until we implement 3-way merge.
-     * We offer to cancel the merge or take our or their branch
+     * It means we can at least work with the code until we manage conflicts,
+     * We offer to cancel the merge or take ours or theirs branch
      */
-    @SuppressWarnings("unused")
     private MergeHandlerResult handleConflictingMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
         int response = MessageDialog.open(MessageDialog.QUESTION,
                 null,
                 "Merge Branch",
-                "There's a conflict. What do you want from life?",
+                "There's a conflict. What do you want to do?",
                 SWT.NONE,
-                "My stuff",
-                "Their stuff",
+                "Take Mine",
+                "Take Theirs",
                 "Cancel");
 
         // Cancel
         if(response == -1 || response == 2) {
             // Reset and clear
+            logger.info("User cancelled merge conflict. Resetting to HEAD.");
             utils.resetToRef(RepoConstants.HEAD);
             return MergeHandlerResult.CANCELLED;
         }
