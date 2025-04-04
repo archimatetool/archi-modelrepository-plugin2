@@ -68,7 +68,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private boolean sshPasswordChanged;
     
 	public ModelRepositoryPreferencePage() {
-		setPreferenceStore(ModelRepositoryPlugin.INSTANCE.getPreferenceStore());
+		setPreferenceStore(ModelRepositoryPlugin.getInstance().getPreferenceStore());
 	}
 	
     @Override

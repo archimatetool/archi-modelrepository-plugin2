@@ -30,13 +30,18 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin {
 
     public static final String PLUGIN_ID = "com.archimatetool.modelrepository";
     
+    // The shared instance
+    private static ModelRepositoryPlugin instance;
+    
     /**
-     * The shared instance
+     * @return the shared instance
      */
-    public static ModelRepositoryPlugin INSTANCE;
+    public static ModelRepositoryPlugin getInstance() {
+        return instance;
+    }
     
     public ModelRepositoryPlugin() {
-        INSTANCE = this;
+        instance = this;
     }
 
     @Override
@@ -49,8 +54,8 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin {
         // Start logging
         try {
             FileLogger.create("com.archimatetool.modelrepository",
-                              INSTANCE.getBundle().getEntry("logging.properties"),
-                              new File(INSTANCE.getUserModelRepositoryFolder(), "log-%g.txt"));
+                              getBundle().getEntry("logging.properties"),
+                              new File(getUserModelRepositoryFolder(), "log-%g.txt"));
         }
         catch(IOException ex) {
             ex.printStackTrace();

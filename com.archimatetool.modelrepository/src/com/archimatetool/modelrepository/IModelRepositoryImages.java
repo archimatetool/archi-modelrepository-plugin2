@@ -18,7 +18,7 @@ import com.archimatetool.editor.ui.ImageFactory;
 @SuppressWarnings("nls")
 public interface IModelRepositoryImages {
     
-    ImageFactory ImageFactory = new ImageFactory(ModelRepositoryPlugin.INSTANCE);
+    ImageFactory ImageFactory = new ImageFactory(ModelRepositoryPlugin.getInstance());
 
     String IMGPATH = "img/";
     

@@ -69,7 +69,7 @@ public class RepoUtils {
      * Generate a new random folder name for a new repo
      */
     public static File generateNewRepoFolder() {
-        File rootFolder = ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder();
+        File rootFolder = ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder();
         File newFolder;
         
         do {

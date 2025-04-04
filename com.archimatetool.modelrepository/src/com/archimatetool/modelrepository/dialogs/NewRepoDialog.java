@@ -34,7 +34,7 @@ public class NewRepoDialog extends CloneDialog {
         Control control = super.createDialogArea(parent);
         
         setMessage(super.getMessage() + "\n"  //$NON-NLS-1$
-                + NLS.bind(Messages.NewRepoDialog_2, ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder()),
+                + NLS.bind(Messages.NewRepoDialog_2, ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder()),
                 IMessageProvider.INFORMATION);
         
         return control;

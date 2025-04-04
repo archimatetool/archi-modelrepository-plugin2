@@ -32,7 +32,7 @@ public class RepositoryTreeModel extends Group {
     /**
      * Backing File
      */
-    private File backingFile = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), "repositories.xml"); //$NON-NLS-1$
+    private File backingFile = new File(ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder(), "repositories.xml"); //$NON-NLS-1$
     
     /**
      * Listeners
@@ -113,7 +113,7 @@ public class RepositoryTreeModel extends Group {
         String location = refElement.getAttributeValue("location"); //$NON-NLS-1$
         if(location != null) {
             File file = new File(location);
-            //File file = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), location);
+            //File file = new File(ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder(), location);
             if(RepoUtils.isArchiGitRepository(file)) {
                 RepositoryRef ref = new RepositoryRef(file);
                 parentGroup.add(ref);

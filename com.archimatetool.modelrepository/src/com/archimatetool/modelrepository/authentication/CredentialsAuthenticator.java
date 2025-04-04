@@ -45,7 +45,7 @@ public final class CredentialsAuthenticator {
         @Override
         public File getIdentityFile() {
             if(Platform.getPreferencesService() != null) { // Check Preference Service is running in case background fetch is running and we quit the app
-                return new File(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_SSH_IDENTITY_FILE)); 
+                return new File(ModelRepositoryPlugin.getInstance().getPreferenceStore().getString(IPreferenceConstants.PREFS_SSH_IDENTITY_FILE)); 
             }
             
             return null;
@@ -56,7 +56,7 @@ public final class CredentialsAuthenticator {
             char[] password = null;
             
             if(Platform.getPreferencesService() != null // Check Preference Service is running in case background fetch is running and we quit the app
-                    && ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
+                    && ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
                 return CredentialsStorage.getInstance().getSSHIdentityFilePassword();
             }
             
