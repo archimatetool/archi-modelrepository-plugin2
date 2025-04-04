@@ -22,9 +22,13 @@ import com.archimatetool.model.IArchimatePackage;
  */
 public class RepositoryListenerManager {
 
-    public static final RepositoryListenerManager INSTANCE = new RepositoryListenerManager();
+    private static final RepositoryListenerManager instance = new RepositoryListenerManager();
     
     private CopyOnWriteArrayList<IRepositoryListener> listeners = new CopyOnWriteArrayList<>(); // Avoid possible CMEs
+    
+    public static RepositoryListenerManager getInstance() {
+        return instance;
+    }
     
     private RepositoryListenerManager() {
         // Listen to open model changes

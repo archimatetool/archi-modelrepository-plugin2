@@ -259,7 +259,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
      * Notify that the repo changed
      */
     protected void notifyChangeListeners(String eventName) {
-        RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(eventName, archiRepository);
+        RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(eventName, archiRepository);
     }
     
     /**

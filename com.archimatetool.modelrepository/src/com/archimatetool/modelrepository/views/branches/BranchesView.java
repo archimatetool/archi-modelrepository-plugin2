@@ -92,7 +92,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         selectionChanged(getSite().getPage().getActivePart(), getSite().getPage().getSelection());
         
         // Add listener
-        RepositoryListenerManager.INSTANCE.addListener(this);
+        RepositoryListenerManager.getInstance().addListener(this);
     }
     
     private void createInfoSection(Composite parent) {
@@ -287,7 +287,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     @Override
     public void dispose() {
         super.dispose();
-        RepositoryListenerManager.INSTANCE.removeListener(this);
+        RepositoryListenerManager.getInstance().removeListener(this);
     }
     
 

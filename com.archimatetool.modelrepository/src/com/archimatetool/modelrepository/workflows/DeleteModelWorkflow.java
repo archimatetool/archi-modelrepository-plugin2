@@ -91,7 +91,7 @@ public class DeleteModelWorkflow extends AbstractRepositoryWorkflow {
             }
             
             // Notify deleted
-            RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, archiRepository);
+            RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, archiRepository);
         }
         catch(IOException ex) {
             ex.printStackTrace();

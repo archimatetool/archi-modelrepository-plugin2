@@ -417,7 +417,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 ref.delete();
 
                 // Notify deleted
-                RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, ref.getArchiRepository());
+                RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, ref.getArchiRepository());
             }
         }
         catch(IOException ex) {

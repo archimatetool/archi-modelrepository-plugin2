@@ -79,11 +79,11 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         setContentProvider(new ModelRepoTreeContentProvider());
         setLabelProvider(new ModelRepoTreeLabelProvider());
         
-        RepositoryListenerManager.INSTANCE.addListener(this);
+        RepositoryListenerManager.getInstance().addListener(this);
         
         // Dispose of this and clean up
         getTree().addDisposeListener(e -> {
-            RepositoryListenerManager.INSTANCE.removeListener(ModelRepositoryTreeViewer.this);
+            RepositoryListenerManager.getInstance().removeListener(ModelRepositoryTreeViewer.this);
             RepositoryTreeModel.getInstance().dispose();
         });
         
