@@ -77,15 +77,14 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin {
      * @return The File Location of this plugin
      */
     public File getPluginFolder() {
-        URL url = getBundle().getEntry("/");
         try {
-            url = FileLocator.resolve(url);
+            URL url = FileLocator.resolve(getBundle().getEntry("/"));
+            return new File(url.getPath());
         }
         catch(IOException ex) {
             ex.printStackTrace();
+            return null;
         }
-        
-        return new File(url.getPath());
     }
     
     /**
