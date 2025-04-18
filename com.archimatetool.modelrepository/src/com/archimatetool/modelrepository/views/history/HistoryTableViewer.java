@@ -243,8 +243,9 @@ public class HistoryTableViewer extends TableViewer {
         void loadCommits(IArchiRepository repo) throws IOException, GitAPIException {
             try(Git git = Git.open(repo.getWorkingFolder())) {
                 try(RevWalk revWalk = new RevWalk(git.getRepository())) {
-                    // Sorting of commits. This is the best option as it keeps
-                    // Local and Remote commits together regardless of commit time
+                    // Sorting of commits.
+                    // TOPO_KEEP_BRANCH_TOGETHER keeps local and Remote commits together regardless of commit time
+                    // But TOPO maintains the order when merging a branch
                     revWalk.sort(RevSort.TOPO_KEEP_BRANCH_TOGETHER);
                     
                     // Add a filter to show only commits that contain an object's Id
