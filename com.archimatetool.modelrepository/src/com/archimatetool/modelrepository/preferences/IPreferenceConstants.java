@@ -28,4 +28,6 @@ public interface IPreferenceConstants {
     
     String PREFS_FETCH_IN_BACKGROUND = "fetchInBackground";
     String PREFS_FETCH_IN_BACKGROUND_INTERVAL = "fetchInBackgroundInterval";
+    
+    String PREFS_HISTORY_SORT_STRATEGY = "historySortStrategy";
  }

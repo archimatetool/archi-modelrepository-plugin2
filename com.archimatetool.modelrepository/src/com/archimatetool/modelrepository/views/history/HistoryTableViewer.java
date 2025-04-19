@@ -72,6 +72,11 @@ public class HistoryTableViewer extends TableViewer {
     
     private String filteredObjectId;
     
+    // Sorting of commits.
+    // TOPO_KEEP_BRANCH_TOGETHER keeps local and Remote commits together regardless of commit time
+    // But TOPO maintains the order when merging a branch
+    private RevSort revSort = RevSort.TOPO_KEEP_BRANCH_TOGETHER;
+    
     public HistoryTableViewer(Composite parent) {
         super(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
         
@@ -173,6 +178,15 @@ public class HistoryTableViewer extends TableViewer {
         }
     }
     
+    void setSortStrategy(RevSort revSort) {
+        this.revSort = revSort;
+        setInputAndSelect(getInput());
+    }
+    
+    RevSort getSortStrategy() {
+        return revSort;
+    }
+    
     private boolean hasWorkingTree(IArchiRepository repo) {
         try {
             return repo != null && repo.hasChangesToCommit() && fSelectedBranch != null && fSelectedBranch.isCurrentBranch();
@@ -243,10 +257,7 @@ public class HistoryTableViewer extends TableViewer {
         void loadCommits(IArchiRepository repo) throws IOException, GitAPIException {
             try(Git git = Git.open(repo.getWorkingFolder())) {
                 try(RevWalk revWalk = new RevWalk(git.getRepository())) {
-                    // Sorting of commits.
-                    // TOPO_KEEP_BRANCH_TOGETHER keeps local and Remote commits together regardless of commit time
-                    // But TOPO maintains the order when merging a branch
-                    revWalk.sort(RevSort.TOPO_KEEP_BRANCH_TOGETHER);
+                    revWalk.sort(revSort);
                     
                     // Add a filter to show only commits that contain an object's Id
                     if(filteredObjectId != null) {

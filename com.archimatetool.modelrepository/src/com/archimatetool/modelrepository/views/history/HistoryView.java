@@ -7,6 +7,7 @@ package com.archimatetool.modelrepository.views.history;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +28,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
@@ -53,6 +55,7 @@ import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
 import com.archimatetool.modelrepository.actions.RestoreCommitAction;
 import com.archimatetool.modelrepository.actions.UndoLastCommitAction;
 import com.archimatetool.modelrepository.dialogs.CompareDialog;
+import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -163,6 +166,35 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         }
     };
     
+    private class SortStrategyAction extends Action {
+        RevSort revSort;
+        
+        SortStrategyAction(String text, RevSort revSort) {
+            super(text, IAction.AS_CHECK_BOX);
+            this.revSort = revSort;
+        }
+        
+        @Override
+        public void run() {
+            for(SortStrategyAction action : sortActions) {
+                action.setChecked(revSort);
+            }
+            
+            getHistoryViewer().setSortStrategy(revSort);
+        }
+        
+        void setChecked(RevSort revSort) {
+            setChecked(this.revSort == revSort);
+        }
+    }
+    
+    private SortStrategyAction[] sortActions = {
+            new SortStrategyAction("Children Before Parents", RevSort.TOPO),
+            new SortStrategyAction("Keep Branches Together", RevSort.TOPO_KEEP_BRANCH_TOGETHER),
+            new SortStrategyAction("By Time", RevSort.COMMIT_TIME_DESC)
+    };
+    
+    
     @Override
     public void createPartControl(Composite parent) {
         parent.setLayout(new GridLayout());
@@ -193,6 +225,21 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         
         // Add listener
         RepositoryListenerManager.getInstance().addListener(this);
+        
+        // Restore sort strategy
+        RevSort revSort = RevSort.TOPO_KEEP_BRANCH_TOGETHER;
+
+        try {
+            revSort = RevSort.valueOf(ModelRepositoryPlugin.getInstance().getPreferenceStore().getString(IPreferenceConstants.PREFS_HISTORY_SORT_STRATEGY));
+        }
+        catch(Exception ex) {
+        }
+        
+        for(SortStrategyAction action : sortActions) {
+            action.setChecked(revSort);
+        }
+        
+        getHistoryViewer().setSortStrategy(revSort);
     }
     
     private void createInfoSection(Composite parent) {
@@ -304,6 +351,14 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         // Local menu items go here
         IMenuManager manager = actionBars.getMenuManager();
         manager.add(fActionFilter);
+        
+        manager.add(new Separator());
+        
+        IMenuManager sortMenu = new MenuManager("Sort");
+        manager.add(sortMenu);
+        for(SortStrategyAction action : sortActions) {
+            sortMenu.add(action);
+        }
     }
 
     /**
@@ -559,6 +614,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     public void dispose() {
         super.dispose();
         RepositoryListenerManager.getInstance().removeListener(this);
+        
+        // Store sort strategy
+        ModelRepositoryPlugin.getInstance().getPreferenceStore().putValue(IPreferenceConstants.PREFS_HISTORY_SORT_STRATEGY, getHistoryViewer().getSortStrategy().name());
     }
     
 
