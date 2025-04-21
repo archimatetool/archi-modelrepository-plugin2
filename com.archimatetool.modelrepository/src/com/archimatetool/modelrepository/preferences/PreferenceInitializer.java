@@ -9,6 +9,7 @@ import java.io.File;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jgit.revwalk.RevSort;
 
 import com.archimatetool.editor.ArchiPlugin;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
@@ -39,5 +40,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
 		
 		store.setDefault(PREFS_FETCH_IN_BACKGROUND, false);
 		store.setDefault(PREFS_FETCH_IN_BACKGROUND_INTERVAL, 60);
+		
+		store.setDefault(PREFS_HISTORY_SORT_STRATEGY, RevSort.TOPO.name());
     }
 }

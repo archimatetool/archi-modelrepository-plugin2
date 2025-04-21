@@ -44,6 +44,8 @@ import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.editor.ui.ThemeUtils;
 import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
+import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.ModelObjectIdFilter;
@@ -72,6 +74,8 @@ public class HistoryTableViewer extends TableViewer {
     
     private String filteredObjectId;
     
+    private RevSort revSort;
+    
     public HistoryTableViewer(Composite parent) {
         super(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
         
@@ -83,6 +87,16 @@ public class HistoryTableViewer extends TableViewer {
         ColumnViewerToolTipSupport.enableFor(this);
         
         setUseHashlookup(true);
+        
+        // Get sort strategy from Preferences
+        // TOPO_KEEP_BRANCH_TOGETHER keeps local and Remote commits together regardless of commit time
+        // But TOPO maintains the order when merging a branch
+        try {
+            revSort = RevSort.valueOf(ModelRepositoryPlugin.getInstance().getPreferenceStore().getString(IPreferenceConstants.PREFS_HISTORY_SORT_STRATEGY));
+        }
+        catch(Exception ex) {
+            revSort = RevSort.TOPO;
+        }
     }
 
     private void setup(Composite parent) {
@@ -173,6 +187,17 @@ public class HistoryTableViewer extends TableViewer {
         }
     }
     
+    void setSortStrategy(RevSort revSort) {
+        if(this.revSort != revSort) {
+            this.revSort = revSort;
+            setInputAndSelect(getInput());
+        }
+    }
+    
+    RevSort getSortStrategy() {
+        return revSort;
+    }
+    
     private boolean hasWorkingTree(IArchiRepository repo) {
         try {
             return repo != null && repo.hasChangesToCommit() && fSelectedBranch != null && fSelectedBranch.isCurrentBranch();
@@ -243,9 +268,7 @@ public class HistoryTableViewer extends TableViewer {
         void loadCommits(IArchiRepository repo) throws IOException, GitAPIException {
             try(Git git = Git.open(repo.getWorkingFolder())) {
                 try(RevWalk revWalk = new RevWalk(git.getRepository())) {
-                    // Sorting of commits. This is the best option as it keeps
-                    // Local and Remote commits together regardless of commit time
-                    revWalk.sort(RevSort.TOPO_KEEP_BRANCH_TOGETHER);
+                    revWalk.sort(revSort);
                     
                     // Add a filter to show only commits that contain an object's Id
                     if(filteredObjectId != null) {
