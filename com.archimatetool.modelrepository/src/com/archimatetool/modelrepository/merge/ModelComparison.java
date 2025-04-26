@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository.repository;
+package com.archimatetool.modelrepository.merge;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +39,9 @@ import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProfile;
 import com.archimatetool.model.util.ArchimateModelUtils;
+import com.archimatetool.modelrepository.repository.GitUtils;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Represents a comparison of changes between two models

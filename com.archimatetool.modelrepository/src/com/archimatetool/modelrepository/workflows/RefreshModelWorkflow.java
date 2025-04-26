@@ -20,11 +20,11 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
+import com.archimatetool.modelrepository.merge.MergeHandler;
+import com.archimatetool.modelrepository.merge.MergeHandler.MergeHandlerResult;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
-import com.archimatetool.modelrepository.repository.MergeHandler;
-import com.archimatetool.modelrepository.repository.MergeHandler.MergeHandlerResult;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 
 /**

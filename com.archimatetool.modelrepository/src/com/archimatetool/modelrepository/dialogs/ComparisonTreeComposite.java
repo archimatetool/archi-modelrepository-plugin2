@@ -48,8 +48,8 @@ import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperty;
-import com.archimatetool.modelrepository.repository.ModelComparison;
-import com.archimatetool.modelrepository.repository.ModelComparison.Change;
+import com.archimatetool.modelrepository.merge.ModelComparison;
+import com.archimatetool.modelrepository.merge.ModelComparison.Change;
 
 
 /**

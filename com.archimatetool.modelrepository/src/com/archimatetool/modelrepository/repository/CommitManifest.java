@@ -38,6 +38,7 @@ import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IProfile;
+import com.archimatetool.modelrepository.merge.ModelComparison;
 
 /**
  * Create Commit manifest to include in a commit message
