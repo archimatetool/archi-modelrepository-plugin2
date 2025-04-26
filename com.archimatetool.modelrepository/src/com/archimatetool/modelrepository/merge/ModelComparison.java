@@ -19,11 +19,8 @@ import java.util.Set;
 import org.eclipse.emf.compare.AttributeChange;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
-import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.ReferenceChange;
-import org.eclipse.emf.compare.scope.DefaultComparisonScope;
-import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jgit.revwalk.RevCommit;
 
@@ -187,25 +184,27 @@ public class ModelComparison {
      * @throws IOException
      */
     public ModelComparison init() throws IOException {
-        if(comparison == null) {
-            try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
-                // Load the model from first commit
-                model1 = loadModel(utils, revCommit1.getName());
-                
-                if(model1 == null) {
-                    throw new IOException("Model was null for " + revCommit1.getName());
-                }
-
-                // Load the model from the second commit or the working tree. If the second commit is null, load the working tree
-                model2 = isWorkingTreeComparison() ? getWorkingTreeModel() : loadModel(utils, revCommit2.getName());
-                
-                if(model2 == null) {
-                    throw new IOException("Model was null for " + (isWorkingTreeComparison() ? "working tree" : revCommit1.getName()));
-                }
-                
-                IComparisonScope scope = new DefaultComparisonScope(model2, model1, null); // Left/Right are swapped!
-                comparison = EMFCompare.builder().build().compare(scope);
+        if(comparison != null) {
+            return this;
+        }
+        
+        try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
+            // Load the model from first commit
+            model1 = loadModel(utils, revCommit1.getName());
+            
+            if(model1 == null) {
+                throw new IOException("Model was null for " + revCommit1.getName());
             }
+
+            // Load the model from the second commit or the working tree. If the second commit is null, load the working tree
+            model2 = isWorkingTreeComparison() ? getWorkingTreeModel() : loadModel(utils, revCommit2.getName());
+            
+            if(model2 == null) {
+                throw new IOException("Model was null for " + (isWorkingTreeComparison() ? "working tree" : revCommit1.getName()));
+            }
+            
+            // Create Comparison
+            comparison = MergeFactory.createComparison(model2, model1, null);  // Left/Right are swapped!
         }
         
         return this;

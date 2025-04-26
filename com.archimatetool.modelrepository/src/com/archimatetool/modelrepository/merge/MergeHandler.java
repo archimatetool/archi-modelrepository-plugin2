@@ -14,23 +14,17 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.common.util.BasicMonitor;
-import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.ConflictKind;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceSource;
-import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.merge.BatchMerger;
-import org.eclipse.emf.compare.merge.IMerger.Registry;
+import org.eclipse.emf.compare.merge.IMerger;
 import org.eclipse.emf.compare.merge.IMerger.RegistryImpl;
-import org.eclipse.emf.compare.scope.DefaultComparisonScope;
-import org.eclipse.emf.compare.scope.IComparisonScope;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
@@ -47,8 +41,6 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.model.ModelChecker;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.model.IDiagramModelObject;
-import com.archimatetool.model.util.ArchimateModelUtils;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -139,12 +131,11 @@ public class MergeHandler {
         IArchimateModel ourModelCopy = copyModel(ourModel);
         IArchimateModel theirModelCopy = copyModel(theirModel);
         
-        IComparisonScope scope = new DefaultComparisonScope(ourModel, theirModel, baseModel);
-        Comparison comparison = EMFCompare.builder().build().compare(scope);
-        List<Diff> differences = comparison.getDifferences();
+        // Create Comparison and get Diffs
+        List<Diff> differences = MergeFactory.createComparison(ourModel, theirModel, baseModel).getDifferences();
         
-        // Get the Registry
-        Registry mergerRegistry = RegistryImpl.createStandaloneInstance();
+        // Create a Merger Registry
+        IMerger.Registry mergerRegistry = RegistryImpl.createStandaloneInstance();
         
         // Merge non conflicting changes coming from LEFT
         new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), not(hasConflict(ConflictKind.REAL)))).copyAllLeftToRight(differences, new BasicMonitor());
@@ -159,10 +150,6 @@ public class MergeHandler {
         // Fix any missing images
         fixMissingImages(ourModel, theirModelCopy);
         fixMissingImages(theirModel, ourModelCopy);
-        
-        // Fix any missing bounds
-        fixMissingBounds(ourModel, theirModelCopy);
-        fixMissingBounds(theirModel, ourModelCopy);
         
         /*
          * If the result is a non-integral model then ask the user to use ours or theirs
@@ -263,23 +250,6 @@ public class MergeHandler {
         }
         
         return missingPaths;
-    }
-    
-    /**
-     * When merging a Bounds object and the Bounds x,y,width,height is a close match to another one
-     * for some reason the bounds can be deleted.
-     * If this happens restore it from the other model.
-     */
-    private void fixMissingBounds(IArchimateModel model, IArchimateModel otherModel) {
-        for(Iterator<EObject> iter = model.eAllContents(); iter.hasNext();) {
-            EObject eObject = iter.next();
-            if(eObject instanceof IDiagramModelObject dmo && dmo.getBounds() == null) {
-                if(ArchimateModelUtils.getObjectByID(otherModel, dmo.getId()) instanceof IDiagramModelObject other) {
-                    logger.info("Restoring missing bounds for object: " + dmo.getId());
-                    dmo.setBounds(other.getBounds().getCopy());
-                }
-            }
-        }
     }
     
     /**
