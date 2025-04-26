@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -29,6 +30,8 @@ import org.eclipse.emf.compare.merge.IMerger.Registry;
 import org.eclipse.emf.compare.merge.IMerger.RegistryImpl;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.MergeResult;
@@ -44,6 +47,8 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.model.ModelChecker;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IDiagramModelObject;
+import com.archimatetool.model.util.ArchimateModelUtils;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -130,6 +135,10 @@ public class MergeHandler {
         IArchimateModel theirModel = loadModel(utils, branchToMerge.getFullName());
         IArchimateModel baseModel = loadBaseModel(utils, branchToMerge.getFullName());
         
+        // Make copies of our models so we can retrieve objects from the originals before they are merged
+        IArchimateModel ourModelCopy = copyModel(ourModel);
+        IArchimateModel theirModelCopy = copyModel(theirModel);
+        
         IComparisonScope scope = new DefaultComparisonScope(ourModel, theirModel, baseModel);
         Comparison comparison = EMFCompare.builder().build().compare(scope);
         List<Diff> differences = comparison.getDifferences();
@@ -144,11 +153,16 @@ public class MergeHandler {
         new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), not(hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
 		
         // Merge conflicts
-        //(new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
+        //new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), hasConflict(ConflictKind.REAL))).copyAllRightToLeft(differences, new BasicMonitor());
         new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), hasConflict(ConflictKind.REAL))).copyAllLeftToRight(differences, new BasicMonitor());
         
-        // Fix any missing images (should we get them from the baseModel?)
-        fixMissingImages(ourModel, theirModel);
+        // Fix any missing images
+        fixMissingImages(ourModel, theirModelCopy);
+        fixMissingImages(theirModel, ourModelCopy);
+        
+        // Fix any missing bounds
+        fixMissingBounds(ourModel, theirModelCopy);
+        fixMissingBounds(theirModel, ourModelCopy);
         
         /*
          * If the result is a non-integral model then ask the user to use ours or theirs
@@ -211,23 +225,22 @@ public class MergeHandler {
     
     /**
      * If our model contains missing images, get them from the other model
+     * They might have deleted an image but we are still using it, or we might have deleted it but they were using it
      */
-    private void fixMissingImages(IArchimateModel ourModel, IArchimateModel otherModel) throws IOException {
-        Set<String> missingPaths = getMissingImagePaths(ourModel);
+    private void fixMissingImages(IArchimateModel model, IArchimateModel otherModel) throws IOException {
+        Set<String> missingPaths = getMissingImagePaths(model);
         if(missingPaths.isEmpty()) {
             return;
         }
         
-        logger.info("Restoring missing images...");
-        
-        IArchiveManager ourArchiveManager = (IArchiveManager)ourModel.getAdapter(IArchiveManager.class);
+        IArchiveManager archiveManager = (IArchiveManager)model.getAdapter(IArchiveManager.class);
         IArchiveManager otherArchiveManager = (IArchiveManager)otherModel.getAdapter(IArchiveManager.class);
         
         for(String imagePath : missingPaths) {
             byte[] bytes = otherArchiveManager.getBytesFromEntry(imagePath);
             if(bytes != null) {
                 logger.info("Restoring missing image: " + imagePath);
-                ourArchiveManager.addByteContentEntry(imagePath, bytes);
+                archiveManager.addByteContentEntry(imagePath, bytes);
             }
             else {
                 logger.warning("Could not get image: " + imagePath);
@@ -250,6 +263,23 @@ public class MergeHandler {
         }
         
         return missingPaths;
+    }
+    
+    /**
+     * When merging a Bounds object and the Bounds x,y,width,height is a close match to another one
+     * for some reason the bounds can be deleted.
+     * If this happens restore it from the other model.
+     */
+    private void fixMissingBounds(IArchimateModel model, IArchimateModel otherModel) {
+        for(Iterator<EObject> iter = model.eAllContents(); iter.hasNext();) {
+            EObject eObject = iter.next();
+            if(eObject instanceof IDiagramModelObject dmo && dmo.getBounds() == null) {
+                if(ArchimateModelUtils.getObjectByID(otherModel, dmo.getId()) instanceof IDiagramModelObject other) {
+                    logger.info("Restoring missing bounds for object: " + dmo.getId());
+                    dmo.setBounds(other.getBounds().getCopy());
+                }
+            }
+        }
     }
     
     /**
@@ -279,6 +309,14 @@ public class MergeHandler {
         }
     }
     
+    /**
+     * Copy a model and add a cloned ArchiveManager
+     */
+    private IArchimateModel copyModel(IArchimateModel model) {
+        IArchimateModel copy = EcoreUtil.copy(model);
+        copy.setAdapter(IArchiveManager.class, ((IArchiveManager)model.getAdapter(IArchiveManager.class)).clone(copy));
+        return copy;
+    }
     
     /**
      * This is placeholder code. TODO: remove this.
