@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -36,6 +37,19 @@ public class MergeBranchWorkflow extends AbstractRepositoryWorkflow {
 
     @Override
     public void run() {
+        // TODO - enable local and online merge
+        boolean doLocal = true;
+        
+        if(doLocal) {
+            if(MessageDialog.openConfirm(workbenchWindow.getShell(),
+                    Messages.MergeBranchWorkflow_0,
+                    NLS.bind(Messages.MergeBranchWorkflow_6, currentBranchInfo.getShortName()))) {
+                doLocalMerge(currentBranchInfo);
+            }
+            
+            return;
+        }
+        
         // Ask user to merge online, local or cancel
         int response = MessageDialog.open(MessageDialog.QUESTION,
                 workbenchWindow.getShell(),

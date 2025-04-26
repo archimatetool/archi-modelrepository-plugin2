@@ -52,6 +52,8 @@ public class Messages extends NLS {
     public static String MergeBranchWorkflow_4;
     public static String MergeBranchWorkflow_5;
 
+    public static String MergeBranchWorkflow_6;
+
     public static String PushModelWorkflow_0;
     public static String PushModelWorkflow_1;
     public static String PushModelWorkflow_2;
