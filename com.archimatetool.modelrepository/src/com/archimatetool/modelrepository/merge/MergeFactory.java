@@ -6,12 +6,14 @@
 package com.archimatetool.modelrepository.merge;
 
 import org.eclipse.emf.common.notify.Notifier;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.match.DefaultComparisonFactory;
 import org.eclipse.emf.compare.match.DefaultEqualityHelperFactory;
 import org.eclipse.emf.compare.match.DefaultMatchEngine;
 import org.eclipse.emf.compare.match.IComparisonFactory;
+import org.eclipse.emf.compare.match.IEqualityHelperFactory;
 import org.eclipse.emf.compare.match.IMatchEngine;
 import org.eclipse.emf.compare.match.eobject.IEObjectMatcher;
 import org.eclipse.emf.compare.match.eobject.IdentifierEObjectMatcher;
@@ -19,12 +21,14 @@ import org.eclipse.emf.compare.match.impl.MatchEngineFactoryImpl;
 import org.eclipse.emf.compare.match.impl.MatchEngineFactoryRegistryImpl;
 import org.eclipse.emf.compare.scope.DefaultComparisonScope;
 import org.eclipse.emf.compare.scope.IComparisonScope;
+import org.eclipse.emf.compare.utils.EqualityHelper;
 import org.eclipse.emf.compare.utils.UseIdentifiers;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.model.IBounds;
 import com.archimatetool.model.IIdentifier;
 import com.google.common.base.Function;
+import com.google.common.cache.LoadingCache;
 
 /**
  * Factory to create custom merge classes
@@ -62,14 +66,36 @@ public class MergeFactory {
             // Initialise with defaults
             super();
             
+            // Not working!
+            // See https://www.eclipse.org/forums/index.php/t/1049514/
+            
+            IEqualityHelperFactory helperFactory = new DefaultEqualityHelperFactory() {
+                @Override
+                public org.eclipse.emf.compare.utils.IEqualityHelper createEqualityHelper() {
+                    LoadingCache<EObject, URI> cache = EqualityHelper.createDefaultCache(getCacheBuilder());
+                    
+                    return new EqualityHelper(cache) {
+                        @Override
+                        public boolean matchingValues(Object object1, Object object2) {
+                            return super.matchingValues(object1, object2);
+                        }
+                        
+                        @Override
+                        protected boolean matchingEObjects(EObject object1, EObject object2) {
+                            return super.matchingEObjects(object1, object2);
+                        }
+                    };
+                }
+            };
+
             // Default matcher
             IEObjectMatcher defaultMatcher = DefaultMatchEngine.createDefaultEObjectMatcher(UseIdentifiers.WHEN_AVAILABLE);
             
             // Custom matcher using our matcher function
             IEObjectMatcher customIDMatcher = new IdentifierEObjectMatcher(defaultMatcher, idFunction);
             
-            // Comparison Factory
-            IComparisonFactory comparisonFactory = new DefaultComparisonFactory(new DefaultEqualityHelperFactory());
+            // Comparison Factory using our EqualityHelperFactory
+            IComparisonFactory comparisonFactory = new DefaultComparisonFactory(helperFactory);
             
             // Match engine
             matchEngine = new DefaultMatchEngine(customIDMatcher, comparisonFactory);
