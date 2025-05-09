@@ -174,11 +174,13 @@
             <command
                   commandId="com.archimatetool.modelrepository.command.createRepoFromModel"
                   icon="img/createRepository.png"
+                  label="Add Model to Workspace..."
                   style="push">
             </command>
             <command
                   commandId="com.archimatetool.modelrepository.command.deleteModel"
                   icon="img/delete.png"
+                  label="Delete Model from Workspace..."
                   style="push">
             </command>
             <separator
@@ -188,16 +190,19 @@
             <command
                   commandId="com.archimatetool.modelrepository.command.refreshModel"
                   icon="img/pull.png"
+                  label="Refresh Model"
                   style="push">
             </command>
             <command
                   commandId="com.archimatetool.modelrepository.command.commitModel"
                   icon="img/commit.png"
+                  label="Commit Changes..."
                   style="push">
             </command>
             <command
                   commandId="com.archimatetool.modelrepository.command.pushModel"
                   icon="img/push.png"
+                  label="Publish Changes..."
                   style="push">
             </command>
             <command
@@ -239,16 +244,19 @@
             <command
                   commandId="com.archimatetool.modelrepository.command.createRepoFromModel"
                   icon="img/createRepository.png"
+                  label="Add Model to Workspace..."
                   style="push">
             </command>
             <command
                   commandId="com.archimatetool.modelrepository.command.cloneModel"
                   icon="img/cloneGit.png"
+                  label="Import Remote Model to Workspace..."
                   style="push">
             </command>
             <command
                   commandId="com.archimatetool.modelrepository.command.deleteModel"
                   icon="img/delete.png"
+                  label="Delete Model from Workspace..."
                   style="push">
             </command>
             <separator
@@ -258,21 +266,25 @@
             <command
                   commandId="com.archimatetool.modelrepository.command.refreshModel"
                   icon="img/pull.png"
+                  label="Refresh Model"
                   style="push">
             </command>
             <command
                   commandId="com.archimatetool.modelrepository.command.commitModel"
                   icon="img/commit.png"
+                  label="Commit Changes..."
                   style="push">
             </command>
             <command
                   commandId="com.archimatetool.modelrepository.command.pushModel"
                   icon="img/push.png"
+                  label="Publish Changes..."
                   style="push">
             </command>
             <command
                   commandId="com.archimatetool.modelrepository.command.discardChanges"
                   icon="img/abort.png"
+                  label="Discard Uncommited Changes"
                   style="push">
             </command>
             <separator
@@ -329,6 +341,7 @@
             <command
                   commandId="com.archimatetool.modelrepository.command.discardChanges"
                   icon="img/abort.png"
+                  label="Discard Uncommited Changes"
                   style="push">
             </command>
             <separator
