@@ -1,16 +1,16 @@
-# coArchi 2
+# coArchi 2 (Archi Model Collaboration Plug-in)
 
-﻿<img alt="coArchi2" src="https://github.com/user-attachments/assets/345b19fc-fb18-4ff2-936d-7e89f3ce8e65" />
+<img alt="coArchi2" src="https://github.com/user-attachments/assets/345b19fc-fb18-4ff2-936d-7e89f3ce8e65" />
 
 ## What is this?
-This is an extension to Archi that allows collaborative work on Archi through sharing and versioning of models in a Git repository. Please refer to the Wiki for details on the roadmap and how to download the binary plug-in.
+This is an extension to Archi that allows collaborative work on Archi through sharing and versioning of models in a Git repository. Please refer to the [Wiki](https://github.com/archimatetool/archi-modelrepository-plugin2/wiki) for more information.
 
 ## Contributing code to Archi and Plug-ins
 
-Please see [How can I contribute code to Archi?](https://github.com/Phillipus/archi/wiki/How-can-I-contribute-code-to-Archi%3F) for general guidance on how to contribute code to Archi and its plug-ins.
+Please see [How can I contribute code to Archi?](https://github.com/archimatetool/archi/wiki/How-can-I-contribute-code-to-Archi%3F) for general guidance on how to contribute code to Archi and its plug-ins.
 
 ## Archi
-Archi® is a free, open source, cross-platform tool and editor to create ArchiMate models.
+Archi® is a free, open source, cross-platform tool and editor to create ArchiMate® models.
 
 The Archi® modelling tool is targeted toward all levels of Enterprise Architects and Modellers. It provides a low cost to entry solution to users who may be making their first steps in the ArchiMate modelling language, or who are looking for a free, cross-platform ArchiMate modelling tool for their company or institution and wish to engage with the language within a TOGAF® or other Enterprise Architecture framework.
 
