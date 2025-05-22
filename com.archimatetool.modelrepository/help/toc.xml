@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+<toc label="coArchi User Guide">
+    
+ <topic href="help/intro.html" label="Introduction">
+ </topic>
+ <topic href="https://github.com/archimatetool/archi-modelrepository-plugin2/wiki" label="Wiki">
+ </topic>
+</toc>

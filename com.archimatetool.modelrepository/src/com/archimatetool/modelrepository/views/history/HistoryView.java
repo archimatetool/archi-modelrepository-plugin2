@@ -73,7 +73,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     private static Logger logger = Logger.getLogger(HistoryView.class.getName());
 
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".historyView"; //$NON-NLS-1$
-    public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".historyViewHelp"; //$NON-NLS-1$
     
     /*
      * Selected repository
@@ -217,7 +216,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
                                                  Predicates.alreadyDeliveredAnyPart.and(Predicates.selfMute)));
 
         // Register Help Context
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getHistoryViewer().getControl(), HELP_ID);
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(getHistoryViewer().getControl(), ModelRepositoryPlugin.HELP_ID);
         
         // Initialise with whatever is selected in the workbench
         selectionChanged(getSite().getPage().getActivePart(), getSite().getPage().getSelection());
@@ -618,7 +617,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
 
     @Override
     public IContext getContext(Object target) {
-        return HelpSystem.getContext(HELP_ID);
+        return HelpSystem.getContext(ModelRepositoryPlugin.HELP_ID);
     }
 
     @Override

@@ -24,10 +24,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
@@ -108,6 +110,9 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
         
         createLabel(group, Messages.UserDetailsSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
         fTextEmail = new UserText(group, ConfigConstants.CONFIG_KEY_EMAIL);
+        
+        // Help ID
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, ModelRepositoryPlugin.HELP_ID);
     }
     
     @Override

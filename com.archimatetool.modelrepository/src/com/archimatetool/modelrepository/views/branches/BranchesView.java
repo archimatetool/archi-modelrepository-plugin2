@@ -51,7 +51,6 @@ extends ViewPart
 implements IContextProvider, ISelectionListener, IRepositoryListener, IContributedContentsView {
 
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".branchesView"; //$NON-NLS-1$
-    public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".branchesViewHelp"; //$NON-NLS-1$
     
     private IArchiRepository fSelectedRepository;
     
@@ -86,7 +85,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
                                                  Predicates.alreadyDeliveredAnyPart.and(Predicates.selfMute)));
 
         // Register Help Context
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getBranchesViewer().getControl(), HELP_ID);
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(getBranchesViewer().getControl(), ModelRepositoryPlugin.HELP_ID);
         
         // Initialise with whatever is selected in the workbench
         selectionChanged(getSite().getPage().getActivePart(), getSite().getPage().getSelection());
@@ -302,7 +301,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
 
     @Override
     public IContext getContext(Object target) {
-        return HelpSystem.getContext(HELP_ID);
+        return HelpSystem.getContext(ModelRepositoryPlugin.HELP_ID);
     }
 
     @Override
