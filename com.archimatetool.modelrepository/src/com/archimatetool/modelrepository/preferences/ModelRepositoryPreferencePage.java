@@ -90,11 +90,13 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         new Label(userDetailsGroup, SWT.NULL).setText(Messages.ModelRepositoryPreferencePage_1);
         
         fUserNameTextField = UIUtils.createSingleTextControl(userDetailsGroup, SWT.BORDER, false);
+        fUserNameTextField.setMessage(Messages.ModelRepositoryPreferencePage_17);
         GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fUserNameTextField);
 
         new Label(userDetailsGroup, SWT.NULL).setText(Messages.ModelRepositoryPreferencePage_2);
         
         fUserEmailTextField = UIUtils.createSingleTextControl(userDetailsGroup, SWT.BORDER, false);
+        fUserEmailTextField.setMessage(Messages.ModelRepositoryPreferencePage_18);
         GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fUserEmailTextField);
         
         
