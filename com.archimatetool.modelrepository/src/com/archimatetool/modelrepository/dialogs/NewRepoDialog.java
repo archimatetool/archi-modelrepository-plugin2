@@ -33,9 +33,14 @@ public class NewRepoDialog extends CloneDialog {
     protected Control createDialogArea(Composite parent) {
         Control control = super.createDialogArea(parent);
         
-        setMessage(super.getMessage() + "\n"  //$NON-NLS-1$
-                + NLS.bind(Messages.NewRepoDialog_2, ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder()),
-                IMessageProvider.INFORMATION);
+        StringBuilder sb = new StringBuilder()
+            .append(super.getMessage())
+            .append(' ')
+            .append(Messages.NewRepoDialog_3)
+            .append('\n')
+            .append(NLS.bind(Messages.NewRepoDialog_2, ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder()));
+        
+        setMessage(sb.toString(), IMessageProvider.INFORMATION);
         
         return control;
     }

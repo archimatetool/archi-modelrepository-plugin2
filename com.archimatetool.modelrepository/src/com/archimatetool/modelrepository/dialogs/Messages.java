@@ -60,6 +60,8 @@ public class Messages extends NLS {
 
     public static String NewRepoDialog_2;
 
+    public static String NewRepoDialog_3;
+
     public static String UserNamePasswordDialog_0;
 
     public static String UserNamePasswordDialog_1;
