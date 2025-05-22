@@ -18,7 +18,7 @@ body:
     attributes:
       label: Archi Version
       description: Which version of Archi are you using?
-      placeholder: ex. 5.5.0
+      placeholder: ex. 5.6.0
     validations:
       required: true
   - type: input
@@ -36,7 +36,9 @@ body:
       description: |
         Describe the issue you are experiencing.
       placeholder: |
-        Please enter a description of the issue. Here you can also attach screenshots, or other files.
+        Enter a description of the issue. Here you can also attach screenshots, or other files.
+
+        Also, if it will help, please attach the latest log file (or the relevant parts of the log file) located at <user home>/Documents/Archi/repositories/.
     validations:
       required: true
   - type: textarea
