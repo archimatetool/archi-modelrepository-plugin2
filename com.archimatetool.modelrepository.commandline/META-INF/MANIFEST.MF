@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: coArchi 2 Command Line
 Bundle-SymbolicName: com.archimatetool.modelrepository.commandline;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.7.0.qualifier
+Bundle-Version: 1.0.0.qualifier
 Import-Package: org.eclipse.equinox.security.storage
 Bundle-Vendor: Archi
 Require-Bundle: com.archimatetool.commandline;bundle-version="5.4.0",
