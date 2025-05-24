@@ -14,6 +14,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -194,8 +195,9 @@ public class GitUtils extends Git {
                 .setDryRun(isDryrun)
                 .call();
         
-        // Ensure that the current branch is tracking its remote (if there is one) in case the remote ref was deleted and is fetched again
-        if(fetchResult.getTrackingRefUpdate(RepoConstants.R_REMOTES_ORIGIN + getRepository().getBranch()) != null) {
+        // Ensure that the current branch is tracking its remote (if there is one) 
+        List<Ref> refs = branchList().setListMode(ListMode.REMOTE).setContains(getRepository().getBranch()).call();
+        if(!refs.isEmpty()) {
             setTrackedBranch(getRepository().getBranch());
         }
         
