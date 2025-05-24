@@ -10,10 +10,13 @@ import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -29,7 +32,9 @@ import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
+import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
 
 
@@ -73,11 +78,42 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
             protected void textChanged(String previousText, String newText) {
                 if(repository != null) {
                     try {
+                        // If URL is unset show a warning and delete remote branch refs
+                        if(!previousText.isBlank() && newText.isBlank()) {
+                            // Dialog will cause a focus out event and trigger textChanged again
+                            setNotifications(false);
+                            
+                            if(!MessageDialog.openConfirm(getPart().getSite().getShell(),
+                                    Messages.RepoInfoSection_4,
+                                    Messages.RepoInfoSection_5)) {
+                                textURL.setText(previousText);
+                                return;
+                            }
+                            
+                            // Delete all (local) remote branch refs
+                            try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
+                                String[] branches = utils.branchList().setListMode(ListMode.REMOTE).call().stream()
+                                                    .map(Ref::getName)
+                                                    .toArray(String[]::new);
+                                
+                                if(branches.length != 0) {
+                                    logger.info("Deleting remote branch refs"); //$NON-NLS-1$
+                                    utils.deleteBranch(true, branches);
+                                }
+                            }
+                        }
+                        
                         logger.info("Setting remote URL to: " + newText); //$NON-NLS-1$
                         repository.setRemote(newText);
+                        
+                        // Update History and Branches Views
+                        RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(IRepositoryListener.HISTORY_CHANGED, repository);
                     }
                     catch(IOException | GitAPIException | URISyntaxException ex) {
                         logger.log(Level.SEVERE, "Set Remote", ex); //$NON-NLS-1$
+                    }
+                    finally {
+                        setNotifications(true);
                     }
                 }
             }
