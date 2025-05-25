@@ -70,7 +70,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         createLabel(group, Messages.RepoInfoSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
         textURL = new UpdatingTextControl(createSingleTextControl(group, SWT.BORDER)) {
             @Override
-            protected void textChanged(String newText) {
+            protected void textChanged(String previousText, String newText) {
                 if(repository != null) {
                     try {
                         logger.info("Setting remote URL to: " + newText); //$NON-NLS-1$
@@ -110,7 +110,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
             textFile.setText(repository.getWorkingFolder().getAbsolutePath());
 
             try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
-                textURL.setText(StringUtils.safeString(utils.getRemoteURL()));
+                textURL.setText(utils.getRemoteURL());
                 textCurrentBranch.setText(StringUtils.safeString(utils.getCurrentLocalBranchName()));
             }
             catch(IOException | GitAPIException ex) {

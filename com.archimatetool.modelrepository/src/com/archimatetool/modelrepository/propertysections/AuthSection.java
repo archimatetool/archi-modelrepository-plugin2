@@ -76,7 +76,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         createLabel(group, Messages.AuthSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
         textUserName = new UpdatingTextControl(createSingleTextControl(group, SWT.BORDER)) {
             @Override
-            protected void textChanged(String newText) {
+            protected void textChanged(String previousText, String newText) {
                 storeUserName(newText);
             }
         };
@@ -85,7 +85,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         createLabel(group, Messages.AuthSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
         textPassword = new UpdatingTextControl(createSingleTextControl(group, SWT.PASSWORD | SWT.BORDER)) {
             @Override
-            protected void textChanged(String newText) {
+            protected void textChanged(String previousText, String newText) {
                 storePassword(newText.toCharArray());
             }
         };

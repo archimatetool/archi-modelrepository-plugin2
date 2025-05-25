@@ -12,6 +12,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.archimatetool.editor.utils.StringUtils;
+
 
 
 /**
@@ -78,15 +80,17 @@ public abstract class UpdatingTextControl {
         }
     }
     
-    public void setText(String s) {
+    public void setText(String text) {
+        text = StringUtils.safeString(text);
+        
         if(isStyledTextControl()) {
-            ((StyledText)getTextControl()).setText(s);
+            ((StyledText)getTextControl()).setText(text);
         }
         else {
-            ((Text)getTextControl()).setText(s);
+            ((Text)getTextControl()).setText(text);
         }
         
-        previousText = s;
+        previousText = text;
     }
     
     /**
@@ -99,7 +103,7 @@ public abstract class UpdatingTextControl {
     
     private void handleEvent(Event event) {
         if(doNotify && !getText().equals(previousText)) {
-            textChanged(getText());
+            textChanged(previousText, getText());
             previousText = getText();
         }
     }
@@ -112,5 +116,5 @@ public abstract class UpdatingTextControl {
      * Clients must over-ride this to react to text changes
      * @param newText The new changed text
      */
-    protected abstract void textChanged(String newText);
+    protected abstract void textChanged(String previousText, String newText);
 }

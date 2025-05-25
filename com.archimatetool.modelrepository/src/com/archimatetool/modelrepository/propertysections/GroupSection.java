@@ -47,8 +47,8 @@ public class GroupSection extends AbstractArchiPropertySection implements IRepos
         
         fTextNameControl = new UpdatingTextControl(createSingleTextControl(parent, SWT.NONE)) {
             @Override
-            protected void textChanged(String newText) {
-                if(newText.isEmpty()) {
+            protected void textChanged(String previousText, String newText) {
+                if(newText.isBlank()) {
                     fTextNameControl.setText(group.getName());
                 }
                 else {
