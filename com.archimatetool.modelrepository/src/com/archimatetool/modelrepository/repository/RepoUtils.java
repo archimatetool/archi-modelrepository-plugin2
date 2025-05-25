@@ -37,7 +37,7 @@ public class RepoUtils {
      * @return true if url is SSH
      */
     public static boolean isSSH(String url) {
-        if(!StringUtils.isSet(url)) {
+        if(!StringUtils.isSet(url) || url.length() < 4) { // a minimum string length stops URISyntaxException
             return false;
         }
         
@@ -47,18 +47,16 @@ public class RepoUtils {
             uri = new URIish(url);
         }
         catch(URISyntaxException ex) {
-            ex.printStackTrace();
             return false;
         }
         
+        boolean hasHostAndPath = StringUtils.isSet(uri.getHost()) && StringUtils.isSet(uri.getPath());
+        
         if(uri.getScheme() == null) {
-            return StringUtils.isSet(uri.getHost())
-                    && StringUtils.isSet(uri.getPath());
+            return hasHostAndPath;
         }
         
-        return sshSchemeNames.contains(uri.getScheme()) 
-                && StringUtils.isSet(uri.getHost())
-                && StringUtils.isSet(uri.getPath());
+        return sshSchemeNames.contains(uri.getScheme()) && hasHostAndPath;
     }
     
     public static boolean isHTTP(String url) {

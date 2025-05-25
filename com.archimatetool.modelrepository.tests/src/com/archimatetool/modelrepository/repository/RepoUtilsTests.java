@@ -68,6 +68,9 @@ public class RepoUtilsTests {
                 "https://githosting.org/path/archi-demo-grafico.git",
                 "http://githosting.org/path/archi-demo-grafico.git",
                 "ssh://:8888/path/to/repo.git/",
+                "/Users/Fred/MyRepo",
+                "file:/Users/Fred/MyRepo",
+                "file:///Users/Fred/MyRepo"
         };
         
         for(String url : falseOnes) {
