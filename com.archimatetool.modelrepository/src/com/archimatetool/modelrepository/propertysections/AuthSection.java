@@ -109,9 +109,10 @@ public class AuthSection extends AbstractArchiPropertySection {
     
     @Override
     protected void handleSelection(IStructuredSelection selection) {
-        if(selection == getSelection()) {
-            return;
-        }
+        // Update controls in all cases in case the online repo URL has been changed from SSH to HTTPS or vice-verca
+        //if(selection == getSelection()) {
+        //    return;
+        //}
         
         if(selection.getFirstElement() instanceof RepositoryRef ref) {
             repository = ref.getArchiRepository();
