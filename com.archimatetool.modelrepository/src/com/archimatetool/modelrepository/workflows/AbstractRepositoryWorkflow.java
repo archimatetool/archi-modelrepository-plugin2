@@ -10,7 +10,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.equinox.security.storage.StorageException;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -22,6 +21,7 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CommitDialog;
+import com.archimatetool.modelrepository.dialogs.Dialogs;
 import com.archimatetool.modelrepository.dialogs.ErrorMessageDialog;
 import com.archimatetool.modelrepository.dialogs.UserNamePasswordDialog;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -109,33 +109,13 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
      * @return SWT.YES, SWT.NO or SWT.CANCEL
      */
     protected int askToSaveModel(IArchimateModel model) throws IOException {
-        int response = openYesNoCancelDialog(Messages.AbstractWorkflow_1, Messages.AbstractWorkflow_2);
+        int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.AbstractWorkflow_1, Messages.AbstractWorkflow_2);
         if(response == SWT.YES) {
             IEditorModelManager.INSTANCE.saveModel(model);
         }
         return response;
     }
     
-    /**
-     * Open a YES/NO/CANCEL dialog
-     * @return SWT.YES, SWT.NO or SWT.CANCEL
-     */
-    protected int openYesNoCancelDialog(String title, String message) {
-        switch(MessageDialog.open(MessageDialog.CONFIRM,
-                workbenchWindow.getShell(),
-                title,
-                message,
-                SWT.NONE,
-                IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.CANCEL_LABEL)) {
-            case 0:
-                return SWT.YES;
-            case 1:
-                return SWT.NO;
-            default:
-                return SWT.CANCEL;
-        }
-    }
-
     /**
      * Check if there are changes that need to be committed before proceeding.
      * Ask the user to commit with a Yes/No/Cancel dialog.
@@ -148,7 +128,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     protected boolean checkIfCommitNeeded() {
         try {
             if(archiRepository.hasChangesToCommit()) {
-                int response = openYesNoCancelDialog(Messages.AbstractWorkflow_3, Messages.AbstractWorkflow_4);
+                int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.AbstractWorkflow_3, Messages.AbstractWorkflow_4);
                 // Cancel
                 if(response == SWT.CANCEL) {
                     // Cancel
