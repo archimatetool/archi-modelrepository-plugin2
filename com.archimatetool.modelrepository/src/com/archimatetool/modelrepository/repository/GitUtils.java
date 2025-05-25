@@ -20,11 +20,13 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.CoreConfig.EolStreamType;
+import org.eclipse.jgit.lib.RefUpdate.Result;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -313,15 +315,15 @@ public class GitUtils extends Git {
     
     /**
      * Set the default "origin" remote to the given URL
-     * @param URL if this is empty or null, the remote is removed else it is added or updated if it already exists
+     * @param url if this is empty or null, the remote is removed else it is added or updated if it already exists
      */
-    public RemoteConfig setRemote(String URL) throws GitAPIException, URISyntaxException {
+    public RemoteConfig setRemote(String url) throws GitAPIException, URISyntaxException {
         // Remove existing remote
         RemoteConfig config = remoteRemove().setRemoteName(RepoConstants.ORIGIN).call();
         
         // Add new one
-        if(StringUtils.isSetAfterTrim(URL)) {
-            config = remoteAdd().setName(RepoConstants.ORIGIN).setUri(new URIish(URL)).call();
+        if(StringUtils.isSetAfterTrim(url)) {
+            config = remoteAdd().setName(RepoConstants.ORIGIN).setUri(new URIish(url)).call();
         }
         
         return config;
@@ -346,6 +348,43 @@ public class GitUtils extends Git {
         return null;
     }
 
+    /**
+     * Remove remote refs (branches) from the repository and the config file
+     * This is based on DeleteBranchCommand but this removes all branch entries from the config file
+     * @param url The remote ref URL
+     */
+    public void removeRemoteRefs(String url) throws IOException, GitAPIException {
+        // Delete all (local) remote branch refs *before* setting the remote
+        StoredConfig config = getRepository().getConfig();
+        boolean changed = false;
+
+        // Get all remote branch refs
+        for(Ref ref : branchList().setListMode(ListMode.REMOTE).call()) {
+            // Delete the ref of the remote branch
+            RefUpdate refUpdate = getRepository().updateRef(ref.getName());
+            refUpdate.setForceUpdate(true);
+            refUpdate.setRefLogMessage("branch deleted", false); //$NON-NLS-1$
+
+            Result deleteResult = refUpdate.delete();
+            switch(deleteResult) {
+                case IO_FAILURE, LOCK_FAILURE, REJECTED -> {
+                    throw new IOException("Failed to delete remote ref: " + ref.getName()); //$NON-NLS-1$
+                }
+                default -> {
+                    // Remove branch entry from config file
+                    String shortName = getRepository().shortenRemoteBranchName(ref.getName());
+                    if(shortName != null) {
+                        changed |= config.removeSection(ConfigConstants.CONFIG_BRANCH_SECTION, shortName);
+                    }
+                }
+            }
+        }
+
+        if(changed) {
+            config.save();
+        }
+    }
+    
     /**
      * Do a HARD reset to the given ref
      * @param ref can be "refs/heads/main" for local, or "origin/main" for remote ref

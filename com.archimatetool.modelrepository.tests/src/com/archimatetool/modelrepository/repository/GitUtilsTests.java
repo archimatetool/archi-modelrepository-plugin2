@@ -18,9 +18,12 @@ import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
+import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.lib.RefUpdate.Result;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -301,6 +304,44 @@ public class GitUtilsTests {
         String url = "https://www.somewherethereish.net/myRepo.git";
         utils.setRemote(url);
         assertEquals(url, utils.getRemoteURL());
+    }
+    
+    @Test
+    public void removeRemoteRefs() throws Exception {
+        // Remote
+        String url = GitHelper.createBareRepository();
+        utils.setRemote(url);
+        
+        // One commit
+        utils.commitChanges("Message", false);
+        
+        // Push main branch
+        utils.pushToRemote(null, null);
+        
+        // Create new branch and push
+        utils.checkout().setCreateBranch(true).setName("branch").call();
+        utils.pushToRemote(null, null);
+
+        // Check we have refs
+        List<Ref> refs = utils.branchList().setListMode(ListMode.REMOTE).call();
+        assertEquals(2, refs.size());
+        assertEquals("refs/remotes/origin/branch", refs.get(0).getName());
+        assertEquals("refs/remotes/origin/main", refs.get(1).getName());
+        
+        // Check config file has branch entries
+        StoredConfig config = utils.getRepository().getConfig();
+        assertEquals(2, config.getSubsections(ConfigConstants.CONFIG_BRANCH_SECTION).size());
+
+        // Remove refs
+        utils.removeRemoteRefs(url);
+        
+        // Should be removed
+        refs = utils.branchList().setListMode(ListMode.REMOTE).call();
+        assertEquals(0, refs.size());
+        
+        // Check config file branch entries are removed
+        config = utils.getRepository().getConfig();
+        assertEquals(0, config.getSubsections(ConfigConstants.CONFIG_BRANCH_SECTION).size());
     }
     
     @Test

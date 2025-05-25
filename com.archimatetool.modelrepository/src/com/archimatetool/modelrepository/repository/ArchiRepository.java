@@ -136,9 +136,23 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public RemoteConfig setRemote(String URL) throws IOException, GitAPIException, URISyntaxException {
+    public RemoteConfig setRemote(String url) throws IOException, GitAPIException, URISyntaxException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.setRemote(URL);
+            return utils.setRemote(url);
+        }
+    }
+    
+    @Override
+    public String getRemoteURL() throws IOException, GitAPIException {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
+            return utils.getRemoteURL();
+        }
+    }
+    
+    @Override
+    public void removeRemoteRefs(String url) throws IOException, GitAPIException {
+        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
+            utils.removeRemoteRefs(url);
         }
     }
     
@@ -218,13 +232,6 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public File getModelFile() {
         return new File(getWorkingFolder(), RepoConstants.MODEL_FILENAME);
-    }
-    
-    @Override
-    public String getRemoteURL() throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.getRemoteURL();
-        }
     }
     
     @Override

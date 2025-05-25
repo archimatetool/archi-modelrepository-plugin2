@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -29,7 +30,9 @@ import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
+import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
 
 
@@ -71,14 +74,43 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         textURL = new UpdatingTextControl(createSingleTextControl(group, SWT.BORDER)) {
             @Override
             protected void textChanged(String previousText, String newText) {
-                if(repository != null) {
-                    try {
-                        logger.info("Setting remote URL to: " + newText); //$NON-NLS-1$
-                        repository.setRemote(newText);
+                if(repository == null) {
+                    return;
+                }
+                
+                // If changing repository URL or unsetting it ask for conformation
+                if(!previousText.isBlank()) {
+                    // Dialog will cause a focus out event and trigger textChanged again
+                    setNotifications(false);
+                    
+                    // Ask user
+                    boolean result = MessageDialog.openConfirm(getPart().getSite().getShell(),
+                                      Messages.RepoInfoSection_4,
+                                      Messages.RepoInfoSection_5);
+                    
+                    setNotifications(true);
+                    
+                    if(!result) { // Cancel
+                        textURL.setText(previousText);
+                        return;
                     }
-                    catch(IOException | GitAPIException | URISyntaxException ex) {
-                        logger.log(Level.SEVERE, "Set Remote", ex); //$NON-NLS-1$
+                }
+                
+                try {
+                    // If changing url delete all (local) remote branch refs *before* setting the remote
+                    if(!previousText.isBlank()) {
+                        logger.info("Deleting remote branch refs"); //$NON-NLS-1$
+                        repository.removeRemoteRefs(newText);
+                        // Update History and Branches Views
+                        RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(IRepositoryListener.HISTORY_CHANGED, repository);
                     }
+                    
+                    // Set remote
+                    logger.info("Setting remote URL to: " + newText); //$NON-NLS-1$
+                    repository.setRemote(newText);
+                }
+                catch(IOException | GitAPIException | URISyntaxException ex) {
+                    logger.log(Level.SEVERE, "Set Remote", ex); //$NON-NLS-1$
                 }
             }
         };

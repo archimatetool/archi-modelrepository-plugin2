@@ -28,6 +28,10 @@ public class Messages extends NLS {
 
     public static String RepoInfoSection_3;
 
+    public static String RepoInfoSection_4;
+
+    public static String RepoInfoSection_5;
+
     public static String UserDetailsSection_0;
 
     public static String UserDetailsSection_1;

@@ -70,10 +70,23 @@ public interface IArchiRepository {
 
     /**
      * Set the default "origin" remote to the given URL
-     * @param URL if this is empty or null, the remote is removed else it is added or updated if it already exists
+     * @param url if this is empty or null, the remote is removed else it is added or updated if it already exists
      */
-    RemoteConfig setRemote(String URL) throws IOException, GitAPIException, URISyntaxException;
+    RemoteConfig setRemote(String url) throws IOException, GitAPIException, URISyntaxException;
     
+    /**
+     * Return the remote URL of the Git repo (or null if not found)
+     * We assume that there is only one remote per repo, and its name is "origin"
+     */
+    String getRemoteURL() throws IOException, GitAPIException;
+
+    /**
+     * Remove remote refs (branches) from the repository and the config file
+     * This is based on DeleteBranchCommand but this removes all branch entries from the config file
+     * @param url The remote ref URL
+     */
+    void removeRemoteRefs(String url) throws IOException, GitAPIException;
+
     /**
      * Fetch from Remote
      */
@@ -84,7 +97,7 @@ public interface IArchiRepository {
      * @param ref can be "refs/heads/main" for local, or "origin/main" for remote ref
      */
     void resetToRef(String ref) throws IOException, GitAPIException;
-
+    
     /**
      * @return The short name of the current local branch
      */
@@ -114,12 +127,6 @@ public interface IArchiRepository {
      * @return The model.archimate file in the repository
      */
     File getModelFile();
-
-    /**
-     * Return the remote URL of the Git repo (or null if not found)
-     * We assume that there is only one remote per repo, and its name is "origin"
-     */
-    String getRemoteURL() throws IOException, GitAPIException;
 
     /**
      * Return the model if it is open in the model manager
