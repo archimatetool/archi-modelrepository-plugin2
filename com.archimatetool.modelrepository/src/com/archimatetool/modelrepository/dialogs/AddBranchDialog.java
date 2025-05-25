@@ -18,9 +18,11 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.UIUtils;
+import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
@@ -48,6 +50,9 @@ public class AddBranchDialog extends TitleAreaDialog {
 
     @Override
     protected Control createDialogArea(Composite parent) {
+        // Help
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, ModelRepositoryPlugin.HELP_ID);
+        
         setTitle(Messages.AddBranchDialog_0);
         setMessage(Messages.AddBranchDialog_2, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
@@ -119,6 +124,12 @@ public class AddBranchDialog extends TitleAreaDialog {
         branchName = txtBranch.getText().trim();
         setReturnCode(buttonId);
         close();
+    }
+
+    
+    @Override
+    protected boolean isResizable() {
+        return true;
     }
 
     public String getBranchName() {

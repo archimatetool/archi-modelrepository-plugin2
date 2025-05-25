@@ -86,7 +86,6 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private static Logger logger = Logger.getLogger(ModelRepositoryView.class.getName());
 
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryView"; //$NON-NLS-1$
-    public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryViewHelp"; //$NON-NLS-1$
     
     /**
      * The Repository Viewer
@@ -157,7 +156,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         });
 
         // Register Help Context
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getViewer().getControl(), HELP_ID);
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(getViewer().getControl(), ModelRepositoryPlugin.HELP_ID);
     }
     
     /**
@@ -700,7 +699,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
 
     @Override
     public IContext getContext(Object target) {
-        return HelpSystem.getContext(HELP_ID);
+        return HelpSystem.getContext(ModelRepositoryPlugin.HELP_ID);
     }
 
     @Override

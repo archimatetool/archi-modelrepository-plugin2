@@ -9,8 +9,10 @@ import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
+import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.treemodel.Group;
 import com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry;
 import com.archimatetool.modelrepository.treemodel.IRepositoryTreeModelListener;
@@ -56,6 +58,9 @@ public class GroupSection extends AbstractArchiPropertySection implements IRepos
                 }
             }
         };
+        
+        // Help ID
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, ModelRepositoryPlugin.HELP_ID);
     }
     
     @Override

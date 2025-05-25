@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<?NLS TYPE="org.eclipse.help.contexts"?> 
+<contexts>
+    
+    <context id="modelRepositoryHelp" title="coArchi">
+        <description>coArchi Help</description>
+        <topic label="coArchi Help" href="help/intro.html"/>
+    </context>
+    <context id="addBranch" title="Add Branch">
+       <description>Add Branch</description>
+    </context>
+    
+</contexts>

@@ -52,8 +52,6 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     
     public static final String ID = "com.archimatetool.com.modelrepository.preferences.ModelRepositoryPreferencePage";  //$NON-NLS-1$
     
-    private static final String HELP_ID = "com.archimatetool.com.modelrepository.prefs"; //$NON-NLS-1$
-    
     private Text fUserNameTextField;
     private Text fUserEmailTextField;
     
@@ -74,7 +72,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     @Override
     protected Control createContents(Composite parent) {
         // Help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, HELP_ID);
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, ModelRepositoryPlugin.HELP_ID);
 
         Composite client = new Composite(parent, SWT.NULL);
         GridLayout layout = new GridLayout();

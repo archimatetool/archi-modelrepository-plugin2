@@ -30,6 +30,10 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin {
 
     public static final String PLUGIN_ID = "com.archimatetool.modelrepository";
     
+    // General Help ID for contextual help
+    // If we ever ship a full set of help pages then each View, Dialog, or Page can add their own unique Help ID and context
+    public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryHelp"; //$NON-NLS-1$
+
     // The shared instance
     private static ModelRepositoryPlugin instance;
     

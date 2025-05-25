@@ -16,10 +16,12 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.merge.ModelComparison;
 import com.archimatetool.modelrepository.merge.ModelComparison.Change;
 
@@ -48,6 +50,9 @@ public class CompareDialog extends ExtendedTitleAreaDialog {
 
     @Override
     protected Control createDialogArea(Composite parent) {
+        // Help
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, ModelRepositoryPlugin.HELP_ID);
+
         String message = modelComparison.isWorkingTreeComparison() ? "Working Changes" : "'" + modelComparison.getSecondRevCommit().getShortMessage() + "'";
         
         setMessage("Compare commit '" + modelComparison.getFirstRevCommit().getShortMessage() + "' with " + message, IMessageProvider.NONE);
