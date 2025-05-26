@@ -335,8 +335,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         IMenuManager manager = actionBars.getMenuManager();
         manager.add(fActionFilter);
         
-        manager.add(new Separator());
-        
         IMenuManager sortMenu = new MenuManager(Messages.HistoryView_11);
         manager.add(sortMenu);
 
@@ -411,6 +409,15 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         manager.add(fActionResetToRemoteCommit);
         manager.add(new Separator());
         manager.add(fActionFilter);
+        
+        IMenuManager sortMenu = new MenuManager(Messages.HistoryView_11);
+        manager.add(sortMenu);
+        
+        RevSort revSort = getHistoryViewer().getSortStrategy();
+        for(SortStrategyAction action : sortActions) {
+            sortMenu.add(action);
+            action.setChecked(revSort);
+        }
     }
 
     HistoryTableViewer getHistoryViewer() {
