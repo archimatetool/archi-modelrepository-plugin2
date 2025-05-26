@@ -7,6 +7,7 @@ package com.archimatetool.modelrepository.dialogs;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
@@ -30,9 +31,15 @@ import com.archimatetool.model.IDiagramModel;
  */
 public class ViewComparisonComposite extends Composite {
     
+    private final static int SCALE_MAX = 10;
+    
+    // Remember scale values for each panel
+    private static AtomicInteger lastScaleValue1 = new AtomicInteger(SCALE_MAX);
+    private static AtomicInteger lastScaleValue2 = new AtomicInteger(SCALE_MAX);
+    
     private SashForm sash;
     private ViewComposite c1, c2;
-
+    
     public ViewComparisonComposite(Composite parent, int style) {
         super(parent, style);
         setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -56,7 +63,7 @@ public class ViewComparisonComposite extends Composite {
         }
         
         if(c1 == null) {
-            c1 = new ViewComposite(this);
+            c1 = new ViewComposite(this, lastScaleValue1);
             layout();
         }
     }
@@ -67,8 +74,8 @@ public class ViewComparisonComposite extends Composite {
             sash = new SashForm(this, SWT.HORIZONTAL);
             sash.setLayoutData(new GridData(GridData.FILL_BOTH));
             sash.setBackground(sash.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-            c1 = new ViewComposite(sash);
-            c2 = new ViewComposite(sash);
+            c1 = new ViewComposite(sash, lastScaleValue1);
+            c2 = new ViewComposite(sash, lastScaleValue2);
             layout();
         }
     }
@@ -95,10 +102,12 @@ public class ViewComparisonComposite extends Composite {
         private IDiagramModel diagramModel;
         private Map<Integer, Image> scaledImages;
         
-        private final static int SCALES = 6;
+        private AtomicInteger lastScaleValue;
         
-        private ViewComposite(Composite parent) {
+        private ViewComposite(Composite parent, AtomicInteger lastScaleValue) {
             super(parent, SWT.NONE);
+            
+            this.lastScaleValue = lastScaleValue;
             
             setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
             setBackgroundMode(SWT.INHERIT_FORCE);
@@ -107,11 +116,13 @@ public class ViewComparisonComposite extends Composite {
             
             scale = new Scale(this, SWT.HORIZONTAL);
             scale.setMinimum(1);
-            scale.setMaximum(SCALES);
-            scale.setSelection(SCALES);
+            scale.setMaximum(SCALE_MAX);
+            scale.setPageIncrement(2);
+            scale.setSelection(lastScaleValue.get());
             
             scale.addSelectionListener(SelectionListener.widgetSelectedAdapter(event -> {
                 setScaledImage(scale.getSelection());
+                lastScaleValue.set(scale.getSelection());
             }));
             
             ScrolledComposite scImage = new ScrolledComposite(this, SWT.H_SCROLL | SWT.V_SCROLL );
@@ -131,12 +142,12 @@ public class ViewComparisonComposite extends Composite {
             }
             
             disposeImages();
-            scaledImages = new HashMap<Integer, Image>();
+            scaledImages = new HashMap<>();
             
             this.diagramModel = diagramModel;
             
             scale.setVisible(diagramModel != null);
-            setScaledImage(diagramModel != null ? scale.getSelection() : 0);
+            setScaledImage(diagramModel != null ? lastScaleValue.get() : 0);
         }
 
         private void setScaledImage(int scale) {
@@ -145,7 +156,7 @@ public class ViewComparisonComposite extends Composite {
             if(scale > 0) {
                 image = scaledImages.get(scale);
                 if(image == null) {
-                    image = DiagramUtils.createImage(diagramModel, (double)scale / SCALES, 5);
+                    image = DiagramUtils.createImage(diagramModel, (double)scale / SCALE_MAX, 5);
                     scaledImages.put(scale, image);
                 }
             }
