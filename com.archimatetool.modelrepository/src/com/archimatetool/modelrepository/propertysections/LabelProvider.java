@@ -15,8 +15,8 @@ public class LabelProvider implements IArchiLabelProvider {
 
     @Override
     public Image getImage(Object element) {
-        if(element instanceof IModelRepositoryTreeEntry) {
-            return ((IModelRepositoryTreeEntry)element).getImage();
+        if(element instanceof IModelRepositoryTreeEntry entry) {
+            return entry.getImage();
         }
         
         return null;
@@ -24,8 +24,8 @@ public class LabelProvider implements IArchiLabelProvider {
 
     @Override
     public String getLabel(Object element) {
-        if(element instanceof IModelRepositoryTreeEntry) {
-            return ((IModelRepositoryTreeEntry)element).getName();
+        if(element instanceof IModelRepositoryTreeEntry entry) {
+            return entry.getName();
         }
         
         return null;

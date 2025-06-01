@@ -111,13 +111,13 @@ public class Group implements IModelRepositoryTreeEntry {
         // Remove from old parent
         entry.delete();
         
-        if(entry instanceof Group) {
-            groups.add((Group)entry);
-            ((Group)entry).setParent(this);
+        if(entry instanceof Group group) {
+            groups.add(group);
+            group.setParent(this);
         }
-        else if(entry instanceof RepositoryRef) {
-            repos.add((RepositoryRef)entry);
-            ((RepositoryRef)entry).setParent(this);
+        else if(entry instanceof RepositoryRef ref) {
+            repos.add(ref);
+            ref.setParent(this);
         }
     }
     

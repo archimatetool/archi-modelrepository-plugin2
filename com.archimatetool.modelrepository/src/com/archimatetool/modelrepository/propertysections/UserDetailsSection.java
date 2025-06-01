@@ -49,7 +49,7 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
         @Override
         public boolean select(Object object) {
             return object instanceof RepositoryRef ||
-                    (object instanceof IArchimateModel && RepoUtils.isModelInArchiRepository((IArchimateModel)object));
+                    (object instanceof IArchimateModel model && RepoUtils.isModelInArchiRepository(model));
         }
     }
     
@@ -121,11 +121,11 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
             return;
         }
         
-        if(selection.getFirstElement() instanceof RepositoryRef) {
-            fRepository = ((RepositoryRef)selection.getFirstElement()).getArchiRepository();
+        if(selection.getFirstElement() instanceof RepositoryRef ref) {
+            fRepository = ref.getArchiRepository();
         }
-        else if(selection.getFirstElement() instanceof IArchimateModel) {
-            fRepository = new ArchiRepository(RepoUtils.getWorkingFolderForModel((IArchimateModel)selection.getFirstElement()));
+        else if(selection.getFirstElement() instanceof IArchimateModel model) {
+            fRepository = new ArchiRepository(RepoUtils.getWorkingFolderForModel(model));
         }
         else {
             fRepository = null;

@@ -64,8 +64,8 @@ public class RepositoryListenerManager {
         // Notify on model name change
         else if(evt.getPropertyName().equals(IEditorModelManager.PROPERTY_ECORE_EVENT)) {
             Notification msg = (Notification)evt.getNewValue();
-            if(msg.getNotifier() instanceof IArchimateModel && msg.getFeature() == IArchimatePackage.Literals.NAMEABLE__NAME) {
-                notifyModelChanged((IArchimateModel)msg.getNotifier(), IRepositoryListener.MODEL_RENAMED);
+            if(msg.getNotifier() instanceof IArchimateModel model && msg.getFeature() == IArchimatePackage.Literals.NAMEABLE__NAME) {
+                notifyModelChanged(model, IRepositoryListener.MODEL_RENAMED);
             }
         }
     }

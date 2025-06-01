@@ -146,8 +146,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
          */
         getViewer().addDoubleClickListener(event -> {
             Object obj = ((IStructuredSelection)event.getSelection()).getFirstElement();
-            if(obj instanceof RepositoryRef) {
-                IArchiRepository repo = ((RepositoryRef)obj).getArchiRepository();
+            if(obj instanceof RepositoryRef ref) {
+                IArchiRepository repo = ref.getArchiRepository();
                 
                 BusyIndicator.showWhile(Display.getCurrent(), () -> {
                     IEditorModelManager.INSTANCE.openModel(repo.getModelFile());
@@ -682,7 +682,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
          */
         if(adapter == IArchiRepository.class) {
             Object obj = getViewer().getStructuredSelection().getFirstElement();
-            return obj instanceof RepositoryRef ? adapter.cast(((RepositoryRef)obj).getArchiRepository()) : null;
+            return obj instanceof RepositoryRef ref ? adapter.cast(ref.getArchiRepository()) : null;
         }
         
         return super.getAdapter(adapter);

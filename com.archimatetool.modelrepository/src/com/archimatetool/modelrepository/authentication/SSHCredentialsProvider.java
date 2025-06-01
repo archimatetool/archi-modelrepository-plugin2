@@ -8,6 +8,8 @@ package com.archimatetool.modelrepository.authentication;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.transport.CredentialItem;
+import org.eclipse.jgit.transport.CredentialItem.Password;
+import org.eclipse.jgit.transport.CredentialItem.YesNoType;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.URIish;
 
@@ -33,13 +35,13 @@ public class SSHCredentialsProvider extends CredentialsProvider {
     public boolean get(URIish uri, CredentialItem... items) throws UnsupportedCredentialItem {
         for(CredentialItem item : items) {
             // For verifying and storing the key in the known_hosts file
-            if(item instanceof CredentialItem.YesNoType) {
-                ((CredentialItem.YesNoType)item).setValue(true);
+            if(item instanceof YesNoType yesNoType) {
+                yesNoType.setValue(true);
             }
             // Password for ssh file
-            else if(item instanceof CredentialItem.Password) {
+            else if(item instanceof Password password) {
                 try {
-                    ((CredentialItem.Password)item).setValue(CredentialsAuthenticator.getSSHIdentityProvider().getIdentityPassword());
+                    password.setValue(CredentialsAuthenticator.getSSHIdentityProvider().getIdentityPassword());
                 }
                 catch(StorageException ex) {
                     ex.printStackTrace();

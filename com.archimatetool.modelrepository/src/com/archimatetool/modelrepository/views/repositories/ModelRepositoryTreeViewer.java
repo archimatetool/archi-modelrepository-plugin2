@@ -139,21 +139,18 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         setCellModifier(new ICellModifier() {
             @Override
             public void modify(Object element, String property, Object value) {
-                if(element instanceof TreeItem) {
-                    Object data = ((TreeItem)element).getData();
-                    if(data instanceof Group) {
-                        String text = (String)value;
-                        if(!text.isEmpty()) {
-                            ((Group)data).setName(text, true);
-                        }
+                if(element instanceof TreeItem item && item.getData() instanceof Group group) {
+                    String text = (String)value;
+                    if(!text.isEmpty()) {
+                        group.setName(text, true);
                     }
                 }
             }
             
             @Override
             public Object getValue(Object element, String property) {
-                if(element instanceof Group) {
-                    return ((Group)element).getName();
+                if(element instanceof Group group) {
+                    return group.getName();
                 }
                 return null;
             }
@@ -390,8 +387,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 // Image
                 cell.setImage(getImage(repo));
             }
-            else if(cell.getElement() instanceof Group) {
-                Group group = (Group)cell.getElement();
+            else if(cell.getElement() instanceof Group group) {
                 cell.setText(group.getName());
                 cell.setImage(group.getImage());
             }

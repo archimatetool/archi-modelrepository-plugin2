@@ -87,7 +87,7 @@ public class ModelRepositoryTreeViewerDragDropHandler {
             @Override
             public void dragStart(DragSourceEvent event) {
                 // Drag started from the Tree
-                IStructuredSelection selection = (IStructuredSelection)fViewer.getSelection();
+                IStructuredSelection selection = fViewer.getStructuredSelection();
                 fIsValidTreeSelection = isValidTreeSelection(selection);
 
                 LocalSelectionTransfer.getTransfer().setSelection(selection);

@@ -65,18 +65,14 @@ public class GroupSection extends AbstractArchiPropertySection implements IRepos
     
     @Override
     protected void handleSelection(IStructuredSelection selection) {
-        if(selection != getSelection() && selection.getFirstElement() instanceof Group) {
-            Group newGroup = (Group)selection.getFirstElement();
-            
+        if(selection != getSelection() && selection.getFirstElement() instanceof Group newGroup) {
             if(group != null) {
                 group.removeListener(this);
             }
             
-            if(newGroup != null) {
-                fTextNameControl.setText(newGroup.getName());
-                newGroup.addListener(this);
-                group = newGroup;
-            }
+            fTextNameControl.setText(newGroup.getName());
+            newGroup.addListener(this);
+            group = newGroup;
         }
     }
 
