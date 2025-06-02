@@ -104,7 +104,7 @@ public class CompareDialog extends ExtendedTitleAreaDialog {
     
     @Override
     protected Point getDefaultDialogSize() {
-        return new Point(600, 450);
+        return new Point(850, 600);
     }
     
     @Override
