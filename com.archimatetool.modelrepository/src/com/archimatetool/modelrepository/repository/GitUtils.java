@@ -20,13 +20,13 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.CoreConfig.EolStreamType;
-import org.eclipse.jgit.lib.RefUpdate.Result;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.RefUpdate;
+import org.eclipse.jgit.lib.RefUpdate.Result;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -37,6 +37,7 @@ import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.TreeWalk.OperationType;
@@ -137,26 +138,50 @@ public class GitUtils extends Git {
         
         PushResult pushResult = results.iterator().next(); // Get the first one
         
-        // If successful, ensure we are tracking the current branch
+        // If current branch push is successful, ensure we are tracking it
         // Do this *after* a push attempt in case of failure
-        RemoteRefUpdate.Status status = getPushResultStatus(pushResult);
-        if(status == RemoteRefUpdate.Status.OK || status == RemoteRefUpdate.Status.UP_TO_DATE) {
-            setTrackedBranch(getRepository().getBranch());
+        RemoteRefUpdate refUpdate = pushResult.getRemoteUpdate(getRepository().getFullBranch());
+        if(refUpdate != null) {
+            Status status = refUpdate.getStatus();
+            if(status == Status.OK || status == Status.UP_TO_DATE) {
+                setTrackedBranch(getRepository().getBranch());
+            }
         }
         
         return pushResult;
     }
     
     /**
-     * @return a PushResult Status or null if there isn't one
+     * @return the PushResult Status or null if there isn't one.
+     * If we are pushing just the current branch there will be just one ref update in the PushResult and one Status.
+     * If pushing tags or more than one branch there can be more than one ref update.
      */
-    public static RemoteRefUpdate.Status getPushResultStatus(PushResult pushResult) {
-        // As we're only pushing one Ref to one remote URI there should only be one RemoteRefUpdate
+    public static Status getPushResultStatus(PushResult pushResult) {
+        Status status = null;
+        
+        // Iterate thru all pushed refs, current branch and tags, and get the primary one
         for(RemoteRefUpdate refUpdate : pushResult.getRemoteUpdates()) {
-            return refUpdate.getStatus();
+            switch(refUpdate.getStatus()) {
+                // OK over-rides UP_TO_DATE and means remote ref was updated
+                case OK -> {
+                    status = Status.OK;
+                }
+                
+                // UP_TO_DATE is secondary and means remote ref was up to date
+                case UP_TO_DATE -> {
+                    if(status != Status.OK) {
+                        status = Status.UP_TO_DATE;
+                    }
+                }
+                
+                // Other status, so return it immediately
+                default -> {
+                    return refUpdate.getStatus();
+                }
+            }
         }
-
-        return null;
+        
+        return status;
     }
     
     /**
@@ -166,8 +191,8 @@ public class GitUtils extends Git {
         StringBuilder sb = new StringBuilder();
         
         pushResult.getRemoteUpdates().stream()
-                  .filter(refUpdate -> refUpdate.getStatus() != RemoteRefUpdate.Status.OK)           // Ignore OK
-                  .filter(refUpdate -> refUpdate.getStatus() != RemoteRefUpdate.Status.UP_TO_DATE)   // Ignore Up to date
+                  .filter(refUpdate -> refUpdate.getStatus() != Status.OK)           // Ignore OK
+                  .filter(refUpdate -> refUpdate.getStatus() != Status.UP_TO_DATE)   // Ignore Up to date
                   .forEach(refUpdate -> {
                       sb.append(refUpdate.getStatus().name() + "\n"); // Status enum name
                       sb.append(refUpdate.getRemoteName() + "\n"); // Remote ref name
@@ -184,7 +209,7 @@ public class GitUtils extends Git {
                   });
             
         
-        return sb.length() > 1 ?  sb.toString() : null; // 1 character == "\n"
+        return sb.length() > 1 ? sb.toString() : null; // 1 character == "\n"
     }
     
     /**
@@ -198,7 +223,11 @@ public class GitUtils extends Git {
                 .call();
         
         // Ensure that the current branch is tracking its remote (if there is one) 
-        List<Ref> refs = branchList().setListMode(ListMode.REMOTE).setContains(getRepository().getBranch()).call();
+        List<Ref> refs = branchList()
+                .setListMode(ListMode.REMOTE)
+                .setContains(getRepository().getBranch())
+                .call();
+        
         if(!refs.isEmpty()) {
             setTrackedBranch(getRepository().getBranch());
         }

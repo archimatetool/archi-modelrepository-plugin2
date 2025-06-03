@@ -155,6 +155,26 @@ public class GitUtilsTests {
     }
     
     @Test
+    public void getPushResultStatus() throws Exception {
+        utils.setRemote(GitHelper.createBareRepository());
+        
+        GitHelper.writeFileToTestRepo(repo, "file1.txt", "123");
+        utils.commitChanges("Message", false);
+        
+        PushResult pushResult = utils.pushToRemote(null, null);
+        assertEquals(Status.OK, GitUtils.getPushResultStatus(pushResult));
+        
+        // And check error message
+        assertNull(GitUtils.getPushResultErrorMessage(pushResult));
+        
+        pushResult = utils.pushToRemote(null, null);
+        assertEquals(Status.UP_TO_DATE, GitUtils.getPushResultStatus(pushResult));
+
+        // And check error message
+        assertNull(GitUtils.getPushResultErrorMessage(pushResult));
+    }
+    
+    @Test
     public void fetchFromRemote() throws Exception {
         utils.setRemote(GitHelper.createBareRepository());
 

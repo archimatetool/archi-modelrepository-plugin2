@@ -15,7 +15,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -109,11 +108,11 @@ public class PushModelWorkflow extends AbstractRepositoryWorkflow {
         logger.info("Push Status: " + status); //$NON-NLS-1$
         
         // OK
-        if(status == RemoteRefUpdate.Status.OK) {
+        if(status == Status.OK) {
             MessageDialog.openInformation(workbenchWindow.getShell(), Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_2);
         }
         // Up to date
-        else if(status == RemoteRefUpdate.Status.UP_TO_DATE) {
+        else if(status == Status.UP_TO_DATE) {
             MessageDialog.openInformation(workbenchWindow.getShell(), Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_3);
         }
         // Ugh!
