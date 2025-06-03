@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -157,9 +158,9 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException {
+    public List<FetchResult> fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean fetchTags, boolean isDryrun) throws IOException, GitAPIException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.fetchFromRemote(npw, monitor, isDryrun);
+            return utils.fetchFromRemote(npw, monitor, fetchTags, isDryrun);
         }
     }
 

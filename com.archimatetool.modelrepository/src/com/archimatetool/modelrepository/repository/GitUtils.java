@@ -11,7 +11,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
@@ -133,6 +136,8 @@ public class GitUtils extends Git {
     public PushResult pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
         Iterable<PushResult> results = push()
                 .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .add(getRepository().getFullBranch()) // Push current branch
+                .setPushTags() // Push tags
                 .setProgressMonitor(monitor)
                 .call();
         
@@ -214,13 +219,34 @@ public class GitUtils extends Git {
     
     /**
      * Fetch from Remote
+     * @return a List of FetchResults
+     * If fetchTags is true the first FetchResult will be for branches and the second for tags.
+     * If fetchTags is false the first and only FetchResult will be for branches.
      */
-    public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws GitAPIException, IOException {
+    public List<FetchResult> fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean fetchTags, boolean isDryrun) throws GitAPIException, IOException {
+        List<FetchResult> fetchresults = new ArrayList<>();
+        
+        // Fetch branches
         FetchResult fetchResult = fetch()
                 .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
                 .setProgressMonitor(monitor)
                 .setDryRun(isDryrun)
                 .call();
+        
+        fetchresults.add(fetchResult);
+
+        // Fetch tags
+        if(fetchTags) {
+            FetchResult fetchResult2 = fetch()
+                    .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                    .setProgressMonitor(monitor)
+                    .setDryRun(isDryrun)
+                    .setRefSpecs(new RefSpec("refs/tags/*:refs/tags/*")) // fetch all tags
+                    .setForceUpdate(true) // Force update of tags
+                    .call();
+            
+            fetchresults.add(fetchResult2);
+        }
         
         // Ensure that the current branch is tracking its remote (if there is one) 
         List<Ref> refs = branchList()
@@ -240,7 +266,7 @@ public class GitUtils extends Git {
 //            }
 //        }
         
-        return fetchResult;
+        return fetchresults;
     }
     
     /**
@@ -467,6 +493,56 @@ public class GitUtils extends Git {
      */
     public String getRemoteRefNameForCurrentBranch() throws IOException {
         return RepoConstants.ORIGIN + "/" + getRepository().getBranch();
+    }
+    
+    /**
+     * Return a map of tags mapping the commit ID to a friendly list of tag names
+     */
+    public Map<String, List<String>> getTags() throws GitAPIException, IOException {
+        Map<String, List<String>> tagMap = new HashMap<>();
+        
+        for(Ref tagRef : tagList().call()) {
+            // Peel annotated tags to get the tagged object
+            ObjectId tagObjectId = getRepository().getRefDatabase().peel(tagRef).getPeeledObjectId();
+            if(tagObjectId == null) {
+                // Lightweight tag, directly points to the commit
+                tagObjectId = tagRef.getObjectId();
+            }
+
+            // Get the map entry or create a new one
+            List<String> tags = tagMap.get(tagObjectId.getName());
+            if(tags == null) {
+                tags = new ArrayList<>();
+                tagMap.put(tagObjectId.getName(), tags);
+            }
+            
+            tags.add(Repository.shortenRefName(tagRef.getName()));
+        }
+        
+        return tagMap;
+    }
+    
+    /**
+     * Delete tags
+     * @param tagNames Any number of tag names. For example, "refs/tags/tagName" or "refs/tags/origin/tagName"
+     * @return a list of the result of full tag names deleted
+     */
+    public List<String> deleteTag(String... tagNames) throws GitAPIException {
+        // Delete local and remote tag refs
+        return tagDelete().setTags(tagNames).call();
+    }
+    
+    /**
+     * Delete a remote tag by pushing to repo
+     * @param tagName Local type ref like "refs/tags/tagName"
+     */
+    public Iterable<PushResult> deleteRemoteTag(String tagName, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException {
+        return push()
+                .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .setRefSpecs(new RefSpec(":" + tagName))
+                .setRemote(RepoConstants.ORIGIN)
+                .setProgressMonitor(monitor)
+                .call();
     }
     
     /**

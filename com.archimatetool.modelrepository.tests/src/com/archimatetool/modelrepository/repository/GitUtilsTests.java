@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
@@ -206,9 +207,10 @@ public class GitUtilsTests {
         utils.deleteBranch(true, remoteBranchName);
 
         // Fetch
-        FetchResult fetchResult = utils.fetchFromRemote(null, null, false);
+        List<FetchResult> fetchResults = utils.fetchFromRemote(null, null, true, false);
+        assertEquals(2, fetchResults.size());
 
-        Collection<TrackingRefUpdate> refUpdates = fetchResult.getTrackingRefUpdates();
+        Collection<TrackingRefUpdate> refUpdates = fetchResults.get(0).getTrackingRefUpdates();
         assertEquals(1, refUpdates.size());
 
         TrackingRefUpdate refUpdate = refUpdates.iterator().next();
@@ -423,6 +425,71 @@ public class GitUtilsTests {
     @Test
     public void getRemoteRefNameForCurrentBranch() throws Exception {
         assertEquals(RepoConstants.ORIGIN_MAIN, utils.getRemoteRefNameForCurrentBranch());
+    }
+    
+    @Test
+    public void getTags() throws Exception {
+        RevCommit commit1 = utils.commitChanges("Message 1", false);
+        RevCommit commit2 = utils.commitChanges("Message 2", false);
+        
+        utils.tag().setObjectId(commit1).setName("tag1").call();
+        utils.tag().setObjectId(commit1).setName("tag2").call();
+        utils.tag().setObjectId(commit2).setAnnotated(true).setName("tag3").call();
+        utils.tag().setObjectId(commit2).setAnnotated(true).setName("tag4").call();
+        
+        Map<String, List<String>> map = utils.getTags();
+        assertEquals(2, map.size());
+        
+        assertEquals(2, map.get(commit1.getName()).size());
+        assertEquals(2, map.get(commit2.getName()).size());
+        
+        List<String> list = map.get(commit1.getName());
+        assertEquals("tag1", list.get(0));
+        assertEquals("tag2", list.get(1));
+        
+        list = map.get(commit2.getName());
+        assertEquals("tag3", list.get(0));
+        assertEquals("tag4", list.get(1));
+    }
+    
+    @Test
+    public void deleteTag() throws Exception {
+        utils.commitChanges("Message 1", false);
+        
+        // Create new tag
+        Ref ref = utils.tag().setName("tag1").call();
+        assertEquals(RepoConstants.R_TAGS + "tag1", ref.getName());
+
+        List<String> result = utils.deleteTag(RepoConstants.R_TAGS + "tag1");
+        assertEquals(RepoConstants.R_TAGS + "tag1", result.get(0));
+    }
+    
+    @Test
+    public void deleteRemoteTag() throws Exception {
+        utils.setRemote(GitHelper.createBareRepository());
+
+        utils.commitChanges("Message", false);
+
+        // We'' use the name "main" to check we can use this tag name
+        String localTagName = RepoConstants.R_TAGS + "main";
+
+        // Create new tag
+        Ref ref = utils.tag().setName("main").call();
+        assertEquals(localTagName, ref.getName());
+
+        // Push it
+        utils.pushToRemote(null, null);
+        
+        // Delete it and check
+        Iterable<PushResult> pushResults = utils.deleteRemoteTag(localTagName, null, null);
+        PushResult pushResult = pushResults.iterator().next();
+
+        Collection<RemoteRefUpdate> refUpdates = pushResult.getRemoteUpdates();
+        assertEquals(1, refUpdates.size());
+
+        RemoteRefUpdate refUpdate = refUpdates.iterator().next();
+        assertEquals(Status.OK, refUpdate.getStatus());
+        assertEquals(localTagName, refUpdate.getRemoteName());
     }
     
     @Test
