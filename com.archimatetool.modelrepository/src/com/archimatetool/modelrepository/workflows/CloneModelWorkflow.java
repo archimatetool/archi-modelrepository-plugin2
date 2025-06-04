@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -78,18 +79,34 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
                 archiRepository.cloneModel(url, npw, new ProgressMonitorWrapper(monitor, Messages.CloneModelWorkflow_1));
             }, true);
 
-            // Model file
+            // Get the main model file
             File modelFile = archiRepository.getModelFile();
             
-            // If we have one...
+            // We have one so open it...
             if(modelFile.exists()) {
                 logger.info("Model cloned, opening model: " + modelFile); //$NON-NLS-1$
                 
                 // Open the model
                 IEditorModelManager.INSTANCE.openModel(modelFile);
             }
-            // Else there were no files so create a new blank model
+            // Else there is no model file...
             else {
+                // If there are other files present it's not a blank repo
+                File[] files = folder.listFiles((dir, name) -> {
+                    name = name.toLowerCase();
+                    return !(name.equals(".git") || name.startsWith("readme")); //$NON-NLS-1$ //$NON-NLS-2$
+                });
+                
+                if(files != null && files.length != 0) {
+                    logger.info("Model doesn't exist, but repo is not empty!"); //$NON-NLS-1$
+                    
+                    if(!MessageDialog.openConfirm(workbenchWindow.getShell(),
+                            Messages.CloneModelWorkflow_0,
+                            Messages.CloneModelWorkflow_3)) {
+                        return;
+                    }
+                }
+                
                 logger.info("Model does not exist, creating a new model"); //$NON-NLS-1$
                 
                 // New model. This will open in the tree

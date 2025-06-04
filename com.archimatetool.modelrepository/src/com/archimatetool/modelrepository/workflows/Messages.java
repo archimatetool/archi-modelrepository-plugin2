@@ -20,6 +20,7 @@ public class Messages extends NLS {
     public static String CloneModelWorkflow_0;
     public static String CloneModelWorkflow_1;
     public static String CloneModelWorkflow_2;
+    public static String CloneModelWorkflow_3;
 
     public static String CommitModelWorkflow_0;
     public static String CommitModelWorkflow_1;
