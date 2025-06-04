@@ -94,7 +94,7 @@ public class PushModelWorkflow extends AbstractRepositoryWorkflow {
         
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.PushModelWorkflow_1, IProgressMonitor.UNKNOWN);
-            pushResult[0] = archiRepository.pushToRemote(npw, new ProgressMonitorWrapper(monitor));
+            pushResult[0] = archiRepository.pushToRemote(npw, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_1));
         }, true);
         
         return pushResult[0];

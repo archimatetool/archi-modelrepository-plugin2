@@ -75,7 +75,7 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
             
             IRunnable.run(dialog, monitor -> {
                 monitor.beginTask(Messages.CloneModelWorkflow_1, IProgressMonitor.UNKNOWN);
-                archiRepository.cloneModel(url, npw, new ProgressMonitorWrapper(monitor));
+                archiRepository.cloneModel(url, npw, new ProgressMonitorWrapper(monitor, Messages.CloneModelWorkflow_1));
             }, true);
 
             // Model file

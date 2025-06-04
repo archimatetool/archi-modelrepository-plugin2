@@ -162,7 +162,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.RefreshModelWorkflow_4, IProgressMonitor.UNKNOWN);
-            fetchResult[0] = archiRepository.fetchFromRemote(npw, new ProgressMonitorWrapper(monitor), false);
+            fetchResult[0] = archiRepository.fetchFromRemote(npw, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), false);
         }, true);
 
         return fetchResult[0];

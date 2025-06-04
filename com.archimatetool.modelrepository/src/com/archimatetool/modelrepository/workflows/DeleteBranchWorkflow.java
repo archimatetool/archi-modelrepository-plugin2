@@ -103,7 +103,8 @@ public class DeleteBranchWorkflow extends AbstractRepositoryWorkflow {
             try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
                 // Delete the remote branch first in case of error
                 logger.info("Deleting remote branch: " + branchInfo.getLocalBranchNameFor()); //$NON-NLS-1$
-                utils.deleteRemoteBranch(branchInfo.getLocalBranchNameFor(), npw, new ProgressMonitorWrapper(monitor));
+                utils.deleteRemoteBranch(branchInfo.getLocalBranchNameFor(), npw, new ProgressMonitorWrapper(monitor,
+                                                                                        Messages.DeleteBranchWorkflow_0));
 
                 // Then delete local and tracked branch
                 logger.info("Deleting local branch: " + branchInfo.getShortName()); //$NON-NLS-1$

@@ -133,7 +133,8 @@ public class CreateRepoFromModelWorkflow extends AbstractRepositoryWorkflow {
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.CreateRepoFromModelWorkflow_2, IProgressMonitor.UNKNOWN);
             
-            PushResult pushResult = archiRepository.pushToRemote(npw, new ProgressMonitorWrapper(monitor));
+            PushResult pushResult = archiRepository.pushToRemote(npw, new ProgressMonitorWrapper(monitor,
+                                                                                          Messages.CreateRepoFromModelWorkflow_2));
             
             // Get any errors in Push Result and set exception
             Status status = GitUtils.getPushResultStatus(pushResult);
