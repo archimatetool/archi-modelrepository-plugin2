@@ -38,6 +38,8 @@ public class Messages extends NLS {
 
     public static String HistoryView_11;
 
+    public static String HistoryView_12;
+
     public static String HistoryView_2;
 
     public static String HistoryView_3;

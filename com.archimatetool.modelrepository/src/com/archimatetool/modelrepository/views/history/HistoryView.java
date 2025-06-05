@@ -54,6 +54,7 @@ import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
 import com.archimatetool.modelrepository.actions.RestoreCommitAction;
 import com.archimatetool.modelrepository.actions.UndoLastCommitAction;
 import com.archimatetool.modelrepository.dialogs.CompareDialog;
+import com.archimatetool.modelrepository.dialogs.ErrorMessageDialog;
 import com.archimatetool.modelrepository.merge.ModelComparison;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.BranchInfo;
@@ -140,6 +141,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
                 catch(IOException ex) {
                     ex.printStackTrace();
                     logger.log(Level.SEVERE, "Model Comparison", ex); //$NON-NLS-1$
+                    ErrorMessageDialog.open(getSite().getShell(), Messages.HistoryView_3, Messages.HistoryView_12, ex);
                 }
             }
         }
