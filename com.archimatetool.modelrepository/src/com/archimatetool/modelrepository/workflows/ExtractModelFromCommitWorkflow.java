@@ -66,6 +66,7 @@ public class ExtractModelFromCommitWorkflow extends AbstractRepositoryWorkflow {
             }
             else {
                 logger.warning("Model does not exist!"); //$NON-NLS-1$
+                displayErrorDialog(Messages.ExtractModelFromCommitWorkflow_0, Messages.ExtractModelFromCommitWorkflow_2);
             }
             
             FileUtils.deleteFolder(tempFolder);
