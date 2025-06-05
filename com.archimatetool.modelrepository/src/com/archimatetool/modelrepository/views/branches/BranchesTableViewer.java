@@ -51,7 +51,7 @@ public class BranchesTableViewer extends TableViewer {
         
         TableViewerColumn column = new TableViewerColumn(this, SWT.NONE, 0);
         column.getColumn().setText(Messages.BranchesTableViewer_0);
-        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
         
         column = new TableViewerColumn(this, SWT.NONE, 1);
         column.getColumn().setText(Messages.BranchesTableViewer_1);
@@ -67,7 +67,7 @@ public class BranchesTableViewer extends TableViewer {
         
         column = new TableViewerColumn(this, SWT.NONE, 4);
         column.getColumn().setText(Messages.BranchesTableViewer_8);
-        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
         
         column = new TableViewerColumn(this, SWT.NONE, 5);
         column.getColumn().setText(Messages.BranchesTableViewer_9);
