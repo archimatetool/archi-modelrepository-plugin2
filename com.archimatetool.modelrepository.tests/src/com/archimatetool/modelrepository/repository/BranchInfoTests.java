@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.modelrepository.GitHelper;
+import com.archimatetool.modelrepository.repository.BranchInfo.Option;
 
 
 @SuppressWarnings("nls")
@@ -42,14 +43,14 @@ public class BranchInfoTests {
     public void currentLocalBranchInfo() throws Exception {
         RevCommit commit = utils.commitChanges("Commit 1", false);
         
-        BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), true);
+        BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.ALL);
         
+        assertFalse(branchInfo.getRef().isSymbolic());
         assertEquals(RepoConstants.R_HEADS_MAIN, branchInfo.getFullName());
         assertEquals(commit, branchInfo.getLatestCommit());
-        assertEquals(RepoConstants.R_HEADS_MAIN, branchInfo.getLocalBranchNameFor());
-        assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getRemoteBranchNameFor());
+        assertEquals(RepoConstants.R_HEADS_MAIN, branchInfo.getLocalBranchName());
+        assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getRemoteBranchName());
         assertEquals(RepoConstants.MAIN, branchInfo.getShortName());
-        assertTrue(branchInfo.hasFullStatus());
         assertEquals(repo.getWorkingFolder(), branchInfo.getWorkingFolder());
         assertTrue(branchInfo.hasLocalRef());
         assertFalse(branchInfo.hasRemoteRef());
@@ -65,19 +66,19 @@ public class BranchInfoTests {
     }
 
     @Test
-    public void currentRemoteBranchInfo() throws Exception {
+    public void currentRemoteFullBranchInfo() throws Exception {
         repo.setRemote(GitHelper.createBareRepository());
         RevCommit commit = utils.commitChanges("Commit 1", false);
         utils.pushToRemote(null, null);
         
-        BranchInfo branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder(), true);
+        BranchInfo branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder(), Option.ALL);
         
+        assertFalse(branchInfo.getRef().isSymbolic());
         assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getFullName());
         assertEquals(commit, branchInfo.getLatestCommit());
-        assertEquals(RepoConstants.R_HEADS_MAIN, branchInfo.getLocalBranchNameFor());
-        assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getRemoteBranchNameFor());
+        assertEquals(RepoConstants.R_HEADS_MAIN, branchInfo.getLocalBranchName());
+        assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getRemoteBranchName());
         assertEquals(RepoConstants.MAIN, branchInfo.getShortName());
-        assertTrue(branchInfo.hasFullStatus());
         assertEquals(repo.getWorkingFolder(), branchInfo.getWorkingFolder());
         assertTrue(branchInfo.hasLocalRef());
         assertTrue(branchInfo.hasRemoteRef());
@@ -93,17 +94,17 @@ public class BranchInfoTests {
         
         // Add another commit but not pushed
         RevCommit commit2 = utils.commitChanges("Commit 2", false);
-        branchInfo.refresh();
+        branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder(), Option.COMMIT_STATUS);
         assertTrue(branchInfo.hasUnpushedCommits());
         
         // Push it
         utils.pushToRemote(null, null);
-        branchInfo.refresh();
+        branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder());
         assertEquals(commit2, branchInfo.getLatestCommit());
         
         // Undo last commit
         utils.resetToRef("HEAD^");
-        branchInfo.refresh();
+        branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder(), Option.COMMIT_STATUS);
         assertTrue(branchInfo.hasRemoteCommits());
     }
     

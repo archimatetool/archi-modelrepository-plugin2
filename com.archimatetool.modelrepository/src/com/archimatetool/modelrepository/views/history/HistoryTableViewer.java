@@ -131,7 +131,7 @@ public class HistoryTableViewer extends TableViewer {
         
         // Get basic current LocalBranch Info
         try {
-            fSelectedBranch = BranchInfo.currentLocalBranchInfo(archiRepo.getWorkingFolder(), false);
+            fSelectedBranch = BranchInfo.currentLocalBranchInfo(archiRepo.getWorkingFolder());
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
@@ -276,14 +276,14 @@ public class HistoryTableViewer extends TableViewer {
                     }
 
                     // Set the local branch commit start
-                    ObjectId localCommitID = git.getRepository().resolve(fSelectedBranch.getLocalBranchNameFor());
+                    ObjectId localCommitID = git.getRepository().resolve(fSelectedBranch.getLocalBranchName());
                     if(localCommitID != null) {
                         fLocalCommit = revWalk.parseCommit(localCommitID);
                         revWalk.markStart(fLocalCommit);
                     }
 
                     // Set the remote branch commit start
-                    ObjectId remoteCommitID = git.getRepository().resolve(fSelectedBranch.getRemoteBranchNameFor());
+                    ObjectId remoteCommitID = git.getRepository().resolve(fSelectedBranch.getRemoteBranchName());
                     if(remoteCommitID != null) {
                         fRemoteCommit = revWalk.parseCommit(remoteCommitID);
                         revWalk.markStart(fRemoteCommit);

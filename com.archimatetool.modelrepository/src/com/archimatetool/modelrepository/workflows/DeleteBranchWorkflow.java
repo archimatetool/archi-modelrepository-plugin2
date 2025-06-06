@@ -102,15 +102,15 @@ public class DeleteBranchWorkflow extends AbstractRepositoryWorkflow {
             
             try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
                 // Delete the remote branch first in case of error
-                logger.info("Deleting remote branch: " + branchInfo.getLocalBranchNameFor()); //$NON-NLS-1$
-                utils.deleteRemoteBranch(branchInfo.getLocalBranchNameFor(), npw, new ProgressMonitorWrapper(monitor,
+                logger.info("Deleting remote branch: " + branchInfo.getLocalBranchName()); //$NON-NLS-1$
+                utils.deleteRemoteBranch(branchInfo.getLocalBranchName(), npw, new ProgressMonitorWrapper(monitor,
                                                                                         Messages.DeleteBranchWorkflow_0));
 
                 // Then delete local and tracked branch
                 logger.info("Deleting local branch: " + branchInfo.getShortName()); //$NON-NLS-1$
                 utils.deleteBranch(true, // force the delete even if the branch hasn't been merged
-                                   branchInfo.getLocalBranchNameFor(),
-                                   branchInfo.getRemoteBranchNameFor());
+                                   branchInfo.getLocalBranchName(),
+                                   branchInfo.getRemoteBranchName());
                 
             }
         }, true);
@@ -125,8 +125,8 @@ public class DeleteBranchWorkflow extends AbstractRepositoryWorkflow {
         // Delete local and tracked branch
         try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
             utils.deleteBranch(true, // force the delete even if the branch hasn't been merged
-                               branchInfo.getLocalBranchNameFor(),
-                               branchInfo.getRemoteBranchNameFor());
+                               branchInfo.getLocalBranchName(),
+                               branchInfo.getRemoteBranchName());
         }
     }
     

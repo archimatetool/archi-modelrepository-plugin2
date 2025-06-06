@@ -30,6 +30,7 @@ import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.BranchInfo.Option;
 import com.archimatetool.modelrepository.repository.BranchStatus;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
@@ -116,7 +117,7 @@ public class BranchesTableViewer extends TableViewer {
                 }
                 
                 try {
-                    BranchStatus status = new BranchStatus(repo.getWorkingFolder(), true);
+                    BranchStatus status = new BranchStatus(repo.getWorkingFolder(), Option.ALL);
                     return status.getLocalAndUntrackedRemoteBranches().toArray();
                 }
                 catch(IOException | GitAPIException ex) {

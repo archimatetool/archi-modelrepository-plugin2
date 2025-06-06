@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.modelrepository.GitHelper;
+import com.archimatetool.modelrepository.repository.BranchInfo.Option;
 
 
 @SuppressWarnings("nls")
@@ -40,7 +41,7 @@ public class BranchStatusTests {
         
         utils.checkout().setName(RepoConstants.R_HEADS_MAIN).call();
 
-        status = new BranchStatus(repo.getWorkingFolder(), true);
+        status = new BranchStatus(repo.getWorkingFolder(), Option.ALL);
     }
     
     @AfterEach
@@ -64,7 +65,7 @@ public class BranchStatusTests {
         // Delete local branch
         utils.deleteBranch(false, RepoConstants.R_HEADS + "branch");
         
-        status = new BranchStatus(repo.getWorkingFolder(), true);
+        status = new BranchStatus(repo.getWorkingFolder(), Option.ALL);
         
         List<BranchInfo> branchInfos = status.getLocalAndUntrackedRemoteBranches();
         assertEquals(2, branchInfos.size());

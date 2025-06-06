@@ -18,9 +18,10 @@ import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevWalk;
 
 /**
- * Status of Branches
+ * Status of all Branches for a Repository
  * 
  * @author Phillip Beauvoir
  */
@@ -33,16 +34,18 @@ public class BranchStatus {
     
     /**
      * BranchStatus is a list of all branches in the repo, local and remote, as a list of BranchInfo objects.
-     * @param fullStatus if true all BranchInfo status info is calculated. Setting this to false can mean a more lightweight instance.
+     * @param options additional options
      */
-    public BranchStatus(File repoFolder, boolean fullStatus) throws IOException, GitAPIException {
+    public BranchStatus(File repoFolder, BranchInfo.Option... options) throws IOException, GitAPIException {
         try(Git git = Git.open(repoFolder)) {
             Repository repository = git.getRepository();
 
-            // Get all known branches
-            for(Ref ref : git.branchList().setListMode(ListMode.ALL).call()) {
-                BranchInfo info = new BranchInfo(repository, ref, fullStatus);
-                infos.put(info.getFullName(), info);
+            try(RevWalk revWalk = new RevWalk(repository)) {
+                // Get all known branches
+                for(Ref ref : git.branchList().setListMode(ListMode.ALL).call()) {
+                    BranchInfo info = new BranchInfo(repository, ref, revWalk, options);
+                    infos.put(info.getFullName(), info);
+                }
             }
             
             // Get current local branch
@@ -53,7 +56,7 @@ public class BranchStatus {
             
             // Get current remote branch if there is one (can be null)
             if(currentLocalBranchInfo != null) {
-                String remoteName = currentLocalBranchInfo.getRemoteBranchNameFor();
+                String remoteName = currentLocalBranchInfo.getRemoteBranchName();
                 currentRemoteBranchInfo = infos.get(remoteName);
             }
         }
