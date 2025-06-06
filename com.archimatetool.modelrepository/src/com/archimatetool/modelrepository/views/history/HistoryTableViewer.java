@@ -158,7 +158,11 @@ public class HistoryTableViewer extends TableViewer {
     }
     
     private void setInputAndSelect(IArchiRepository archiRepo) {
-        setInput(archiRepo);
+        Display.getCurrent().asyncExec(() -> {
+            if(!getTable().isDisposed()) {
+                setInput(archiRepo);
+            }
+        });
         
         Display.getCurrent().asyncExec(() -> {
             if(!getTable().isDisposed()) {
