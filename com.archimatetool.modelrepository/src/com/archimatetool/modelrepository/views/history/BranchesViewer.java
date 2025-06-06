@@ -19,7 +19,6 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.BranchStatus;
@@ -47,7 +46,6 @@ public class BranchesViewer extends ComboViewer {
                 return new Object[0];
             }
         });
-        
         
         setLabelProvider(new LabelProvider() {
             @Override
@@ -99,12 +97,5 @@ public class BranchesViewer extends ComboViewer {
                 setSelection(new StructuredSelection(branchInfo));
             }
         }
-        
-        // Avoid bogus horizontal scrollbar cheese
-        Display.getCurrent().asyncExec(() -> {
-            if(!getControl().isDisposed()) {
-                getControl().getParent().layout();
-            }
-        });
     }
 }

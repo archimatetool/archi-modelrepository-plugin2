@@ -21,6 +21,8 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
@@ -229,24 +231,24 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     
     private void createInfoSection(Composite parent) {
         Composite mainComp = new Composite(parent, SWT.NONE);
-        mainComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        GridLayout layout = new GridLayout(3, false);
-        layout.marginWidth = 0;
-        layout.marginHeight = 0;
-        mainComp.setLayout(layout);
-
+        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(mainComp);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(mainComp);
+ 
         // Repository name
         fRepoLabel = new Label(mainComp, SWT.NONE);
-        fRepoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fRepoLabel);
         fRepoLabel.setText(Messages.HistoryView_0);
 
         // Branches
-        Label label = new Label(mainComp, SWT.NONE);
-        label.setText(Messages.HistoryView_2);
+        Composite branchesComp = new Composite(mainComp, SWT.NONE);
+        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(branchesComp);
+        GridDataFactory.create(SWT.NONE).align(SWT.END, SWT.CENTER).applyTo(branchesComp);
 
-        fBranchesViewer = new BranchesViewer(mainComp);
-        GridData gd = new GridData(SWT.END);
-        fBranchesViewer.getControl().setLayoutData(gd);
+        Label label = new Label(branchesComp, SWT.NONE);
+        label.setText(Messages.HistoryView_2);
+       
+        fBranchesViewer = new BranchesViewer(branchesComp);
+        GridDataFactory.create(SWT.NONE).hint(250, SWT.DEFAULT).applyTo(fBranchesViewer.getControl()); 
         fBranchesViewer.getControl().setToolTipText(Messages.HistoryView_5);
         
         /*
@@ -265,11 +267,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         Composite tableComp = new Composite(tableSash, SWT.NONE);
         tableComp.setLayout(new TableColumnLayout());
         
-        // This ensures a minumum and equal size and no horizontal size creep for the table
-        GridData gd = new GridData(GridData.FILL_BOTH);
-        gd.widthHint = 100;
-        gd.heightHint = 50;
-        tableComp.setLayoutData(gd);
+        // This ensures a minimum and equal size and no horizontal size creep for the table
+        GridDataFactory.create(GridData.FILL_BOTH).hint(100, 50).applyTo(tableComp); 
         
         // History Table
         fHistoryTableViewer = new HistoryTableViewer(tableComp);
