@@ -149,7 +149,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         closeAndRestoreModel();
         
         if(mergeHandlerResult == MergeHandlerResult.MERGED_OK) {
-            MessageDialog.openInformation(workbenchWindow.getShell(), Messages.RefreshModelWorkflow_0, Messages.RefreshModelWorkflow_3);
+            MessageDialog.openInformation(workbenchWindow.getShell(), Messages.RefreshModelWorkflow_0, Messages.RefreshModelWorkflow_5);
         }
     }
     

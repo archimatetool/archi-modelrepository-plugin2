@@ -69,6 +69,8 @@ public class Messages extends NLS {
     public static String RefreshModelWorkflow_3;
     public static String RefreshModelWorkflow_4;
 
+    public static String RefreshModelWorkflow_5;
+
     public static String ResetToRemoteCommitWorkflow_0;
     public static String ResetToRemoteCommitWorkflow_1;
 
