@@ -48,6 +48,7 @@ import org.eclipse.ui.part.IContributedContentsView;
 import org.eclipse.ui.part.ViewPart;
 
 import com.archimatetool.model.IArchimateModelObject;
+import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
@@ -504,24 +505,21 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             Object selected = sel.getFirstElement();
             IArchimateModelObject modelObject = null;
             
+            // Model Object
             if(selected instanceof IArchimateModelObject) {
                 modelObject = (IArchimateModelObject)selected;
             }
-            
-            // If it's an EditPart...
+            // Is it a diagram EditPart...
             else if(selected instanceof IAdaptable adaptable) {
-                boolean getDiagramModelForDiagramComponents = true;
-                
-                // If it's a diagram model component get the DiagramModel
-                if(getDiagramModelForDiagramComponents) {
-                    modelObject = adaptable.getAdapter(IDiagramModelComponent.class);
-                    if(modelObject instanceof IDiagramModelComponent dmc) {
-                        modelObject = dmc.getDiagramModel();
-                    }
+                IDiagramModelComponent dmc = adaptable.getAdapter(IDiagramModelComponent.class);
+
+                // If it's a concept
+                if(dmc instanceof IDiagramModelArchimateComponent dmac) {
+                    modelObject = dmac.getArchimateConcept();
                 }
-                // Else get the ArchimateConcept if it's an Archimate diagram model component, or null if a plain diagram model compenent
-                else {
-                    modelObject = adaptable.getAdapter(IArchimateModelObject.class);
+                // If it's a diagram model component get the DiagramModel
+                else if(dmc != null) {
+                    modelObject = dmc.getDiagramModel();
                 }
             }
             
