@@ -80,6 +80,14 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     }
 
     /**
+     * If the model is open return whether it is dirty
+     */
+    protected boolean isModelDirty() {
+        IArchimateModel model = archiRepository.getOpenModel();
+        return model != null && IEditorModelManager.INSTANCE.isModelDirty(model);
+    }
+    
+    /**
      * If the model is open check whether it is dirty and needs saving.
      * If it is, the user is asked to save the model.
      * Return false if the user cancels or an exception occcurs.
