@@ -52,6 +52,7 @@ import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.actions.AddBranchAction;
 import com.archimatetool.modelrepository.actions.ExtractModelFromCommitAction;
 import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
 import com.archimatetool.modelrepository.actions.RestoreCommitAction;
@@ -102,6 +103,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     private ExtractModelFromCommitAction fActionExtractCommit;
     private RestoreCommitAction fActionRestoreCommit;
     private ResetToRemoteCommitAction fActionResetToRemoteCommit;
+    private AddBranchAction fActionAddBranch;
     
     private IAction fActionCompare = new Action(Messages.HistoryView_3) {
         @Override
@@ -305,6 +307,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         fActionResetToRemoteCommit = new ResetToRemoteCommitAction(getViewSite().getWorkbenchWindow());
         fActionResetToRemoteCommit.setEnabled(false);
         
+        fActionAddBranch = new AddBranchAction(getViewSite().getWorkbenchWindow(), Messages.HistoryView_13);
+        fActionAddBranch.setEnabled(false);
+        
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
 //        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
@@ -363,8 +368,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
-        
         manager.add(new Separator());
+        manager.add(fActionAddBranch);
     }
     
     /**
@@ -381,6 +386,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         if(!(selection.getFirstElement() instanceof RevCommit revCommit)) {
             fActionExtractCommit.setCommit(null, null);
             fActionRestoreCommit.setCommit(null, null);
+            fActionAddBranch.setObjectId(null, null);
             
             fActionCompare.setEnabled(isSingleSelection || selection.size() == 2);
             fActionCompare.setText(isSingleSelection ? Messages.HistoryView_4 : Messages.HistoryView_3);
@@ -397,11 +403,16 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         fActionCompare.setText(Messages.HistoryView_3);
         fActionCompare.setEnabled(selection.size() == 2);
         
+        fActionAddBranch.setObjectId(fSelectedRepository, isSingleSelection ? revCommit : null);
+        
         // Commit Viewer
         fCommitViewer.setCommit(isSingleSelection ? revCommit : null);
     }
     
     private void fillContextMenu(IMenuManager manager) {
+        IStructuredSelection selection = getHistoryViewer().getStructuredSelection();
+        boolean isRevCommit = selection.getFirstElement() instanceof RevCommit;
+        
         manager.add(fActionCompare);
         manager.add(new Separator());
         manager.add(fActionExtractCommit);
@@ -409,6 +420,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
+        if(isRevCommit) {
+            manager.add(new Separator());
+            manager.add(fActionAddBranch);
+        }
         manager.add(new Separator());
         manager.add(fActionFilter);
         
