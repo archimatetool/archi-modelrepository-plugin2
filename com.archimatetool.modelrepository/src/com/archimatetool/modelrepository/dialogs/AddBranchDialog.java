@@ -38,10 +38,13 @@ public class AddBranchDialog extends TitleAreaDialog {
 	private Text txtBranch;
 	private String branchName;
 	
-    public AddBranchDialog(Shell parentShell) {
+	private boolean checkoutButton;
+	
+    public AddBranchDialog(Shell parentShell, boolean checkoutButton) {
         super(parentShell);
+        this.checkoutButton = checkoutButton;
     }
-
+    
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
@@ -92,7 +95,10 @@ public class AddBranchDialog extends TitleAreaDialog {
             }
             
             getButton(ADD_BRANCH).setEnabled(isValidRefName);
-            getButton(ADD_BRANCH_CHECKOUT).setEnabled(isValidRefName);
+            
+            if(checkoutButton) {
+                getButton(ADD_BRANCH_CHECKOUT).setEnabled(isValidRefName);
+            }
         });
         
         return area;
@@ -110,11 +116,13 @@ public class AddBranchDialog extends TitleAreaDialog {
     
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
-        Button b = createButton(parent, ADD_BRANCH, Messages.AddBranchDialog_1, false);
-        b.setEnabled(false);
+        Button addButton = createButton(parent, ADD_BRANCH, Messages.AddBranchDialog_1, false);
+        addButton.setEnabled(false);
         
-        b = createButton(parent, ADD_BRANCH_CHECKOUT, Messages.AddBranchDialog_7, false);
-        b.setEnabled(false);
+        if(checkoutButton) {
+            Button addCheckoutButton = createButton(parent, ADD_BRANCH_CHECKOUT, Messages.AddBranchDialog_7, false);
+            addCheckoutButton.setEnabled(false);
+        }
         
         createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
     }

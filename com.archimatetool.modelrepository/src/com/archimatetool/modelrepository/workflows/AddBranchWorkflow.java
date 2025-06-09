@@ -44,7 +44,17 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
      */
     @Override
     public void run() {
-        AddBranchDialog dialog = new AddBranchDialog(workbenchWindow.getShell());
+        // Add checkout button if the current branch is at HEAD or the model is not dirty and no commits needed
+        boolean checkoutButton = currentBranchInfo.isRefAtHead();
+        try {
+            checkoutButton = checkoutButton || !(archiRepository.hasChangesToCommit() || isModelDirty());
+        }
+        catch(IOException | GitAPIException ex) {
+            ex.printStackTrace();
+            logger.log(Level.WARNING, "Add Branch", ex); //$NON-NLS-1$
+        }
+        
+        AddBranchDialog dialog = new AddBranchDialog(workbenchWindow.getShell(), checkoutButton);
         int retVal = dialog.open();
         String branchName = dialog.getBranchName();
         
@@ -68,12 +78,26 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
             else {
                 // Create the branch
                 logger.info("Creating branch: " + branchName); //$NON-NLS-1$
-                git.branchCreate().setName(branchName).call();
+                git.branchCreate()
+                   .setStartPoint(currentBranchInfo.getRef().getObjectId().getName()) // Use current ObjectID for start point
+                   .setName(branchName).call();
 
                 // Checkout if option set
                 if(retVal == AddBranchDialog.ADD_BRANCH_CHECKOUT) {
+                    OpenModelState modelState = null;
+                    
+                    // If not at HEAD we need to reload the model
+                    if(!currentBranchInfo.isRefAtHead()) {
+                        modelState = closeModel(false);
+                    }
+                    
                     logger.info("Checking out branch: " + branchName); //$NON-NLS-1$
-                    git.checkout().setName(fullName).call();
+                    git.checkout()
+                       .setName(fullName)
+                       .call();
+                    
+                    // Open the model if it was open before and any open editors
+                    restoreModel(modelState);
                 }
                 
                 // Notify listeners
@@ -88,6 +112,6 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
 
     @Override
     public boolean canRun() {
-        return currentBranchInfo != null && currentBranchInfo.isCurrentBranch() && super.canRun();
+        return currentBranchInfo != null && super.canRun();
     }
 }
