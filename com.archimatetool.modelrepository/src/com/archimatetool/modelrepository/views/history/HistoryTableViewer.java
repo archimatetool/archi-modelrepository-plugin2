@@ -154,6 +154,13 @@ public class HistoryTableViewer extends TableViewer {
         // If we have a working tree then update history view
         if(hasWorkingTree(getInput()) != hasWorkingTree) {
             setInput(getInput());
+            
+            // Avoid bogus horizontal scrollbar cheese
+            Display.getCurrent().asyncExec(() -> {
+                if(!getTable().isDisposed()) {
+                    getTable().getParent().layout();
+                }
+            });
         }
     }
     
