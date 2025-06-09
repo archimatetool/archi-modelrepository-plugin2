@@ -139,7 +139,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
      * Make local actions
      */
     private void makeActions() {
-        fActionAddBranch = new AddBranchAction(getViewSite().getWorkbenchWindow());
+        fActionAddBranch = new AddBranchAction(getViewSite().getWorkbenchWindow(), Messages.BranchesView_2);
         fActionAddBranch.setEnabled(false);
         
         fActionSwitchBranch = new SwitchBranchAction(getViewSite().getWorkbenchWindow());
@@ -189,11 +189,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     
     /**
      * Update the Local Actions depending on the local selection 
-     * @param selection
      */
     private void updateActions() {
         BranchInfo branchInfo = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
-        fActionAddBranch.setBranch(branchInfo);
+        fActionAddBranch.setObjectId(fSelectedRepository, branchInfo != null ? branchInfo.getRef().getObjectId() : null);
         fActionSwitchBranch.setBranch(branchInfo);
         fActionMergeBranch.setBranch(branchInfo);
         fActionDeleteBranch.setBranch(branchInfo);

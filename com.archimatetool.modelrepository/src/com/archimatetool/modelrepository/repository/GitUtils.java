@@ -430,17 +430,22 @@ public class GitUtils extends Git {
      * Return true if the given RevCommit is equal to the HEAD position
      */
     public boolean isCommitAtHead(RevCommit commit) throws IOException {
-        ObjectId headID = getRepository().resolve(RepoConstants.HEAD);
-        ObjectId commitID = commit.getId();
-        return headID != null && commitID != null && headID.equals(commitID);
+        return commit != null && isObjectIdAtHead(commit);
     }
 
     /**
      * Return true if the given Ref is equal to the HEAD position
      */
     public boolean isRefAtHead(Ref ref) throws IOException {
+        return ref != null && isObjectIdAtHead(ref.getObjectId());
+    }
+    
+    /**
+     * Return true if the given ObjectId is equal to the HEAD position
+     */
+    public boolean isObjectIdAtHead(ObjectId objectId) throws IOException {
         ObjectId headID = getRepository().resolve(RepoConstants.HEAD);
-        return headID != null && ref != null && headID.equals(ref.getObjectId());
+        return headID != null && objectId != null && headID.equals(objectId);
     }
 
     /**

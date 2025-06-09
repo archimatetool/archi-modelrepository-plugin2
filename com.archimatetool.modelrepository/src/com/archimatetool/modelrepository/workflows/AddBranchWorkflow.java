@@ -13,13 +13,14 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.dialogs.AddBranchDialog;
-import com.archimatetool.modelrepository.repository.ArchiRepository;
-import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.GitUtils;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoConstants;
 
@@ -32,29 +33,30 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
 
     private static Logger logger = Logger.getLogger(AddBranchWorkflow.class.getName());
     
-    private BranchInfo currentBranchInfo;
+    // The ObjectId of the point where the new branch will be added
+    private ObjectId objectId;
 
-    public AddBranchWorkflow(IWorkbenchWindow workbenchWindow, BranchInfo currentBranchInfo) {
-        super(workbenchWindow, new ArchiRepository(currentBranchInfo.getWorkingFolder()));
-        this.currentBranchInfo = currentBranchInfo;
+    public AddBranchWorkflow(IWorkbenchWindow workbenchWindow, IArchiRepository repository, ObjectId objectId) {
+        super(workbenchWindow, repository);
+        this.objectId = objectId;
     }
 
-    /**
-     * Add a Branch
-     */
     @Override
     public void run() {
-        // Add checkout button if the current branch is at HEAD or the model is not dirty and no commits needed
-        boolean checkoutButton = currentBranchInfo.isRefAtHead();
-        try {
-            checkoutButton = checkoutButton || !(archiRepository.hasChangesToCommit() || isModelDirty());
+        boolean isAtHead = false;
+        boolean hasChangesToCommit = false;
+        
+        try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
+            isAtHead = utils.isObjectIdAtHead(objectId);
+            hasChangesToCommit = archiRepository.hasChangesToCommit();
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
             logger.log(Level.WARNING, "Add Branch", ex); //$NON-NLS-1$
         }
         
-        AddBranchDialog dialog = new AddBranchDialog(workbenchWindow.getShell(), checkoutButton);
+        // Add checkout button if objectId is at HEAD or the model is not dirty and no commits needed
+        AddBranchDialog dialog = new AddBranchDialog(workbenchWindow.getShell(), isAtHead || !(hasChangesToCommit || isModelDirty()));
         int retVal = dialog.open();
         String branchName = dialog.getBranchName();
         
@@ -79,15 +81,15 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
                 // Create the branch
                 logger.info("Creating branch: " + branchName); //$NON-NLS-1$
                 git.branchCreate()
-                   .setStartPoint(currentBranchInfo.getRef().getObjectId().getName()) // Use current ObjectID for start point
+                   .setStartPoint(objectId.getName()) // Use ObjectID for start point
                    .setName(branchName).call();
 
                 // Checkout if option set
                 if(retVal == AddBranchDialog.ADD_BRANCH_CHECKOUT) {
                     OpenModelState modelState = null;
                     
-                    // If not at HEAD we need to reload the model
-                    if(!currentBranchInfo.isRefAtHead()) {
+                    // If we're not at HEAD we need to reload the model
+                    if(!isAtHead) {
                         modelState = closeModel(false);
                     }
                     
@@ -112,6 +114,6 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
 
     @Override
     public boolean canRun() {
-        return currentBranchInfo != null && super.canRun();
+        return objectId != null && super.canRun();
     }
 }

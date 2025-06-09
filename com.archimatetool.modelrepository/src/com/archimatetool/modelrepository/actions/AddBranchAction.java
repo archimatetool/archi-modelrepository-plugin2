@@ -5,10 +5,11 @@
  */
 package com.archimatetool.modelrepository.actions;
 
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
-import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.workflows.AddBranchWorkflow;
 import com.archimatetool.modelrepository.workflows.IRepositoryWorkflow;
 
@@ -17,20 +18,20 @@ import com.archimatetool.modelrepository.workflows.IRepositoryWorkflow;
  */
 public class AddBranchAction extends AbstractRepositoryAction {
     
-    private BranchInfo selectedBranchInfo;
+    private ObjectId objectId;
     private IRepositoryWorkflow workflow;
 	
-    public AddBranchAction(IWorkbenchWindow window) {
+    public AddBranchAction(IWorkbenchWindow window, String text) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_NEW_BRANCH));
-        setText(Messages.AddBranchAction_0);
+        setText(text);
         setToolTipText(getText());
     }
 
-    public void setBranch(BranchInfo branchInfo) {
-        if(selectedBranchInfo != branchInfo) {
-            selectedBranchInfo = branchInfo;
-            workflow = branchInfo != null ? new AddBranchWorkflow(workbenchWindow, branchInfo) : null;
+    public void setObjectId(IArchiRepository archiRepository, ObjectId objectId) {
+        if(this.objectId != objectId) {
+            this.objectId = objectId;
+            workflow = objectId != null ? new AddBranchWorkflow(workbenchWindow, archiRepository, objectId) : null;
             setEnabled(shouldBeEnabled());
         }
     }

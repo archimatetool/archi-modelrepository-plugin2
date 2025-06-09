@@ -6,8 +6,6 @@ public class Messages extends NLS {
 
     private static final String BUNDLE_NAME = "com.archimatetool.modelrepository.actions.messages"; //$NON-NLS-1$
 
-    public static String AddBranchAction_0;
-
     public static String CloneModelAction_0;
 
     public static String CommitModelAction_0;

@@ -41,6 +41,8 @@ public class Messages extends NLS {
     public static String BranchesView_0;
 
     public static String BranchesView_1;
+
+    public static String BranchesView_2;
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

@@ -23,10 +23,9 @@ import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.lib.RefUpdate.Result;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteConfig;
@@ -380,16 +379,12 @@ public class GitUtilsTests {
     
     @Test
     public void isCommitAtHead() throws Exception {
-        utils.commitChanges("Message 1", false);
-        utils.commitChanges("Message 2", false);
-
-        try(RevWalk revWalk = (RevWalk)utils.log().call()) {
-            RevCommit revCommit1 = revWalk.next();
-            RevCommit revCommit2 = revWalk.next();
-
-            assertTrue(utils.isCommitAtHead(revCommit1));
-            assertFalse(utils.isCommitAtHead(revCommit2));
-        }
+        RevCommit revCommit1 = utils.commitChanges("Message 1", false);
+        assertTrue(utils.isCommitAtHead(revCommit1));
+        
+        RevCommit revCommit2 = utils.commitChanges("Message 2", false);
+        assertTrue(utils.isCommitAtHead(revCommit2));
+        assertFalse(utils.isCommitAtHead(revCommit1));
     }
     
     @Test
@@ -403,6 +398,13 @@ public class GitUtilsTests {
         // Go to previous commit
         utils.resetToRef("HEAD^");
         assertFalse(utils.isRefAtHead(ref));
+    }
+
+    @Test
+    public void isObjectIdAtHead() throws Exception {
+        utils.commitChanges("Message 1", false);
+        Ref ref = utils.getRepository().exactRef(utils.getRepository().getFullBranch());
+        assertTrue(utils.isObjectIdAtHead(ref.getObjectId()));
     }
 
     @Test
