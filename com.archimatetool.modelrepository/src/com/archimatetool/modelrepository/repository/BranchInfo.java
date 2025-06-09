@@ -42,6 +42,7 @@ public class BranchInfo {
     private boolean hasUnpushedCommits;
     private boolean hasRemoteCommits;
     private boolean isMerged;
+    private Option[] options;
     
     /**
      * Extra options from the BranchInfo
@@ -76,15 +77,15 @@ public class BranchInfo {
 
     BranchInfo(Repository repository, Ref ref, RevWalk revWalk, Option... options) throws IOException, GitAPIException {
         repoDir = repository.getWorkTree();
-        init(repository, ref, revWalk, options);
+        this.options = options;
+        init(repository, ref, revWalk);
     }
     
     /**
      * Initialise this BranchInfo from Ref and the Repository
      */
-    protected void init(Repository repository, Ref ref, RevWalk revWalk, Option... options) throws IOException, GitAPIException {
-        // Important - get the target Ref in case it's a symbolic Ref
-        this.ref = ref.getTarget();
+    protected void init(Repository repository, Ref ref, RevWalk revWalk) throws IOException, GitAPIException {
+        this.ref = ref.getTarget(); // Important - get the target Ref in case it's a symbolic Ref
 
         // Core queries
         hasLocalRef = repository.exactRef(getLocalBranchName()) != null;
@@ -197,6 +198,13 @@ public class BranchInfo {
     
     public boolean hasUnpushedCommits() {
         return hasUnpushedCommits;
+    }
+    
+    public void refresh() throws IOException, GitAPIException {
+        try(Repository repository = Git.open(repoDir).getRepository()) {
+            Ref newRref = repository.exactRef(getFullName());  // Ref will be a different object with a new Repository instance so renew it
+            init(repository, newRref, null);
+        }
     }
     
     @Override

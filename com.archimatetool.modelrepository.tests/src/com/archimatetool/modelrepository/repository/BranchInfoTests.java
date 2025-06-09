@@ -94,17 +94,17 @@ public class BranchInfoTests {
         
         // Add another commit but not pushed
         RevCommit commit2 = utils.commitChanges("Commit 2", false);
-        branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder(), Option.COMMIT_STATUS);
+        branchInfo.refresh();
         assertTrue(branchInfo.hasUnpushedCommits());
         
         // Push it
         utils.pushToRemote(null, null);
-        branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder());
+        branchInfo.refresh();
         assertEquals(commit2, branchInfo.getLatestCommit());
         
         // Undo last commit
         utils.resetToRef("HEAD^");
-        branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder(), Option.COMMIT_STATUS);
+        branchInfo.refresh();
         assertTrue(branchInfo.hasRemoteCommits());
     }
     
