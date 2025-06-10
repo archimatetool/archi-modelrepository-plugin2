@@ -58,13 +58,12 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
         // Add checkout button if objectId is at HEAD or the model is not dirty and no commits needed
         AddBranchDialog dialog = new AddBranchDialog(workbenchWindow.getShell(), isAtHead || !(hasChangesToCommit || isModelDirty()));
         int retVal = dialog.open();
-        String branchName = dialog.getBranchName();
+        String branchName = dialog.getName();
         
         if(retVal == IDialogConstants.CANCEL_ID || !StringUtils.isSet(branchName)) {
             return;
         }
         
-        // Then Commit
         logger.info("Adding branch..."); //$NON-NLS-1$
         
         try(Git git = Git.open(archiRepository.getWorkingFolder())) {
@@ -76,35 +75,36 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
                 MessageDialog.openError(workbenchWindow.getShell(),
                         Messages.AddBranchWorkflow_0,
                         NLS.bind(Messages.AddBranchWorkflow_1, branchName));
+                return;
             }
-            else {
-                // Create the branch
-                logger.info("Creating branch: " + branchName); //$NON-NLS-1$
-                git.branchCreate()
-                   .setStartPoint(objectId.getName()) // Use ObjectID for start point
-                   .setName(branchName).call();
+            
+            // Create the branch
+            logger.info("Creating branch: " + branchName); //$NON-NLS-1$
+            git.branchCreate()
+               .setStartPoint(objectId.getName()) // Use ObjectID for start point
+               .setName(branchName)
+               .call();
 
-                // Checkout if option set
-                if(retVal == AddBranchDialog.ADD_BRANCH_CHECKOUT) {
-                    OpenModelState modelState = null;
-                    
-                    // If we're not at HEAD we need to reload the model
-                    if(!isAtHead) {
-                        modelState = closeModel(false);
-                    }
-                    
-                    logger.info("Checking out branch: " + branchName); //$NON-NLS-1$
-                    git.checkout()
-                       .setName(fullName)
-                       .call();
-                    
-                    // Open the model if it was open before and any open editors
-                    restoreModel(modelState);
+            // Checkout if option set
+            if(retVal == AddBranchDialog.ADD_BRANCH_CHECKOUT) {
+                OpenModelState modelState = null;
+
+                // If we're not at HEAD we need to reload the model
+                if(!isAtHead) {
+                    modelState = closeModel(false);
                 }
-                
-                // Notify listeners
-                notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
+
+                logger.info("Checking out branch: " + branchName); //$NON-NLS-1$
+                git.checkout()
+                   .setName(fullName)
+                   .call();
+
+                // Open the model if it was open before and any open editors
+                restoreModel(modelState);
             }
+
+            // Notify listeners
+            notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
         }
         catch(IOException | GitAPIException ex) {
             logger.log(Level.SEVERE, "Add Branch", ex); //$NON-NLS-1$

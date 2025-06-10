@@ -16,12 +16,6 @@ public class Messages extends NLS {
 
     public static String AddBranchDialog_4;
 
-    public static String AddBranchDialog_5;
-
-    public static String AddBranchDialog_6;
-
-    public static String AddBranchDialog_7;
-
     public static String CloneDialog_0;
 
     public static String CloneDialog_12;
@@ -61,6 +55,16 @@ public class Messages extends NLS {
     public static String NewRepoDialog_2;
 
     public static String NewRepoDialog_3;
+
+    public static String RefNameVerifier_0;
+
+    public static String RefNameVerifier_1;
+
+    public static String RefNameVerifier_2;
+
+    public static String RefNameVerifier_3;
+
+    public static String RefNameVerifier_4;
 
     public static String UserNamePasswordDialog_0;
 

@@ -8,7 +8,6 @@ package com.archimatetool.modelrepository.dialogs;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -23,7 +22,6 @@ import org.eclipse.ui.PlatformUI;
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
-import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Add Branch Dialog
@@ -35,8 +33,8 @@ public class AddBranchDialog extends TitleAreaDialog {
     public static final int ADD_BRANCH = 1024;
     public static final int ADD_BRANCH_CHECKOUT = 1025;
     
-	private Text txtBranch;
-	private String branchName;
+	private Text textControl;
+	private String name;
 	
 	private boolean checkoutButton;
 	
@@ -66,41 +64,26 @@ public class AddBranchDialog extends TitleAreaDialog {
         GridLayout layout = new GridLayout(2, false);
         container.setLayout(layout);
 
-        txtBranch = createTextField(container, Messages.AddBranchDialog_3, SWT.NONE);
+        textControl = createTextField(container, Messages.AddBranchDialog_3, SWT.NONE);
         
-        txtBranch.addVerifyListener(event -> {
-            // Replace space ^ ~ * ? [ \ 
-            event.text = event.text.replaceAll("[ :^~*\\?\\[\\\\]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
-            
-            String currentText = ((Text)event.widget).getText();
-            String newText = (currentText.substring(0, event.start) + event.text + currentText.substring(event.end));
-            
-            setMessage(Messages.AddBranchDialog_2, IMessageProvider.INFORMATION);
-            
-            boolean isValidRefName = !newText.isEmpty();
-            
-            if(isValidRefName) {
-                isValidRefName = Repository.isValidRefName(RepoConstants.R_HEADS + newText);
-                if(!isValidRefName) {
-                    if(newText.startsWith(".") || newText.endsWith(".")) { //$NON-NLS-1$ //$NON-NLS-2$
-                        setMessage(Messages.AddBranchDialog_4, IMessageProvider.ERROR);
-                    }
-                    else if(newText.startsWith("/") || newText.endsWith("/")) { //$NON-NLS-1$ //$NON-NLS-2$
-                        setMessage(Messages.AddBranchDialog_5, IMessageProvider.ERROR);
-                    }
-                    else {
-                        setMessage(Messages.AddBranchDialog_6, IMessageProvider.ERROR);
-                    }
+        textControl.addVerifyListener(new RefNameVerifier() {
+            @Override
+            public void verify(String errorMessage, boolean isValid) {
+                if(errorMessage != null) {
+                    setMessage(errorMessage, IMessageProvider.ERROR);
+                }
+                else {
+                    setMessage(Messages.AddBranchDialog_2, IMessageProvider.INFORMATION);
+                }
+                
+                getButton(ADD_BRANCH).setEnabled(isValid);
+                
+                if(checkoutButton) {
+                    getButton(ADD_BRANCH_CHECKOUT).setEnabled(isValid);
                 }
             }
-            
-            getButton(ADD_BRANCH).setEnabled(isValidRefName);
-            
-            if(checkoutButton) {
-                getButton(ADD_BRANCH_CHECKOUT).setEnabled(isValidRefName);
-            }
         });
-        
+                
         return area;
     }
     
@@ -120,7 +103,7 @@ public class AddBranchDialog extends TitleAreaDialog {
         addButton.setEnabled(false);
         
         if(checkoutButton) {
-            Button addCheckoutButton = createButton(parent, ADD_BRANCH_CHECKOUT, Messages.AddBranchDialog_7, false);
+            Button addCheckoutButton = createButton(parent, ADD_BRANCH_CHECKOUT, Messages.AddBranchDialog_4, false);
             addCheckoutButton.setEnabled(false);
         }
         
@@ -129,18 +112,17 @@ public class AddBranchDialog extends TitleAreaDialog {
     
     @Override
     protected void buttonPressed(int buttonId) {
-        branchName = txtBranch.getText().trim();
+        name = textControl.getText().trim();
         setReturnCode(buttonId);
         close();
     }
-
     
     @Override
     protected boolean isResizable() {
         return true;
     }
 
-    public String getBranchName() {
-        return branchName;
+    public String getName() {
+        return name;
     }
 }
