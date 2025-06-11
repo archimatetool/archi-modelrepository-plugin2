@@ -202,7 +202,7 @@ public class GitUtilsTests {
         utils.checkout().setName(RepoConstants.R_HEADS_MAIN).call();
 
         // Delete new branch remote
-        utils.deleteBranch(true, remoteBranchName);
+        utils.deleteBranches(true, remoteBranchName);
 
         // Fetch
         FetchResult fetchResult = utils.fetchFromRemote(null, null, false);
@@ -237,14 +237,14 @@ public class GitUtilsTests {
     }
     
     @Test
-    public void deleteBranch() throws Exception {
+    public void deleteBranches() throws Exception {
         utils.commitChanges("Message", false);
 
         // Create new branch
         Ref ref = utils.branchCreate().setName("branch").call();
         assertEquals(RepoConstants.R_HEADS + "branch", ref.getName());
 
-        List<String> result = utils.deleteBranch(false, RepoConstants.R_HEADS + "branch");
+        List<String> result = utils.deleteBranches(false, RepoConstants.R_HEADS + "branch");
         assertEquals(RepoConstants.R_HEADS + "branch", result.get(0));
     }
     

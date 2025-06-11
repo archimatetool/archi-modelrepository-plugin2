@@ -63,7 +63,7 @@ public class BranchStatusTests {
     @Test
     public void getLocalAndUntrackedRemoteBranches() throws Exception {
         // Delete local branch
-        utils.deleteBranch(false, RepoConstants.R_HEADS + "branch");
+        utils.deleteBranches(false, RepoConstants.R_HEADS + "branch");
         
         status = new BranchStatus(repo.getWorkingFolder(), Option.ALL);
         

@@ -325,7 +325,7 @@ public class GitUtils extends Git {
      * @param branchNames Any number of branch names. For example, "refs/heads/branch" or "refs/remotes/origin/branch"
      * @return a list of the result of full branch names deleted
      */
-    public List<String> deleteBranch(boolean force, String... branchNames) throws GitAPIException {
+    public List<String> deleteBranches(boolean force, String... branchNames) throws GitAPIException {
         // Delete local and remote branch refs
         return branchDelete().setBranchNames(branchNames).setForce(force).call();
     }

@@ -108,7 +108,7 @@ public class DeleteBranchWorkflow extends AbstractRepositoryWorkflow {
 
                 // Then delete local and tracked branch
                 logger.info("Deleting local branch: " + branchInfo.getShortName()); //$NON-NLS-1$
-                utils.deleteBranch(true, // force the delete even if the branch hasn't been merged
+                utils.deleteBranches(true, // force the delete even if the branch hasn't been merged
                                    branchInfo.getLocalBranchName(),
                                    branchInfo.getRemoteBranchName());
                 
@@ -124,7 +124,7 @@ public class DeleteBranchWorkflow extends AbstractRepositoryWorkflow {
 
         // Delete local and tracked branch
         try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
-            utils.deleteBranch(true, // force the delete even if the branch hasn't been merged
+            utils.deleteBranches(true, // force the delete even if the branch hasn't been merged
                                branchInfo.getLocalBranchName(),
                                branchInfo.getRemoteBranchName());
         }
