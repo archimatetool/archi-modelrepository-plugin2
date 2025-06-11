@@ -25,6 +25,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.FontFactory;
@@ -90,14 +91,12 @@ public class BranchesTableViewer extends TableViewer {
     void doSetInput(IArchiRepository archiRepo) {
         setInput(archiRepo);
         
-        // Do the Layout kludge
-        getTable().getParent().layout();
-
-        // Select first row
-        //Object element = getElementAt(0);
-        //if(element != null) {
-        //    setSelection(new StructuredSelection(element));
-        //}
+        // Avoid bogus horizontal scrollbar cheese
+        Display.getCurrent().asyncExec(() -> {
+            if(!getTable().isDisposed()) {
+                getTable().getParent().layout();
+            }
+        });
     }
     
     // ===============================================================================================
