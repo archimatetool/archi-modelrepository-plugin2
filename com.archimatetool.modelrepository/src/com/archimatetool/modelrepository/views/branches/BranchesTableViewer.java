@@ -24,10 +24,10 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
-import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
@@ -134,7 +134,8 @@ public class BranchesTableViewer extends TableViewer {
 	// ===============================================================================================
 
     private static class BranchesLabelProvider extends CellLabelProvider {
-        DateFormat dateFormat = DateFormat.getDateTimeInstance();
+        final DateFormat dateFormat = DateFormat.getDateTimeInstance();
+        final Color redColor = new Color(255, 64, 0);
         
         private String getColumnText(BranchInfo branchInfo, int columnIndex) {
             RevCommit latestCommit = branchInfo.getLatestCommit();
@@ -205,10 +206,10 @@ public class BranchesTableViewer extends TableViewer {
 
         @Override
         public void update(ViewerCell cell) {
-            // Need to clear this first
-            cell.setForeground(null);
-            
             if(cell.getElement() instanceof BranchInfo branchInfo) {
+                // Red text for "deleted" branches
+                cell.setForeground(branchInfo.isRemoteDeleted() ? redColor : null);
+
                 cell.setText(getColumnText(branchInfo, cell.getColumnIndex()));
                 
                 if(branchInfo.isCurrentBranch() && cell.getColumnIndex() == 0) {
@@ -216,11 +217,6 @@ public class BranchesTableViewer extends TableViewer {
                 }
                 else {
                     cell.setFont(null);
-                }
-                
-                // Red text for "deleted" branches
-                if(branchInfo.isRemoteDeleted()) {
-                    cell.setForeground(ColorFactory.get(255, 64, 0));
                 }
                 
                 switch(cell.getColumnIndex()) {
