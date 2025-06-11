@@ -80,9 +80,6 @@ public final class CredentialsAuthenticator {
         return new TransportConfigCallback() {
             @Override
             public void configure(Transport transport) {
-                // Delete remote branches that we don't have
-                transport.setRemoveDeletedRefs(true);
-                
                 // SSH
                 if(npw == null) {
                     transport.setCredentialsProvider(new SSHCredentialsProvider());

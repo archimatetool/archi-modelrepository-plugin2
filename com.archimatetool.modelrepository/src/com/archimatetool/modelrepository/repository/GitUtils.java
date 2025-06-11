@@ -220,6 +220,7 @@ public class GitUtils extends Git {
                 .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
                 .setProgressMonitor(monitor)
                 .setDryRun(isDryrun)
+                .setRemoveDeletedRefs(true) // Delete any remote branch refs that we have but are not on the remote
                 .call();
         
         // Ensure that the current branch is tracking its remote (if there is one) 
