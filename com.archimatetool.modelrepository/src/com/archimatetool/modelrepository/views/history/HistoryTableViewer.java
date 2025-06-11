@@ -192,7 +192,7 @@ public class HistoryTableViewer extends TableViewer {
     void setFilteredModelObject(String objectId, boolean doUpdate) {
         if(!Objects.equals(objectId, filteredObjectId)) {
             filteredObjectId = objectId;
-            if(doUpdate) {
+            if(doUpdate && getInput() != null) { // Check for null input! This can happen because we use async in setInputAndSelect
                 setInputAndSelect(getInput());
             }
         }
