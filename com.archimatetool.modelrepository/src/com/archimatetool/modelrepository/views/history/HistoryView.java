@@ -467,11 +467,11 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             // Set label text
             updateLabel();
 
-            // Set Branches
-            getBranchesViewer().setRepository(selectedRepository);
-            
-            // Set History
+            // Set History *first*
             getHistoryViewer().setRepository(selectedRepository);
+            
+            // Set Branches *second* as this will trigger a selection event
+            getBranchesViewer().setRepository(selectedRepository);
             
             // If selectedRepository is null update actions, if it isn't null actions will be updated on first selection
             if(selectedRepository == null) {
