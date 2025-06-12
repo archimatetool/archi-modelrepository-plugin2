@@ -248,10 +248,7 @@ public class GitUtils extends Git {
      * @return User name and email from config file. This is either local or global.
      */
     public PersonIdent getUserDetails() {
-        StoredConfig config = getRepository().getConfig();
-        String name = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME));
-        String email = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL));
-        return new PersonIdent(name, email);
+        return new PersonIdent(getRepository());
     }
 
     /**
