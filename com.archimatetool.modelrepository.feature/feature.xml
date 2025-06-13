@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="com.archimatetool.modelrepository.feature"
-      label="coArchi 2"
+      label="coArchi2"
       version="1.0.1.qualifier"
       provider-name="Archi">
 

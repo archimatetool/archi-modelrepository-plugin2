@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: coArchi 2
+Bundle-Name: coArchi2
 Bundle-SymbolicName: com.archimatetool.modelrepository;singleton:=true
 Bundle-Localization: plugin
 Bundle-Version: 1.0.1.qualifier

@@ -1,4 +1,4 @@
-# coArchi 2 (Archi Model Collaboration Plug-in)
+# coArchi2 (Archi Model Collaboration Plug-in)
 
 <img alt="coArchi2" src="https://github.com/user-attachments/assets/345b19fc-fb18-4ff2-936d-7e89f3ce8e65" />
 

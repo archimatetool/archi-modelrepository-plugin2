@@ -5,7 +5,7 @@
          point="org.eclipse.ui.commands">
       <category
             id="com.archimatetool.modelrepository.category"
-            name="coArchi 2">
+            name="coArchi2">
       </category>
       <command
             categoryId="com.archimatetool.modelrepository.category"
