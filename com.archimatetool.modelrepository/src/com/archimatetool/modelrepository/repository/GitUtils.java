@@ -152,7 +152,7 @@ public class GitUtils extends Git {
     }
     
     /**
-     * @return the PushResult Status or null if there isn't one.
+     * @return the primary PushResult Status or null if there isn't one.
      * If we are pushing just the current branch there will be just one ref update in the PushResult and one Status.
      * If pushing tags or more than one branch there can be more than one ref update.
      */
@@ -194,22 +194,35 @@ public class GitUtils extends Git {
                   .filter(refUpdate -> refUpdate.getStatus() != Status.OK)           // Ignore OK
                   .filter(refUpdate -> refUpdate.getStatus() != Status.UP_TO_DATE)   // Ignore Up to date
                   .forEach(refUpdate -> {
-                      sb.append(refUpdate.getStatus().name() + "\n"); // Status enum name
-                      sb.append(refUpdate.getRemoteName() + "\n"); // Remote ref name
+                      sb.append(refUpdate.getStatus().name()); // Status enum name
+                      sb.append('\n');
+                      sb.append(refUpdate.getRemoteName());    // Remote ref name
+                      sb.append('\n');
                       
-                      String msgs = pushResult.getMessages();
-                      if(StringUtils.isSet(msgs)) { // Messages can be null
-                          // First char can be zero byte and message will not show on Windows
-                          if(msgs.charAt(0) == 0) {
-                              msgs = msgs.substring(1);
-                          }
-                          
-                          sb.append(msgs + "\n");
+                      String msgs = getPushResultMessages(pushResult);
+                      if(StringUtils.isSet(msgs)) {
+                          sb.append(msgs);
+                          sb.append('\n');
                       }
                   });
             
         
         return sb.length() > 1 ? sb.toString() : null; // 1 character == "\n"
+    }
+    
+    /**
+     * There is a bug in JGit on Windows where the first byte of PushResult's message can be a zero byte.
+     * This means that the message won't display, so we remove it.
+     * @return The sanitised messages from a PushResult, or null.
+     */
+    public static String getPushResultMessages(PushResult pushResult) {
+        String msgs = pushResult.getMessages();
+        
+        if(StringUtils.isSet(msgs) && msgs.charAt(0) == 0) {
+            msgs = msgs.substring(1);
+        }
+        
+        return msgs;
     }
     
     /**
