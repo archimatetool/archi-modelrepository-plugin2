@@ -266,8 +266,7 @@ public class GitUtilsTests {
         // Push it
         utils.pushToRemote(null, null);
 
-        Iterable<PushResult> pushResults = utils.deleteRemoteBranch(localBranchName, null, null);
-        PushResult pushResult = pushResults.iterator().next();
+        PushResult pushResult = utils.deleteRemoteBranch(localBranchName, null, null);
 
         Collection<RemoteRefUpdate> refUpdates = pushResult.getRemoteUpdates();
         assertEquals(1, refUpdates.size());

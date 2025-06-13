@@ -343,14 +343,18 @@ public class GitUtils extends Git {
     /**
      * Delete a remote branch by pushing to repo
      * @param branchName Local type ref like "refs/heads/branch"
+     * @return The first PushResult from the call.
+     *         As we're only pushing to one remote URI there should only be one PushResult
      */
-    public Iterable<PushResult> deleteRemoteBranch(String branchName, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException {
-        return push()
+    public PushResult deleteRemoteBranch(String branchName, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException {
+        Iterable<PushResult> results = push()
                 .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
                 .setRefSpecs(new RefSpec(":" + branchName))
                 .setRemote(RepoConstants.ORIGIN)
                 .setProgressMonitor(monitor)
                 .call();
+        
+        return results.iterator().next(); // Get the first one
     }
     
     /**

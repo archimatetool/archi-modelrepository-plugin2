@@ -13,10 +13,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.components.IRunnable;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.BranchInfo;
@@ -103,9 +106,10 @@ public class DeleteBranchWorkflow extends AbstractRepositoryWorkflow {
             try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
                 // Delete the remote branch first in case of error
                 logger.info("Deleting remote branch: " + branchInfo.getLocalBranchName()); //$NON-NLS-1$
-                utils.deleteRemoteBranch(branchInfo.getLocalBranchName(), npw, new ProgressMonitorWrapper(monitor,
+                PushResult pushResult = utils.deleteRemoteBranch(branchInfo.getLocalBranchName(), npw, new ProgressMonitorWrapper(monitor,
                                                                                         Messages.DeleteBranchWorkflow_0));
-
+                logResult(pushResult);
+                
                 // Then delete local and tracked branch
                 logger.info("Deleting local branch: " + branchInfo.getShortName()); //$NON-NLS-1$
                 utils.deleteBranches(true, // force the delete even if the branch hasn't been merged
@@ -130,6 +134,17 @@ public class DeleteBranchWorkflow extends AbstractRepositoryWorkflow {
         }
     }
     
+    private void logResult(PushResult pushResult) {
+        String messages = GitUtils.getPushResultMessages(pushResult);
+        if(StringUtils.isSet(messages)) {
+            logger.info("PushResult message: " + messages); //$NON-NLS-1$
+        }
+        
+        for(RemoteRefUpdate refUpdate : pushResult.getRemoteUpdates()) {
+            logger.info("PushResult status for " + refUpdate.getRemoteName() + ": " +refUpdate.getStatus()); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+    }
+
     @Override
     public boolean canRun() {
         return currentBranchInfo != null && 
