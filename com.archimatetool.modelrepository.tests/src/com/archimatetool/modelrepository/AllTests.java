@@ -15,6 +15,7 @@ import com.archimatetool.modelrepository.repository.BranchStatusTests;
 import com.archimatetool.modelrepository.repository.CommitManifestTests;
 import com.archimatetool.modelrepository.repository.GitUtilsTests;
 import com.archimatetool.modelrepository.repository.RepoUtilsTests;
+import com.archimatetool.modelrepository.repository.TagInfoTests;
 import com.archimatetool.modelrepository.treemodel.GroupTests;
 import com.archimatetool.modelrepository.treemodel.RepositoryRefTests;
 import com.archimatetool.modelrepository.treemodel.RepositoryTreeModelTests;
@@ -29,6 +30,7 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModelTests;
     CommitManifestTests.class,
     GitUtilsTests.class,
     RepoUtilsTests.class,
+    TagInfoTests.class,
     
     // treemodel
     GroupTests.class,

@@ -16,6 +16,16 @@ public class Messages extends NLS {
 
     public static String AddBranchDialog_4;
 
+    public static String AddTagDialog_0;
+
+    public static String AddTagDialog_1;
+
+    public static String AddTagDialog_2;
+
+    public static String AddTagDialog_3;
+
+    public static String AddTagDialog_5;
+
     public static String CloneDialog_0;
 
     public static String CloneDialog_12;

@@ -27,6 +27,7 @@ import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
@@ -35,6 +36,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
@@ -53,6 +55,7 @@ import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.AddBranchAction;
+import com.archimatetool.modelrepository.actions.AddTagAction;
 import com.archimatetool.modelrepository.actions.CommitModelAction;
 import com.archimatetool.modelrepository.actions.ExtractModelFromCommitAction;
 import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
@@ -94,7 +97,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     private Label fRepoLabel;
 
     private HistoryTableViewer fHistoryTableViewer;
-    private CommitViewer fCommitViewer;
+    private RevMessageViewer fMessageViewer;
     private BranchesViewer fBranchesViewer;
     
     /*
@@ -106,6 +109,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     private ResetToRemoteCommitAction fActionResetToRemoteCommit;
     private AddBranchAction fActionAddBranch;
     private CommitModelAction fActionCommit;
+    private AddTagAction fActionAddTag;
     
     private IAction fActionCompare = new Action(Messages.HistoryView_3) {
         @Override
@@ -201,6 +205,19 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             new SortStrategyAction(Messages.HistoryView_10, RevSort.COMMIT_TIME_DESC)
     };
     
+    /**
+     * Select commit in Table
+     */
+    public void selectCommit(RevCommit commit) {
+        if(commit != null) {
+            // Sync this in case viewer input is not ready
+            Display.getCurrent().asyncExec(() -> {
+                if(!getHistoryViewer().getControl().isDisposed()) {
+                    getHistoryViewer().setSelection(new StructuredSelection(commit), true);
+                }
+            });
+        }
+    }
     
     @Override
     public void createPartControl(Composite parent) {
@@ -278,8 +295,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         // History Table
         fHistoryTableViewer = new HistoryTableViewer(tableComp);
         
-        // Commit Viewer
-        fCommitViewer = new CommitViewer(tableSash);
+        // Message Viewer
+        fMessageViewer = new RevMessageViewer(tableSash);
         
         tableSash.setWeights(new int[] { 75, 25 });
         
@@ -314,6 +331,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         
         fActionCommit = new CommitModelAction(getViewSite().getWorkbenchWindow());
         fActionCommit.setEnabled(false);
+        
+        fActionAddTag = new AddTagAction(getViewSite().getWorkbenchWindow(), Messages.HistoryView_14);
+        fActionAddTag.setEnabled(false);
         
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
@@ -375,6 +395,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         manager.add(fActionResetToRemoteCommit);
         manager.add(new Separator());
         manager.add(fActionAddBranch);
+        manager.add(fActionAddTag);
     }
     
     /**
@@ -393,12 +414,13 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             fActionExtractCommit.setCommit(null, null);
             fActionRestoreCommit.setCommit(null, null);
             fActionAddBranch.setObjectId(null, null);
+            fActionAddTag.setCommit(null, null);
             
             fActionCompare.setEnabled(isSingleSelection || selection.size() == 2);
             fActionCompare.setText(isSingleSelection ? Messages.HistoryView_4 : Messages.HistoryView_3);
             
-            // Commit Viewer
-            fCommitViewer.setCommit(null);
+            // Message Viewer
+            fMessageViewer.setRevObject(null);
             
             return;
         }
@@ -410,9 +432,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         fActionCompare.setEnabled(selection.size() == 2);
         
         fActionAddBranch.setObjectId(fSelectedRepository, isSingleSelection ? revCommit : null);
+        fActionAddTag.setCommit(fSelectedRepository, isSingleSelection ? revCommit : null);
         
         // Commit Viewer
-        fCommitViewer.setCommit(isSingleSelection ? revCommit : null);
+        fMessageViewer.setRevObject(isSingleSelection ? revCommit : null);
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -430,6 +453,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         if(isRevCommit) {
             manager.add(new Separator());
             manager.add(fActionAddBranch);
+            manager.add(fActionAddTag);
         }
         manager.add(new Separator());
         manager.add(fActionFilter);
@@ -600,6 +624,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
 
             case IRepositoryListener.BRANCHES_CHANGED -> {
                 getBranchesViewer().setRepository(repository);
+            }
+
+            case IRepositoryListener.TAGS_CHANGED -> {
+                getHistoryViewer().updateTags();
             }
         }
 

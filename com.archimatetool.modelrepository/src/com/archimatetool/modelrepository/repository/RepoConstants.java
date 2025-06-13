@@ -54,6 +54,11 @@ public final class RepoConstants {
     public static final String R_REMOTES = "refs/remotes/";
 
     /**
+     * Prefix for tag refs
+     */
+    public static final String R_TAGS = "refs/tags/";
+
+    /**
      * Ref prefix for origin remote
      */
     public static final String R_REMOTES_ORIGIN = "refs/remotes/origin/";

@@ -17,6 +17,9 @@ public class Messages extends NLS {
     public static String AddBranchWorkflow_0;
     public static String AddBranchWorkflow_1;
 
+    public static String AddTagWorkflow_0;
+    public static String AddTagWorkflow_1;
+
     public static String CloneModelWorkflow_0;
     public static String CloneModelWorkflow_1;
     public static String CloneModelWorkflow_2;
@@ -38,6 +41,9 @@ public class Messages extends NLS {
     public static String DeleteModelWorkflow_3;
     public static String DeleteModelWorkflow_4;
     public static String DeleteModelWorkflow_5;
+
+    public static String DeleteTagsWorkflow_0;
+    public static String DeleteTagsWorkflow_1;
 
     public static String DiscardChangesWorkflow_0;
     public static String DiscardChangesWorkflow_1;

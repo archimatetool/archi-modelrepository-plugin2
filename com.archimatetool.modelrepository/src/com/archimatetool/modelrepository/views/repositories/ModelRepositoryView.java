@@ -74,6 +74,7 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 import com.archimatetool.modelrepository.views.branches.BranchesView;
 import com.archimatetool.modelrepository.views.history.HistoryView;
 import com.archimatetool.modelrepository.views.repositories.ModelRepositoryTreeViewer.ModelRepoTreeLabelProvider;
+import com.archimatetool.modelrepository.views.tags.TagsView;
 
 
 /**
@@ -103,6 +104,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
 
     private IAction fActionShowInHistory;
     private IAction fActionShowInBranches;
+    private IAction fActionShowInTags;
     
     private IAction fActionOpen;
     private IAction fActionAddGroup;
@@ -297,6 +299,19 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             @Override
             public String getActionDefinitionId() {
                 return "com.archimatetool.modelrepository.command.showInBranchesView"; //$NON-NLS-1$
+            }
+        };
+        
+        // Show in Tags
+        fActionShowInTags = new Action(Messages.ModelRepositoryView_22, IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_TAGS)) {
+            @Override
+            public void run() {
+                ViewManager.showViewPart(TagsView.ID, false);
+            }
+            
+            @Override
+            public String getActionDefinitionId() {
+                return "com.archimatetool.modelrepository.command.showInTagsView"; //$NON-NLS-1$
             }
         };
         
@@ -609,6 +624,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 manager.add(new Separator());
                 manager.add(fActionShowInHistory);
                 manager.add(fActionShowInBranches);
+                manager.add(fActionShowInTags);
                 manager.add(new Separator());
                 manager.add(fActionDelete);
             }

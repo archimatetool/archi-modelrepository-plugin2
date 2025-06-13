@@ -30,6 +30,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -47,6 +48,7 @@ import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.ModelObjectIdFilter;
 
@@ -69,6 +71,9 @@ public class HistoryTableViewer extends TableViewer {
     
     // Commit IDs mapped to commits ahead/behind remote
     private Map<String, CommitStatus> commitStatusMap;
+    
+    // Tags mapping commit ID to list of tags
+    private Map<String, List<String>> tagMap;
     
     private boolean hasWorkingTree;
     
@@ -118,6 +123,10 @@ public class HistoryTableViewer extends TableViewer {
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
     
         column = new TableViewerColumn(this, SWT.NONE, 3);
+        column.getColumn().setText(Messages.HistoryTableViewer_11);
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
+    
+        column = new TableViewerColumn(this, SWT.NONE, 4);
         column.getColumn().setText(Messages.HistoryTableViewer_0);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
     }
@@ -161,6 +170,17 @@ public class HistoryTableViewer extends TableViewer {
                     getTable().getParent().layout();
                 }
             });
+        }
+    }
+    
+    void updateTags() {
+        try(GitUtils utils = GitUtils.open(getInput().getWorkingFolder())) {
+            tagMap = utils.getTagsMap();
+            refresh();
+        }
+        catch(GitAPIException | IOException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Get Tags Map", ex); //$NON-NLS-1$
         }
     }
     
@@ -310,6 +330,8 @@ public class HistoryTableViewer extends TableViewer {
                     }
                 }
                 
+                tagMap = GitUtils.wrap(git.getRepository()).getTagsMap();
+                
                 getCommitStatus(git);
             }
         }
@@ -369,6 +391,7 @@ public class HistoryTableViewer extends TableViewer {
             fLocalCommit = null;
             fRemoteCommit = null;
             commitStatusMap = null;
+            tagMap = null;
         }
     }
     
@@ -377,7 +400,7 @@ public class HistoryTableViewer extends TableViewer {
 	// ===============================================================================================
 
     private class HistoryLabelProvider extends StyledCellLabelProvider {
-        DateFormat dateFormat = DateFormat.getDateTimeInstance();
+        final DateFormat dateFormat = DateFormat.getDateTimeInstance();
         
         final Color defaultColor = ThemeUtils.isDarkTheme() ? new Color(250, 250, 250) : new Color(0, 0, 0);
         final Color aheadColor = new Color(0, 200, 64);
@@ -395,14 +418,20 @@ public class HistoryTableViewer extends TableViewer {
                 }
                 // Author Name
                 case 1 -> {
-                    yield commit.getAuthorIdent().getName();
+                    PersonIdent personIdent = commit.getAuthorIdent();
+                    yield personIdent != null ? personIdent.getName() : null;
                 }
                 // Date
                 case 2 -> {
                     yield dateFormat.format(new Date(commit.getCommitTime() * 1000L));
                 }
-                // Short SHA-1
+                // Tags
                 case 3 -> {
+                    List<String> tags = tagMap.get(commit.getName());
+                    yield tags == null ? "" : String.join(", ", tags); //$NON-NLS-1$ //$NON-NLS-2$
+                }
+                // Short SHA-1
+                case 4 -> {
                     yield commit.getName().substring(0, 8);
                 }
                 default -> {

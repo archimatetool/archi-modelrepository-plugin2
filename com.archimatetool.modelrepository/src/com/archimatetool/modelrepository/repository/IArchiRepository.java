@@ -3,6 +3,7 @@ package com.archimatetool.modelrepository.repository;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -90,7 +91,7 @@ public interface IArchiRepository {
     /**
      * Fetch from Remote
      */
-    FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException;
+    List<FetchResult> fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean fetchTags, boolean isDryrun) throws IOException, GitAPIException;
 
     /**
      * Do a HARD reset to the given ref

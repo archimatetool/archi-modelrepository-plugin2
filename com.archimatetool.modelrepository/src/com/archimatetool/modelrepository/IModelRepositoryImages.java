@@ -37,11 +37,14 @@ public interface IModelRepositoryImages {
     String ICON_MERGE = IMGPATH + "merge.png";
     String ICON_MODEL = IMGPATH + "elements_obj.png";
     String ICON_NEW_BRANCH = IMGPATH + "new_branch_obj.png";
+    String ICON_NEW_TAG = IMGPATH + "new_tag_obj.png";
     String ICON_PUSH = IMGPATH + "push.png";
     String ICON_REFRESH = IMGPATH + "pull.png";
     String ICON_RESET = IMGPATH + "reset.png";
     String ICON_REVERT = IMGPATH + "revert.png";
     String ICON_SYNCED = IMGPATH + "synced.png";
+    String ICON_TAG = IMGPATH + "version_rep.png";
+    String ICON_TAGS = IMGPATH + "tags.png";
     String ICON_TICK = IMGPATH + "tick.png";
     String ICON_TWOWAY_COMPARE = IMGPATH + "twowaycompare_co.png";
     String ICON_UNDO_COMMIT = IMGPATH + "undo_commit.png";

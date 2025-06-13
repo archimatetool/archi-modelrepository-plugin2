@@ -12,6 +12,8 @@ public class Messages extends NLS {
 
     public static String DeleteBranchAction_0;
 
+    public static String DeleteTagsAction_0;
+
     public static String DiscardChangesAction_0;
 
     public static String ExtractModelFromCommitAction_0;

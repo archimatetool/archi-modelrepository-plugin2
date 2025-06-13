@@ -27,6 +27,12 @@
       </command>
       <command
             categoryId="com.archimatetool.modelrepository.category"
+            defaultHandler="com.archimatetool.modelrepository.handlers.ShowTagsViewHandler"
+            id="com.archimatetool.modelrepository.command.showTagsView"
+            name="Toggle Tags">
+      </command>
+      <command
+            categoryId="com.archimatetool.modelrepository.category"
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowInRepositoryViewHandler"
             id="com.archimatetool.modelrepository.command.showInRepositoryView"
             name="Show in Collaboration Workspace">
@@ -42,6 +48,12 @@
             defaultHandler="com.archimatetool.modelrepository.handlers.ShowInBranchesViewHandler"
             id="com.archimatetool.modelrepository.command.showInBranchesView"
             name="Show in Branches">
+      </command>
+      <command
+            categoryId="com.archimatetool.modelrepository.category"
+            defaultHandler="com.archimatetool.modelrepository.handlers.ShowInTagsViewHandler"
+            id="com.archimatetool.modelrepository.command.showInTagsView"
+            name="Show in Tags">
       </command>
       <command
             categoryId="com.archimatetool.modelrepository.category"
@@ -111,6 +123,10 @@
             icon="img/branches_obj.png">
       </image>
       <image
+            commandId="com.archimatetool.modelrepository.command.showTagsView"
+            icon="img/tags.png">
+      </image>
+      <image
             commandId="com.archimatetool.modelrepository.command.showInRepositoryView"
             icon="img/plugin.png">
       </image>
@@ -121,6 +137,10 @@
       <image
             commandId="com.archimatetool.modelrepository.command.showInBranchesView"
             icon="img/branches_obj.png">
+      </image>
+      <image
+            commandId="com.archimatetool.modelrepository.command.showInTagsView"
+            icon="img/tags.png">
       </image>
       <image
             commandId="com.archimatetool.modelrepository.command.createRepoFromModel"
@@ -229,6 +249,11 @@
                   icon="img/branches_obj.png"
                   style="push">
             </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.showInTagsView"
+                  icon="img/tags.png"
+                  style="push">
+            </command>
             <separator
                   name="com.archimatetool.modelrepository.popup.end"
                   visible="true">
@@ -307,6 +332,11 @@
                   icon="img/branches_obj.png"
                   style="push">
             </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.showTagsView"
+                  icon="img/tags.png"
+                  style="push">
+            </command>
          </menu>
       </menuContribution>
       <menuContribution
@@ -363,6 +393,11 @@
                   icon="img/branches_obj.png"
                   style="push">
             </command>
+            <command
+                  commandId="com.archimatetool.modelrepository.command.showTagsView"
+                  icon="img/tags.png"
+                  style="push">
+            </command>
          </toolbar>
       </menuContribution>
    </extension>
@@ -389,6 +424,13 @@
             name="Branches"
             restorable="true">
       </view>
+      <view
+            class="com.archimatetool.modelrepository.views.tags.TagsView"
+            icon="img/tags.png"
+            id="com.archimatetool.modelrepository.tagsView"
+            name="Tags"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
@@ -411,6 +453,12 @@
                minimized="false"
                relationship="stack"
                relative="com.archimatetool.modelrepository.historyView">
+         </view>
+         <view
+               id="com.archimatetool.modelrepository.tagsView"
+               minimized="false"
+               relationship="stack"
+               relative="com.archimatetool.modelrepository.branchesView">
          </view>
       </perspectiveExtension>
    </extension>

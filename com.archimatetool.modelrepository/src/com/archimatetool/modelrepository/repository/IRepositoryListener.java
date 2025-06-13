@@ -19,6 +19,7 @@ public interface IRepositoryListener {
     String REPOSITORY_DELETED = "repository_deleted";
     String HISTORY_CHANGED = "history_changed";
     String BRANCHES_CHANGED = "branches_changed";
+    String TAGS_CHANGED = "tags_changed";
     
     void repositoryChanged(String eventName, IArchiRepository repository);
     

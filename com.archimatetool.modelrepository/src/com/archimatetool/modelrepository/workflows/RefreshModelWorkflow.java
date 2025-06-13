@@ -6,6 +6,7 @@
 package com.archimatetool.modelrepository.workflows;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -73,9 +74,10 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }
 
         // Fetch from Remote
-        FetchResult fetchResult = null;
+        // The first FetchResult will be for branches and the second for tags.
+        List<FetchResult> fetchResults = null;
         try {
-            fetchResult = fetch(npw);
+            fetchResults = fetch(npw, true);
         }
         catch(Exception ex) {
             // If this exception is thrown then the remote doesn't have the current branch ref
@@ -93,7 +95,8 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }
         
         // Check for tracking updates
-        boolean hasTrackingRefUpdates = !fetchResult.getTrackingRefUpdates().isEmpty();
+        FetchResult branchesResult = fetchResults.get(0);
+        boolean hasTrackingRefUpdates = !branchesResult.getTrackingRefUpdates().isEmpty();
         if(hasTrackingRefUpdates) {
             logger.info("Found new tracking ref updates."); //$NON-NLS-1$
         }
@@ -153,18 +156,19 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }
     }
     
-    private FetchResult fetch(UsernamePassword npw) throws Exception {
+    private List<FetchResult> fetch(UsernamePassword npw, boolean fetchTags) throws Exception {
         logger.info("Fetching from " + archiRepository.getRemoteURL()); //$NON-NLS-1$
 
-        FetchResult[] fetchResult = new FetchResult[1];
+        @SuppressWarnings("unchecked")
+        List<FetchResult>[] fetchResults = new List[1];
 
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.RefreshModelWorkflow_4, IProgressMonitor.UNKNOWN);
-            fetchResult[0] = archiRepository.fetchFromRemote(npw, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), false);
+            fetchResults[0] = archiRepository.fetchFromRemote(npw, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), fetchTags, false);
         }, true);
 
-        return fetchResult[0];
+        return fetchResults[0];
     }
 }
