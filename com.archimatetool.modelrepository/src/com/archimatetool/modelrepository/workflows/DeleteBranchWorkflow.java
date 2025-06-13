@@ -14,7 +14,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -31,7 +30,7 @@ import com.archimatetool.modelrepository.repository.RepoUtils;
  * 
  * @author Phillip Beauvoir
  */
-public class DeleteBranchWorkflow extends AbstractRepositoryWorkflow {
+public class DeleteBranchWorkflow extends AbstractPushResultWorkflow {
     
     private static Logger logger = Logger.getLogger(DeleteBranchWorkflow.class.getName());
     
@@ -109,20 +108,10 @@ public class DeleteBranchWorkflow extends AbstractRepositoryWorkflow {
                                                                                         Messages.DeleteBranchWorkflow_0));
                 
                 // Logging
-                for(String msg : GitUtils.getPushResultMessageList(pushResult)) {
-                    logger.info(msg);
-                }
+                logPushResult(pushResult, logger);
                 
-                // Get any errors in Push Result and throw exception
-                Status status = GitUtils.getPrimaryPushResultStatus(pushResult);
-                
-                if(status != Status.OK && status != Status.UP_TO_DATE && status != Status.NON_EXISTING) {
-                    String errorMessage = GitUtils.getPushResultFullErrorMessage(pushResult);
-                    if(errorMessage == null) {
-                        errorMessage = "Unknown error"; //$NON-NLS-1$
-                    }
-                    throw new GitAPIException(errorMessage) {};
-                }
+                // Status
+                checkPushResultStatus(pushResult);
 
                 // If OK, delete local and tracked branch
                 logger.info("Deleting local branch: " + branchInfo.getShortName()); //$NON-NLS-1$

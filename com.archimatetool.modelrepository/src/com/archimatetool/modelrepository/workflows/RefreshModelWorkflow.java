@@ -20,6 +20,7 @@ import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.components.IRunnable;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.merge.MergeHandler;
 import com.archimatetool.modelrepository.merge.MergeHandler.MergeHandlerResult;
@@ -92,6 +93,9 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
             }
             
             return;
+        }
+        finally {
+            logFetchResults(fetchResults);
         }
         
         // Check for tracking updates
@@ -170,5 +174,17 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }, true);
 
         return fetchResults[0];
+    }
+    
+    private void logFetchResults(List<FetchResult> fetchResults) {
+        if(fetchResults != null) {
+            for(FetchResult fetchResult : fetchResults) {
+                // Remove zero byte from message
+                String msg = fetchResult.getMessages().replace("\0", "").trim(); //$NON-NLS-1$ //$NON-NLS-2$
+                if(StringUtils.isSet(msg)) {
+                    logger.info("Message: " + msg); //$NON-NLS-1$
+                }
+            }
+        }
     }
 }

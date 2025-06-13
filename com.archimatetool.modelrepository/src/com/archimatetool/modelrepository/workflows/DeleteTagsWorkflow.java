@@ -12,9 +12,7 @@ import java.util.logging.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.components.IRunnable;
@@ -30,7 +28,7 @@ import com.archimatetool.modelrepository.repository.TagInfo;
  * 
  * @author Phillip Beauvoir
  */
-public class DeleteTagsWorkflow extends AbstractRepositoryWorkflow {
+public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
     
     private static Logger logger = Logger.getLogger(DeleteTagsWorkflow.class.getName());
     
@@ -98,20 +96,10 @@ public class DeleteTagsWorkflow extends AbstractRepositoryWorkflow {
                 PushResult pushResult = utils.deleteRemoteTags(npw, new ProgressMonitorWrapper(monitor, Messages.DeleteTagsWorkflow_0), tagNames);
                 
                 // Logging
-                for(String msg : GitUtils.getPushResultMessageList(pushResult)) {
-                    logger.info(msg);
-                }
+                logPushResult(pushResult, logger);
                 
-                // Get any errors in Push Result and throw exception
-                Status status = GitUtils.getPrimaryPushResultStatus(pushResult);
-                
-                if(status != Status.OK && status != Status.UP_TO_DATE && status != Status.NON_EXISTING) {
-                    String errorMessage = GitUtils.getPushResultFullErrorMessage(pushResult);
-                    if(errorMessage == null) {
-                        errorMessage = "Unknown error"; //$NON-NLS-1$
-                    }
-                    throw new GitAPIException(errorMessage) {};
-                }
+                // Status
+                checkPushResultStatus(pushResult);
 
                 // If OK, delete local tags
                 logger.info("Deleting local tags: " + names); //$NON-NLS-1$

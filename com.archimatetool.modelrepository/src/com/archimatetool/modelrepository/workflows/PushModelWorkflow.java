@@ -15,12 +15,10 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
-import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoUtils;
@@ -30,7 +28,7 @@ import com.archimatetool.modelrepository.repository.RepoUtils;
  * 
  * @author Phillip Beauvoir
  */
-public class PushModelWorkflow extends AbstractRepositoryWorkflow {
+public class PushModelWorkflow extends AbstractPushResultWorkflow {
     
     private static Logger logger = Logger.getLogger(PushModelWorkflow.class.getName());
     
@@ -76,6 +74,9 @@ public class PushModelWorkflow extends AbstractRepositoryWorkflow {
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED); // This will also update Branches View
         }
         
+        // Logging
+        logPushResult(pushResult, logger);
+        
         // Show result
         showPushResult(pushResult);
     }
@@ -102,27 +103,21 @@ public class PushModelWorkflow extends AbstractRepositoryWorkflow {
      * Show Push result status and any error messages
      */
     private void showPushResult(PushResult pushResult) {
-        // Logging
-        for(String msg : GitUtils.getPushResultMessageList(pushResult)) {
-            logger.info(msg);
-        }
-        
-        // Show status to user
-        Status status = GitUtils.getPrimaryPushResultStatus(pushResult);
-        
-        // OK
-        if(status == Status.OK) {
-            MessageDialog.openInformation(workbenchWindow.getShell(), Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_2);
-        }
-        // Up to date
-        else if(status == Status.UP_TO_DATE) {
-            MessageDialog.openInformation(workbenchWindow.getShell(), Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_3);
-        }
-        // Ugh!
-        else {
-            String errorMessage = GitUtils.getPushResultFullErrorMessage(pushResult);
-            if(errorMessage != null) {
-                displayErrorDialog(Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_4, errorMessage);
+        // Show primary Status result to user
+        switch(getPrimaryPushResultStatus(pushResult)) {
+            case OK -> {
+                MessageDialog.openInformation(workbenchWindow.getShell(), Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_2);
+            }
+            
+            case UP_TO_DATE, NON_EXISTING -> {
+                MessageDialog.openInformation(workbenchWindow.getShell(), Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_3);
+            }
+            
+            default -> {
+                String errorMessage = getPushResultFullErrorMessage(pushResult);
+                if(errorMessage != null) {
+                    displayErrorDialog(Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_4, errorMessage);
+                }
             }
         }
     }

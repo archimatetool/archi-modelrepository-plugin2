@@ -12,9 +12,7 @@ import java.util.logging.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -25,7 +23,6 @@ import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.NewRepoDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
-import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 
@@ -34,7 +31,7 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
  * 
  * @author Phillip Beauvoir
  */
-public class CreateRepoFromModelWorkflow extends AbstractRepositoryWorkflow {
+public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
     
     private static Logger logger = Logger.getLogger(CreateRepoFromModelWorkflow.class.getName());
     
@@ -137,20 +134,11 @@ public class CreateRepoFromModelWorkflow extends AbstractRepositoryWorkflow {
                                                                                           Messages.CreateRepoFromModelWorkflow_2));
             
             // Logging
-            for(String msg : GitUtils.getPushResultMessageList(pushResult)) {
-                logger.info(msg);
-            }
+            logPushResult(pushResult, logger);
             
-            // Get any errors in Push Result and throw exception
-            Status status = GitUtils.getPrimaryPushResultStatus(pushResult);
+            // Status
+            checkPushResultStatus(pushResult);
             
-            if(status != Status.OK && status != Status.UP_TO_DATE) {
-                String errorMessage = GitUtils.getPushResultFullErrorMessage(pushResult);
-                if(errorMessage == null) {
-                    errorMessage = "Unknown error"; //$NON-NLS-1$
-                }
-                throw new GitAPIException(errorMessage) {};
-            }
         }, true);
     }
     
