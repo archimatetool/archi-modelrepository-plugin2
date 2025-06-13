@@ -156,7 +156,7 @@ public class GitUtils extends Git {
      * If we are pushing just the current branch there will be just one ref update in the PushResult and one Status.
      * If pushing tags or more than one branch there can be more than one ref update.
      */
-    public static Status getPushResultStatus(PushResult pushResult) {
+    public static Status getPrimaryPushResultStatus(PushResult pushResult) {
         Status status = null;
         
         // Iterate thru all pushed refs, current branch and tags, and get the primary one

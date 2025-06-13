@@ -161,13 +161,13 @@ public class GitUtilsTests {
         utils.commitChanges("Message", false);
         
         PushResult pushResult = utils.pushToRemote(null, null);
-        assertEquals(Status.OK, GitUtils.getPushResultStatus(pushResult));
+        assertEquals(Status.OK, GitUtils.getPrimaryPushResultStatus(pushResult));
         
         // And check error message
         assertNull(GitUtils.getPushResultErrorMessage(pushResult));
         
         pushResult = utils.pushToRemote(null, null);
-        assertEquals(Status.UP_TO_DATE, GitUtils.getPushResultStatus(pushResult));
+        assertEquals(Status.UP_TO_DATE, GitUtils.getPrimaryPushResultStatus(pushResult));
 
         // And check error message
         assertNull(GitUtils.getPushResultErrorMessage(pushResult));

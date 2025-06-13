@@ -15,6 +15,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -104,8 +105,11 @@ public class PushModelWorkflow extends AbstractRepositoryWorkflow {
      * Show Push result status and any error messages
      */
     private void showPushResult(PushResult pushResult) {
-        Status status = GitUtils.getPushResultStatus(pushResult);
-        logger.info("Push Status: " + status); //$NON-NLS-1$
+        for(RemoteRefUpdate refUpdate : pushResult.getRemoteUpdates()) {
+            logger.info("PushResult status for " + refUpdate.getRemoteName() + ": " +refUpdate.getStatus()); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+        
+        Status status = GitUtils.getPrimaryPushResultStatus(pushResult);
         
         // OK
         if(status == Status.OK) {
