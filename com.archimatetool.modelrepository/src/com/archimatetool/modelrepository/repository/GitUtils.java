@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jgit.api.Git;
@@ -185,9 +186,9 @@ public class GitUtils extends Git {
     }
     
     /**
-     * Get an error message from a PushResult or null
+     * Get a formatted full error message from a PushResult or null
      */
-    public static String getPushResultErrorMessage(PushResult pushResult) {
+    public static String getPushResultFullErrorMessage(PushResult pushResult) {
         StringBuilder sb = new StringBuilder();
         
         pushResult.getRemoteUpdates().stream()
@@ -198,6 +199,10 @@ public class GitUtils extends Git {
                       sb.append('\n');
                       sb.append(refUpdate.getRemoteName());    // Remote ref name
                       sb.append('\n');
+                      if(refUpdate.getMessage() != null) {
+                          sb.append(refUpdate.getMessage());
+                          sb.append('\n');
+                      }
                       
                       String msgs = getPushResultMessages(pushResult);
                       if(StringUtils.isSet(msgs)) {
@@ -208,6 +213,27 @@ public class GitUtils extends Git {
             
         
         return sb.length() > 1 ? sb.toString() : null; // 1 character == "\n"
+    }
+    
+    /**
+     * @return A list of messages from a PushResult. Used for logging.
+     */
+    public static List<String> getPushResultMessageList(PushResult pushResult) {
+        List<String> msgs = new ArrayList<>();
+        
+        for(RemoteRefUpdate refUpdate : pushResult.getRemoteUpdates()) {
+            msgs.add("PushResult status for " + refUpdate.getRemoteName() + ": " + refUpdate.getStatus());
+            if(refUpdate.getMessage() != null) {
+                msgs.add("RefUpdate message: " + refUpdate.getMessage());
+            }
+        }
+        
+        String msg = getPushResultMessages(pushResult);
+        if(StringUtils.isSet(msg)) {
+            msgs.add("Error message: " + msg);
+        }
+        
+        return msgs;
     }
     
     /**

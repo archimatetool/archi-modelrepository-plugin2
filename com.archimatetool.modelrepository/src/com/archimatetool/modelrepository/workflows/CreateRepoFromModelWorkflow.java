@@ -14,7 +14,6 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -137,14 +136,16 @@ public class CreateRepoFromModelWorkflow extends AbstractRepositoryWorkflow {
             PushResult pushResult = archiRepository.pushToRemote(npw, new ProgressMonitorWrapper(monitor,
                                                                                           Messages.CreateRepoFromModelWorkflow_2));
             
-            for(RemoteRefUpdate refUpdate : pushResult.getRemoteUpdates()) {
-                logger.info("PushResult status for " + refUpdate.getRemoteName() + ": " +refUpdate.getStatus()); //$NON-NLS-1$ //$NON-NLS-2$
+            // Logging
+            for(String msg : GitUtils.getPushResultMessageList(pushResult)) {
+                logger.info(msg);
             }
             
-            // Get any errors in Push Result and set exception
+            // Get any errors in Push Result and throw exception
             Status status = GitUtils.getPrimaryPushResultStatus(pushResult);
+            
             if(status != Status.OK && status != Status.UP_TO_DATE) {
-                String errorMessage = GitUtils.getPushResultErrorMessage(pushResult);
+                String errorMessage = GitUtils.getPushResultFullErrorMessage(pushResult);
                 if(errorMessage == null) {
                     errorMessage = "Unknown error"; //$NON-NLS-1$
                 }

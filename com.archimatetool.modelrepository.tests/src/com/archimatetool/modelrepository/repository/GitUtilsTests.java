@@ -164,13 +164,13 @@ public class GitUtilsTests {
         assertEquals(Status.OK, GitUtils.getPrimaryPushResultStatus(pushResult));
         
         // And check error message
-        assertNull(GitUtils.getPushResultErrorMessage(pushResult));
+        assertNull(GitUtils.getPushResultFullErrorMessage(pushResult));
         
         pushResult = utils.pushToRemote(null, null);
         assertEquals(Status.UP_TO_DATE, GitUtils.getPrimaryPushResultStatus(pushResult));
 
         // And check error message
-        assertNull(GitUtils.getPushResultErrorMessage(pushResult));
+        assertNull(GitUtils.getPushResultFullErrorMessage(pushResult));
     }
     
     @Test

@@ -15,7 +15,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -78,9 +77,7 @@ public class PushModelWorkflow extends AbstractRepositoryWorkflow {
         }
         
         // Show result
-        if(pushResult != null) {
-            showPushResult(pushResult);
-        }
+        showPushResult(pushResult);
     }
     
     /**
@@ -105,10 +102,12 @@ public class PushModelWorkflow extends AbstractRepositoryWorkflow {
      * Show Push result status and any error messages
      */
     private void showPushResult(PushResult pushResult) {
-        for(RemoteRefUpdate refUpdate : pushResult.getRemoteUpdates()) {
-            logger.info("PushResult status for " + refUpdate.getRemoteName() + ": " +refUpdate.getStatus()); //$NON-NLS-1$ //$NON-NLS-2$
+        // Logging
+        for(String msg : GitUtils.getPushResultMessageList(pushResult)) {
+            logger.info(msg);
         }
         
+        // Show status to user
         Status status = GitUtils.getPrimaryPushResultStatus(pushResult);
         
         // OK
@@ -121,9 +120,8 @@ public class PushModelWorkflow extends AbstractRepositoryWorkflow {
         }
         // Ugh!
         else {
-            String errorMessage = GitUtils.getPushResultErrorMessage(pushResult);
+            String errorMessage = GitUtils.getPushResultFullErrorMessage(pushResult);
             if(errorMessage != null) {
-                logger.warning("Push returned errors: " + errorMessage); //$NON-NLS-1$
                 displayErrorDialog(Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_4, errorMessage);
             }
         }
