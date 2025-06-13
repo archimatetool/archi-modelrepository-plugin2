@@ -152,7 +152,7 @@ public class HistoryTableViewer extends TableViewer {
     
     void modelSaved() {
         // If we have a working tree then update history view
-        if(hasWorkingTree(getInput()) != hasWorkingTree) {
+        if(getHasWorkingTree(getInput()) != hasWorkingTree) {
             setInput(getInput());
             
             // Avoid bogus horizontal scrollbar cheese
@@ -209,7 +209,11 @@ public class HistoryTableViewer extends TableViewer {
         return revSort;
     }
     
-    private boolean hasWorkingTree(IArchiRepository repo) {
+    boolean hasWorkingTree() {
+        return hasWorkingTree;
+    }
+    
+    private boolean getHasWorkingTree(IArchiRepository repo) {
         try {
             return repo != null && repo.hasChangesToCommit() && fSelectedBranch != null && fSelectedBranch.isCurrentBranch();
         }
@@ -259,7 +263,7 @@ public class HistoryTableViewer extends TableViewer {
             commitStatusMap = new HashMap<>();
             
             // Get this now
-            hasWorkingTree = hasWorkingTree(repo);
+            hasWorkingTree = getHasWorkingTree(repo);
             
             try {
                 loadCommits(repo);
@@ -349,7 +353,7 @@ public class HistoryTableViewer extends TableViewer {
         public void updateElement(int index) {
             // If this is the working tree row insert dummy object
             if(index == 0 && hasWorkingTree) {
-                replace(new Object(), index);
+                replace(new String(), index);
                 return;
             }
             

@@ -53,6 +53,7 @@ import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.AddBranchAction;
+import com.archimatetool.modelrepository.actions.CommitModelAction;
 import com.archimatetool.modelrepository.actions.ExtractModelFromCommitAction;
 import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
 import com.archimatetool.modelrepository.actions.RestoreCommitAction;
@@ -104,6 +105,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     private RestoreCommitAction fActionRestoreCommit;
     private ResetToRemoteCommitAction fActionResetToRemoteCommit;
     private AddBranchAction fActionAddBranch;
+    private CommitModelAction fActionCommit;
     
     private IAction fActionCompare = new Action(Messages.HistoryView_3) {
         @Override
@@ -310,6 +312,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         fActionAddBranch = new AddBranchAction(getViewSite().getWorkbenchWindow(), Messages.HistoryView_13);
         fActionAddBranch.setEnabled(false);
         
+        fActionCommit = new CommitModelAction(getViewSite().getWorkbenchWindow());
+        fActionCommit.setEnabled(false);
+        
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
 //        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
@@ -381,6 +386,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         
         fActionUndoLastCommit.setRepository(fSelectedRepository);
         fActionResetToRemoteCommit.setRepository(fSelectedRepository);
+        fActionCommit.setRepository(getHistoryViewer().hasWorkingTree() ? fSelectedRepository : null);
 
         // Selected Working tree or an empty selection, not a RevCommit
         if(!(selection.getFirstElement() instanceof RevCommit revCommit)) {
@@ -415,6 +421,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         
         manager.add(fActionCompare);
         manager.add(new Separator());
+        manager.add(fActionCommit);
         manager.add(fActionExtractCommit);
         manager.add(fActionRestoreCommit);
         manager.add(new Separator());
