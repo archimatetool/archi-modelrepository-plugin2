@@ -3,11 +3,11 @@ Bundle-ManifestVersion: 2
 Bundle-Name: coArchi2
 Bundle-SymbolicName: com.archimatetool.modelrepository;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 1.1.0.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
  com.archimatetool.editor;bundle-version="5.4.0",
- com.archimatetool.jdom,
+ com.archimatetool.jdom;bundle-version="5.4.0",
  org.eclipse.emf.compare,
  org.eclipse.jgit,
  org.eclipse.jgit.ssh.apache
