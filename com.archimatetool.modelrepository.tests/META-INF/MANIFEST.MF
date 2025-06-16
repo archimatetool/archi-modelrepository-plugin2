@@ -8,5 +8,5 @@ Import-Package: org.junit.jupiter.api,
  org.junit.jupiter.api.function,
  org.junit.platform.suite.api
 Bundle-Vendor: Archi
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: com.archimatetool.modelrepository.tests
