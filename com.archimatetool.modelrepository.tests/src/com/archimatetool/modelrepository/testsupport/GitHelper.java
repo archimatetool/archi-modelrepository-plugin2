@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository;
+package com.archimatetool.modelrepository.testsupport;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +34,7 @@ public class GitHelper {
         return new ArchiRepository(new File(getTempTestsFolder(), folderName));
     }
     
-    public static String createBareRepository() throws IOException, GitAPIException {
+    public static File createBareRepository() throws IOException, GitAPIException {
         File repoFolder = new File(getTempTestsFolder(), "testBareRepo");
         try(Git git = Git.init()
                 .setBare(true)
@@ -42,7 +42,7 @@ public class GitHelper {
                 .setInitialBranch(RepoConstants.MAIN)
                 .call()) {
         }
-        return repoFolder.getPath();
+        return repoFolder;
     }
     
     public static File getTempTestsFolder() throws IOException {

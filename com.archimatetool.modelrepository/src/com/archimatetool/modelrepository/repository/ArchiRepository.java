@@ -17,7 +17,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -76,13 +75,13 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public void cloneModel(String url, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException {
-        CloneCommand cloneCommand = Git.cloneRepository();
-        cloneCommand.setDirectory(getWorkingFolder());
-        cloneCommand.setURI(url);
-        cloneCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw));
-        cloneCommand.setProgressMonitor(monitor);
-        
-        try(Repository repository = cloneCommand.call().getRepository()) {
+        try(Repository repository = Git.cloneRepository()
+                .setDirectory(getWorkingFolder())
+                .setURI(url)
+                .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .setProgressMonitor(monitor)
+                .setCloneAllBranches(true)
+                .call().getRepository()) {
             // Config Defaults
             setDefaultConfigSettings(repository);
             

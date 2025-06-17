@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
 
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.modelrepository.GitHelper;
+import com.archimatetool.modelrepository.testsupport.GitHelper;
 
 
 @SuppressWarnings("nls")
@@ -138,7 +138,7 @@ public class GitUtilsTests {
     
     @Test
     public void pushToRemote() throws Exception {
-        utils.setRemote(GitHelper.createBareRepository());
+        utils.setRemote(GitHelper.createBareRepository().getAbsolutePath());
 
         GitHelper.writeFileToTestRepo(repo, "file1.txt", "123");
         utils.commitChanges("Message", false);
@@ -157,7 +157,7 @@ public class GitUtilsTests {
     
     @Test
     public void getPushResultStatus() throws Exception {
-        utils.setRemote(GitHelper.createBareRepository());
+        utils.setRemote(GitHelper.createBareRepository().getAbsolutePath());
         
         GitHelper.writeFileToTestRepo(repo, "file1.txt", "123");
         utils.commitChanges("Message", false);
@@ -171,7 +171,7 @@ public class GitUtilsTests {
     
     @Test
     public void fetchFromRemote() throws Exception {
-        utils.setRemote(GitHelper.createBareRepository());
+        utils.setRemote(GitHelper.createBareRepository().getAbsolutePath());
 
         // Commit to main branch
         GitHelper.writeFileToTestRepo(repo, "file1.txt", "123");
@@ -247,7 +247,7 @@ public class GitUtilsTests {
     
     @Test
     public void deleteRemoteBranch() throws Exception {
-        utils.setRemote(GitHelper.createBareRepository());
+        utils.setRemote(GitHelper.createBareRepository().getAbsolutePath());
 
         utils.commitChanges("Message", false);
 
@@ -324,7 +324,7 @@ public class GitUtilsTests {
     @Test
     public void removeRemoteRefs() throws Exception {
         // Remote
-        String url = GitHelper.createBareRepository();
+        String url = GitHelper.createBareRepository().getAbsolutePath();
         utils.setRemote(url);
         
         // One commit
@@ -410,7 +410,7 @@ public class GitUtilsTests {
     
     @Test
     public void getRemoteRefForCurrentBranch() throws Exception {
-        utils.setRemote(GitHelper.createBareRepository());
+        utils.setRemote(GitHelper.createBareRepository().getAbsolutePath());
         utils.commitChanges("Message 1", false);
         assertNull(utils.getRemoteRefForCurrentBranch());
         
@@ -480,7 +480,7 @@ public class GitUtilsTests {
     
     @Test
     public void deleteRemoteTags() throws Exception {
-        utils.setRemote(GitHelper.createBareRepository());
+        utils.setRemote(GitHelper.createBareRepository().getAbsolutePath());
 
         utils.commitChanges("Message", false);
 

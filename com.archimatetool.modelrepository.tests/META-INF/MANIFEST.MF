@@ -1,8 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: JUnit Tests for Archi Model Repository
+Bundle-Name: coArchi2 Tests
 Bundle-SymbolicName: com.archimatetool.modelrepository.tests
 Bundle-Version: 1.1.0.qualifier
+Export-Package: com.archimatetool.modelrepository.testsupport
 Fragment-Host: com.archimatetool.modelrepository
 Import-Package: org.junit.jupiter.api,
  org.junit.jupiter.api.function,

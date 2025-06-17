@@ -24,7 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.archimatetool.editor.utils.FileUtils;
-import com.archimatetool.modelrepository.GitHelper;
+import com.archimatetool.modelrepository.testsupport.GitHelper;
 
 
 @SuppressWarnings("nls")

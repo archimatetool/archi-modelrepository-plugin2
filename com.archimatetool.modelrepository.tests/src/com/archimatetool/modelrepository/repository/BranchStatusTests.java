@@ -17,8 +17,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.archimatetool.editor.utils.FileUtils;
-import com.archimatetool.modelrepository.GitHelper;
 import com.archimatetool.modelrepository.repository.BranchInfo.Option;
+import com.archimatetool.modelrepository.testsupport.GitHelper;
 
 
 @SuppressWarnings("nls")
@@ -32,7 +32,7 @@ public class BranchStatusTests {
     public void runOnceBeforeEachTest() throws Exception {
         repo = GitHelper.createNewRepository().init();
         utils = GitUtils.open(repo.getGitFolder());
-        repo.setRemote(GitHelper.createBareRepository());
+        repo.setRemote(GitHelper.createBareRepository().getAbsolutePath());
         
         utils.commitChanges("Commit 1", false);
         utils.pushToRemote(null, null);

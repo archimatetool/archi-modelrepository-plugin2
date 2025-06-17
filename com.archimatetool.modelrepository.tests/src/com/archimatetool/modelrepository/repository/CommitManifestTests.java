@@ -35,9 +35,9 @@ import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.util.ArchimateModelUtils;
-import com.archimatetool.modelrepository.GitHelper;
-import com.archimatetool.modelrepository.TestFiles;
 import com.archimatetool.modelrepository.repository.CommitManifest.ObjectChange;
+import com.archimatetool.modelrepository.testsupport.GitHelper;
+import com.archimatetool.modelrepository.testsupport.TestFiles;
 
 
 @SuppressWarnings("nls")

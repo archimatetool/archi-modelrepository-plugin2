@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.modelrepository.GitHelper;
+import com.archimatetool.modelrepository.testsupport.GitHelper;
 
 
 @SuppressWarnings("nls")

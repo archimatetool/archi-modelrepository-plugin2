@@ -24,7 +24,7 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.modelrepository.GitHelper;
+import com.archimatetool.modelrepository.testsupport.GitHelper;
 
 
 @SuppressWarnings("nls")
@@ -56,7 +56,7 @@ public class ArchiRepositoryTests {
     public void cloneModel() throws Exception {
         // Create a new local repo and remote repo
         IArchiRepository archiRepo = GitHelper.createNewRepository().init();
-        String repoURL = GitHelper.createBareRepository();
+        String repoURL = GitHelper.createBareRepository().getAbsolutePath();
         archiRepo.setRemote(repoURL);
         
         try(GitUtils utils = GitUtils.open(archiRepo.getGitFolder())) {
@@ -90,7 +90,7 @@ public class ArchiRepositoryTests {
     @Test
     public void cloneModel_EmptyRepo() throws Exception {
         IArchiRepository archiRepo = GitHelper.createNewRepository();
-        String repoURL = GitHelper.createBareRepository();
+        String repoURL = GitHelper.createBareRepository().getAbsolutePath();
         archiRepo.cloneModel(repoURL, null, null);
         
         try(Repository repository = Git.open(archiRepo.getGitFolder()).getRepository()) {

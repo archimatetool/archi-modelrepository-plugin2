@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package com.archimatetool.modelrepository;
+package com.archimatetool.modelrepository.testsupport;
 
 import java.io.File;
 import java.io.IOException;

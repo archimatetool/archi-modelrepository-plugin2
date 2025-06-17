@@ -4,10 +4,40 @@
    <extension
          point="com.archimatetool.commandline.commandlineProvider">
       <commandlineProvider
-            class="com.archimatetool.modelrepository.commandline.LoadModelFromRepositoryProvider"
-            description="Load and/or clone from a local or online collaboration repository and set to the current model"
+            class="com.archimatetool.modelrepository.commandline.CoreModelRepositoryProvider"
+            description="Core options for collaboration repository"
+            id="com.archimatetool.modelrepository.commandlineCoreModel"
+            name="Core Options for Collaboration Model">
+      </commandlineProvider>
+      <commandlineProvider
+            class="com.archimatetool.modelrepository.commandline.LoadModelProvider"
+            description="Load from a local collaboration repository and set to the current model"
             id="com.archimatetool.modelrepository.commandlineCloneModel"
-            name="Load and Clone Collaboration Model">
+            name="Load Collaboration Model">
+      </commandlineProvider>
+      <commandlineProvider
+            class="com.archimatetool.modelrepository.commandline.CloneModelProvider"
+            description="Clone a collaboration repository to a local folder"
+            id="com.archimatetool.modelrepository.commandlineCloneModel"
+            name="Clone Collaboration Model">
+      </commandlineProvider>
+      <commandlineProvider
+            class="com.archimatetool.modelrepository.commandline.CommitModelProvider"
+            description="Commit changes to a local collaboration repository"
+            id="com.archimatetool.modelrepository.commandlineCommitModel"
+            name="Commit Collaboration Model">
+      </commandlineProvider>
+      <commandlineProvider
+            class="com.archimatetool.modelrepository.commandline.SwitchBranchProvider"
+            description="Switch branc in a local collaboration repository"
+            id="com.archimatetool.modelrepository.commandlineSwitchBranch"
+            name="Switch Branch in Collaboration Model">
+      </commandlineProvider>
+      <commandlineProvider
+            class="com.archimatetool.modelrepository.commandline.PushModelProvider"
+            description="Push a collaboration repository to a remote repository"
+            id="com.archimatetool.modelrepository.commandlinePushModel"
+            name="Push Collaboration Model">
       </commandlineProvider>
    </extension>
 
