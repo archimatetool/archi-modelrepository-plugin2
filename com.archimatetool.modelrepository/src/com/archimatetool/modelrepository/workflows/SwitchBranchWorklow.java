@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.repository.ArchiRepository;
@@ -66,36 +65,29 @@ public class SwitchBranchWorklow extends AbstractRepositoryWorkflow {
         notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
     }
     
-    private boolean switchBranch(BranchInfo branchInfo) {
+    private void switchBranch(BranchInfo branchInfo) {
         logger.info("Switching branch to: " + branchInfo.getShortName()); //$NON-NLS-1$
         
         try(Git git = Git.open(archiRepository.getWorkingFolder())) {
             // If the branch is local just checkout
             if(branchInfo.isLocal()) {
-                git.checkout().setName(branchInfo.getFullName()).call();
+                git.checkout()
+                   .setName(branchInfo.getFullName())
+                   .call();
             }
-            // If the branch is remote and has no local ref we need to create the local branch and switch to that
+            // If the branch is remote and has no local ref we need to create the local branch and checkout that
             else if(branchInfo.isRemote() && !branchInfo.hasLocalRef()) {
-                String branchName = branchInfo.getShortName();
-                
-                // Create local branch at point of remote branch ref
-                Ref ref = git.branchCreate()
-                          .setName(branchName)
-                          .setStartPoint(branchInfo.getFullName())
-                          .call();
-                
-                // checkout
-                git.checkout().setName(ref.getName()).call();
-                
-                return true;
+                git.checkout()
+                   .setName(branchInfo.getShortName())
+                   .setCreateBranch(true)
+                   .setStartPoint(branchInfo.getFullName())
+                   .call();
             }
         }
         catch(IOException | GitAPIException ex) {
             logger.log(Level.SEVERE, "Switch Branch", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.SwitchBranchWorklow_0, ex);
         }
-
-        return false;
     }
     
     @Override
