@@ -6,6 +6,8 @@
 package com.archimatetool.modelrepository.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,8 +41,10 @@ public class BranchStatusTests {
         utils.checkout().setName(RepoConstants.R_HEADS + "branch").call();
         utils.pushToRemote(null, null);
         
-        utils.checkout().setName(RepoConstants.R_HEADS_MAIN).call();
+        utils.branchCreate().setName("local").call();
 
+        utils.checkout().setName(RepoConstants.R_HEADS_MAIN).call();
+        
         status = new BranchStatus(repo.getWorkingFolder(), Option.ALL);
     }
     
@@ -53,11 +57,12 @@ public class BranchStatusTests {
     @Test
     public void getAllBranches() throws Exception {
         List<BranchInfo> branchInfos = status.getAllBranches();
-        assertEquals(4, branchInfos.size());
+        assertEquals(5, branchInfos.size());
         assertEquals(RepoConstants.R_HEADS + "branch", branchInfos.get(0).getFullName());
         assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfos.get(1).getFullName());
         assertEquals(RepoConstants.R_HEADS_MAIN, branchInfos.get(2).getFullName());
-        assertEquals(RepoConstants.R_REMOTES_ORIGIN + "branch", branchInfos.get(3).getFullName());
+        assertEquals(RepoConstants.R_HEADS + "local", branchInfos.get(3).getFullName());
+        assertEquals(RepoConstants.R_REMOTES_ORIGIN + "branch", branchInfos.get(4).getFullName());
     }
 
     @Test
@@ -68,17 +73,19 @@ public class BranchStatusTests {
         status = new BranchStatus(repo.getWorkingFolder(), Option.ALL);
         
         List<BranchInfo> branchInfos = status.getLocalAndUntrackedRemoteBranches();
-        assertEquals(2, branchInfos.size());
+        assertEquals(3, branchInfos.size());
         assertEquals(RepoConstants.R_HEADS_MAIN, branchInfos.get(0).getFullName());
-        assertEquals(RepoConstants.R_REMOTES_ORIGIN + "branch", branchInfos.get(1).getFullName());
+        assertEquals(RepoConstants.R_HEADS + "local", branchInfos.get(1).getFullName());
+        assertEquals(RepoConstants.R_REMOTES_ORIGIN + "branch", branchInfos.get(2).getFullName());
     }
     
     @Test
     public void getLocalBranches() throws Exception {
         List<BranchInfo> branchInfos = status.getLocalBranches();
-        assertEquals(2, branchInfos.size());
+        assertEquals(3, branchInfos.size());
         assertEquals(RepoConstants.R_HEADS + "branch", branchInfos.get(0).getFullName());
         assertEquals(RepoConstants.R_HEADS_MAIN, branchInfos.get(1).getFullName());
+        assertEquals(RepoConstants.R_HEADS + "local", branchInfos.get(2).getFullName());
     }
     
     @Test
@@ -101,4 +108,17 @@ public class BranchStatusTests {
         assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getFullName());
     }
 
+    @Test
+    public void find() {
+        assertNull(status.find(RepoConstants.R_HEADS + "bogus"));
+        
+        assertNotNull(status.find(RepoConstants.R_HEADS_MAIN));
+        assertNotNull(status.find(RepoConstants.R_REMOTES_ORIGIN_MAIN));
+        
+        assertNotNull(status.find(RepoConstants.R_HEADS + "branch"));
+        assertNotNull(status.find(RepoConstants.R_REMOTES_ORIGIN + "branch"));
+        
+        assertNotNull(status.find(RepoConstants.R_HEADS + "local"));
+        assertNull(status.find(RepoConstants.R_REMOTES_ORIGIN + "local"));
+    }
 }

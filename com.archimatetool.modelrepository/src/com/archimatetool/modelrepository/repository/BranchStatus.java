@@ -104,4 +104,8 @@ public class BranchStatus {
     public BranchInfo getCurrentRemoteBranchInfo() {
         return currentRemoteBranchInfo;
     }
+    
+    public BranchInfo find(String refName) {
+        return infos.get(refName);
+    }
 }
