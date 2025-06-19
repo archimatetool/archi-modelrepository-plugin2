@@ -5,14 +5,12 @@
  */
 package com.archimatetool.modelrepository.workflows;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -76,7 +74,7 @@ public class AddTagWorkflow extends AbstractRepositoryWorkflow {
             // Notify listeners
             notifyChangeListeners(IRepositoryListener.TAGS_CHANGED);
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) { // Catch all exceptions in case of JGitInternalException
             logger.log(Level.SEVERE, "Add Tag", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.AddTagWorkflow_0, ex);
         }

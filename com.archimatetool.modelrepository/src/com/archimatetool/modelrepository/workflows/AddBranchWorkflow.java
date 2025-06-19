@@ -106,7 +106,7 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
             // Notify listeners
             notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) { // Catch all exceptions in case of JGitInternalException
             logger.log(Level.SEVERE, "Add Branch", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.AddBranchWorkflow_0, ex);
         }
