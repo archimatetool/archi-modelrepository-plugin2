@@ -34,6 +34,10 @@ public abstract class AbstractPushResultWorkflow extends AbstractRepositoryWorkf
      * Log all messages from the PushResult
      */
     protected void logPushResult(PushResult pushResult, Logger logger) {
+        if(pushResult == null) {
+            return;
+        }
+        
         for(RemoteRefUpdate refUpdate : pushResult.getRemoteUpdates()) {
             logger.info("PushResult status for " + refUpdate.getRemoteName() + ": " + refUpdate.getStatus()); //$NON-NLS-1$ //$NON-NLS-2$
             if(refUpdate.getMessage() != null) {
@@ -53,6 +57,10 @@ public abstract class AbstractPushResultWorkflow extends AbstractRepositoryWorkf
      * If pushing tags or more than one branch there can be more than one ref update.
      */
     protected Status getPrimaryPushResultStatus(PushResult pushResult) {
+        if(pushResult == null) {
+            return null;
+        }
+        
         Status status = null;
         
         // Iterate thru all pushed refs, current branch and tags, and get the primary one
@@ -103,6 +111,10 @@ public abstract class AbstractPushResultWorkflow extends AbstractRepositoryWorkf
      * Get a formatted full error message from the PushResult or null
      */
     protected String getPushResultFullErrorMessage(PushResult pushResult) {
+        if(pushResult == null) {
+            return null;
+        }
+        
         StringBuilder sb = new StringBuilder();
         
         pushResult.getRemoteUpdates().stream()

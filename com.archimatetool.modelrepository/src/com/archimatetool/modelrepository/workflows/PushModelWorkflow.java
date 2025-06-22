@@ -69,16 +69,17 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
             logger.log(Level.SEVERE, "Push", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.PushModelWorkflow_0, ex);
         }
-        finally {
-            // Notify listeners
-            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED); // This will also update Branches View
+        
+        // Notify listeners
+        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED); // This will also update Branches View
+        
+        if(pushResult != null) {
+            // Logging
+            logPushResult(pushResult, logger);
+            
+            // Show result
+            showPushResult(pushResult);
         }
-        
-        // Logging
-        logPushResult(pushResult, logger);
-        
-        // Show result
-        showPushResult(pushResult);
     }
     
     /**
@@ -103,6 +104,10 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
      * Show Push result status and any error messages
      */
     private void showPushResult(PushResult pushResult) {
+        if(pushResult == null) {
+            return;
+        }
+
         // Show primary Status result to user
         switch(getPrimaryPushResultStatus(pushResult)) {
             case OK -> {
