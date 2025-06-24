@@ -43,6 +43,7 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
+import org.eclipse.jgit.transport.TagOpt;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.TreeWalk.OperationType;
@@ -207,6 +208,23 @@ public class GitUtils extends Git {
 //        }
         
         return fetchresults;
+    }
+    
+    /**
+     * Do a dry run Fetch on remote to check if there are updates for the current branch
+     */
+    public FetchResult fetchFromRemoteDryRun(CredentialsProvider credentialsProvider, ProgressMonitor monitor) throws GitAPIException, IOException {
+        // Current branch
+        String currentBranch = getRepository().getBranch();
+        String refSpec = RepoConstants.R_HEADS + currentBranch + ":" + RepoConstants.R_REMOTES_ORIGIN + currentBranch;
+        
+        return fetch()
+                    .setCredentialsProvider(credentialsProvider)
+                    .setDryRun(true)
+                    .setProgressMonitor(monitor)
+                    .setRefSpecs(refSpec)      // Only the current branch
+                    .setTagOpt(TagOpt.NO_TAGS) // No tags
+                    .call();
     }
     
     /**

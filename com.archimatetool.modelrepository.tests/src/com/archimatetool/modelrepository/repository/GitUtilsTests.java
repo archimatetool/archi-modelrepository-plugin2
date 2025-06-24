@@ -25,6 +25,7 @@ import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.RefUpdate.Result;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -211,6 +212,34 @@ public class GitUtilsTests {
         assertEquals(localBranchName, refUpdate.getRemoteName());
         assertEquals(remoteBranchName, refUpdate.getLocalName());
         assertEquals(Result.NEW, refUpdate.getResult());
+    }
+    
+    @Test
+    public void fetchFromRemoteDryRun() throws Exception {
+        utils.setRemote(GitHelper.createBareRepository().getAbsolutePath());
+
+        // Two commits
+        utils.commitChanges("Message 1", false);
+        utils.commitChanges("Message 2", false);
+
+        // Push to remote
+        utils.pushToRemote(null, null);
+        
+        // Fetch - should be no remote updates
+        FetchResult fetchResult = utils.fetchFromRemoteDryRun(null, null);
+        assertTrue(fetchResult.getTrackingRefUpdates().isEmpty());
+        
+        // Set local ref to previous commit
+        utils.resetToRef("HEAD^");
+        
+        // Delete remote ref
+        RefUpdate refUpdate = utils.getRepository().updateRef(RepoConstants.R_REMOTES_ORIGIN_MAIN);
+        refUpdate.setForceUpdate(true);
+        refUpdate.delete();
+        
+        // Now there should be a tracking update
+        fetchResult = utils.fetchFromRemoteDryRun(null, null);
+        assertFalse(fetchResult.getTrackingRefUpdates().isEmpty());
     }
     
     @Test

@@ -71,6 +71,10 @@ public class Messages extends NLS {
     public static String PushModelWorkflow_3;
     public static String PushModelWorkflow_4;
 
+    public static String PushModelWorkflow_5;
+
+    public static String PushModelWorkflow_6;
+
     public static String RefreshModelWorkflow_0;
     public static String RefreshModelWorkflow_1;
     public static String RefreshModelWorkflow_2;
