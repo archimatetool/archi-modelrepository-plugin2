@@ -62,6 +62,7 @@ import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.CloneModelAction;
 import com.archimatetool.modelrepository.actions.CommitModelAction;
 import com.archimatetool.modelrepository.actions.DiscardChangesAction;
+import com.archimatetool.modelrepository.actions.FetchUpdateAction;
 import com.archimatetool.modelrepository.actions.IRepositoryAction;
 import com.archimatetool.modelrepository.actions.PushModelAction;
 import com.archimatetool.modelrepository.actions.RefreshModelAction;
@@ -104,6 +105,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private IRepositoryAction fActionPush;
     private IRepositoryAction fActionDiscardChanges;
 
+    private FetchUpdateAction fActionUpdate;
+
     private IAction fActionShowInHistory;
     private IAction fActionShowInBranches;
     private IAction fActionShowInTags;
@@ -115,7 +118,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private IAction fActionRenameEntry;
     private IAction fActionSelectAll;
     private IAction fActionProperties;
-
+    
     @Override
     public void createPartControl(Composite parent) {
         // Create the Tree Viewer first
@@ -317,10 +320,14 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             }
         };
         
+        // Fetch update
+        fActionUpdate = new FetchUpdateAction(getSite().getWorkbenchWindow());
+        
         // Register the Keybinding for these actions
         IHandlerService service = getViewSite().getService(IHandlerService.class);
         service.activateHandler(fActionAddGroup.getActionDefinitionId(), new ActionHandler(fActionAddGroup));
         service.activateHandler(fActionAddRepository.getActionDefinitionId(), new ActionHandler(fActionAddRepository));
+        service.activateHandler(fActionUpdate.getActionDefinitionId(), new ActionHandler(fActionUpdate));
     }
     
     private void addNewGroup() {
@@ -561,6 +568,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         manager.add(fActionClone);
         manager.add(fActionAddRepository);
         manager.add(fActionAddGroup);
+        manager.add(new Separator());
+        manager.add(fActionUpdate);
     }
     
     /**
@@ -578,6 +587,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             fActionPush.setRepository(repo);
             fActionDiscardChanges.setRepository(repo);
         }
+        
+        fActionUpdate.setEnabled();
     }
     
     private void updateStatusBar(ISelection selection) {
@@ -612,10 +623,14 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         
         if(getViewer().getSelection().isEmpty()) {
             manager.add(fActionAddGroup);
-        }
+            manager.add(new Separator());
+            manager.add(fActionUpdate);
+       }
         else {
             if(obj instanceof RepositoryRef) {
                 manager.add(fActionAddGroup);
+                manager.add(new Separator());
+                manager.add(fActionUpdate);
                 manager.add(new Separator());
                 manager.add(fActionRefresh);
                 manager.add(fActionCommit);
@@ -630,6 +645,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             }
             else if(obj instanceof Group) {
                 manager.add(fActionAddGroup);
+                manager.add(new Separator());
+                manager.add(fActionUpdate);
                 manager.add(new Separator());
                 manager.add(fActionRenameEntry);
                 manager.add(fActionDelete);

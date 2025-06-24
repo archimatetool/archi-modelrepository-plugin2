@@ -107,6 +107,11 @@
             id="com.archimatetool.modelrepository.addExistingRepository"
             name="Add Existing Repository">
       </command>
+      <command
+            categoryId="com.archimatetool.modelrepository.category"
+            id="com.archimatetool.modelrepository.command.fetchUpdate"
+            name="Update Status of all Repositories">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.commandImages">
@@ -177,6 +182,10 @@
       <image
             commandId="com.archimatetool.modelrepository.addExistingRepository"
             icon="img/elements_obj.png">
+      </image>
+      <image
+            commandId="com.archimatetool.modelrepository.command.fetchUpdate"
+            icon="img/refresh.png">
       </image>
    </extension>
    <extension
