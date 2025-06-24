@@ -77,7 +77,7 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
         }
         
         // Single identity file as specified in prefs
-        File file = CredentialsAuthenticator.getSSHIdentityProvider().getIdentityFile();
+        File file = SSHIdentityProvider.getInstance().getIdentityFile();
         if(file != null) {
             paths.add(file.toPath());
         }

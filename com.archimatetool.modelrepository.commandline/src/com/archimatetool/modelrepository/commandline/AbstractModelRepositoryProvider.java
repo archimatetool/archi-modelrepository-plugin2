@@ -14,8 +14,10 @@ import org.eclipse.osgi.util.NLS;
 
 import com.archimatetool.commandline.AbstractCommandLineProvider;
 import com.archimatetool.editor.utils.StringUtils;
-import com.archimatetool.modelrepository.authentication.CredentialsAuthenticator;
-import com.archimatetool.modelrepository.authentication.CredentialsAuthenticator.ISSHIdentityProvider;
+import com.archimatetool.modelrepository.authentication.ICredentials;
+import com.archimatetool.modelrepository.authentication.ISSHIdentityProvider;
+import com.archimatetool.modelrepository.authentication.SSHCredentials;
+import com.archimatetool.modelrepository.authentication.SSHIdentityProvider;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 
@@ -67,19 +69,19 @@ public abstract class AbstractModelRepositoryProvider extends AbstractCommandLin
         return true;
     }
 
-    protected UsernamePassword setCredentials(CommandLine commandLine, String url) throws IOException {
+    protected ICredentials getCredentials(CommandLine commandLine, String url) throws IOException {
         String username = commandLine.getOptionValue(CoreModelRepositoryProvider.OPTION_USERNAME);
         char[] password = getPasswordFromFile(commandLine);
-        File identityFile = getSSHIdentityFile(commandLine);
         
         // Get UsernamePassword if HTTP, otherwise set SSH credentials
         if(RepoUtils.isHTTP(url)) {
             return new UsernamePassword(username, password);
         }
         
-        // SSH
-        // Set this to return provided details rather than using those from Archi preferences
-        CredentialsAuthenticator.setSSHIdentityProvider(new ISSHIdentityProvider() {
+        // SSH - set the SSHIdentityProvider to return provided details rather than using those from Archi preferences
+        File identityFile = getSSHIdentityFile(commandLine);
+
+        SSHIdentityProvider.setInstance(new ISSHIdentityProvider() {
             @Override
             public File getIdentityFile() {
                 return identityFile;
@@ -91,7 +93,7 @@ public abstract class AbstractModelRepositoryProvider extends AbstractCommandLin
             }
         });
         
-        return null;
+        return new SSHCredentials();
     }
     
     protected abstract boolean hasCorrectOptions(CommandLine commandLine);

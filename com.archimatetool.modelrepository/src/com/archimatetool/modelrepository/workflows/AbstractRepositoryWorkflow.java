@@ -19,6 +19,8 @@ import org.eclipse.ui.IWorkbenchWindow;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
+import com.archimatetool.modelrepository.authentication.ICredentials;
+import com.archimatetool.modelrepository.authentication.SSHCredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CommitDialog;
 import com.archimatetool.modelrepository.dialogs.Dialogs;
@@ -27,6 +29,7 @@ import com.archimatetool.modelrepository.dialogs.UserNamePasswordDialog;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoConstants;
+import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
 
 /**
@@ -219,6 +222,30 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
         }
         
         return true;
+    }
+    
+    /**
+     * If HTTP return UsernamePassword or null if user cancels dialog
+     * If SSH return SSHCredentials
+     * On Exception return null so caller needs to return from the workflow
+     */
+    protected ICredentials getCredentials() {
+        try {
+            // HTTP
+            if(RepoUtils.isHTTP(archiRepository.getRemoteURL())) {
+                return getUsernamePassword();
+            }
+            // SSH
+            else {
+                return new SSHCredentials();
+            }
+        }
+        catch(IOException | GitAPIException | StorageException ex) {
+            logger.log(Level.SEVERE, "User Credentials", ex); //$NON-NLS-1$
+            displayErrorDialog(Messages.AbstractRepositoryWorkflow_0, ex);
+        }
+        
+        return null;
     }
     
     /**

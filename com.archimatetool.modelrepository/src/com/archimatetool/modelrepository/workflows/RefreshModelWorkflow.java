@@ -11,23 +11,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.StringUtils;
-import com.archimatetool.modelrepository.authentication.UsernamePassword;
+import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.merge.MergeHandler;
 import com.archimatetool.modelrepository.merge.MergeHandler.MergeHandlerResult;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
-import com.archimatetool.modelrepository.repository.RepoUtils;
 
 /**
  * Refresh Model Workflow
@@ -59,26 +58,17 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
             return;
         }
 
-        // Get credentials if HTTP
-        UsernamePassword npw = null;
-        try {
-            if(RepoUtils.isHTTP(archiRepository.getRemoteURL())) {
-                npw = getUsernamePassword();
-                if(npw == null) { // User cancelled or there are no stored credentials
-                    return;
-                }
-            }
-        }
-        catch(IOException | GitAPIException | StorageException ex) {
-            logger.log(Level.SEVERE, "User Details", ex); //$NON-NLS-1$
+        // Get credentials
+        ICredentials credentials = getCredentials();
+        if(credentials == null) {
             return;
         }
-
+        
         // Fetch from Remote
         // The first FetchResult will be for branches and the second for tags.
         List<FetchResult> fetchResults = null;
         try {
-            fetchResults = fetch(npw, true);
+            fetchResults = fetch(credentials.getCredentialsProvider(), true);
         }
         catch(Exception ex) {
             // If this exception is thrown then the remote doesn't have the current branch ref
@@ -160,7 +150,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }
     }
     
-    private List<FetchResult> fetch(UsernamePassword npw, boolean fetchTags) throws Exception {
+    private List<FetchResult> fetch(CredentialsProvider credentialsProvider, boolean fetchTags) throws Exception {
         logger.info("Fetching from " + archiRepository.getRemoteURL()); //$NON-NLS-1$
 
         @SuppressWarnings("unchecked")
@@ -170,7 +160,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.RefreshModelWorkflow_4, IProgressMonitor.UNKNOWN);
-            fetchResults[0] = archiRepository.fetchFromRemote(npw, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), fetchTags, false);
+            fetchResults[0] = archiRepository.fetchFromRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), fetchTags);
         }, true);
 
         return fetchResults[0];

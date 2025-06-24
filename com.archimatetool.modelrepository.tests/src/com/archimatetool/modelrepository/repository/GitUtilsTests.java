@@ -201,7 +201,7 @@ public class GitUtilsTests {
         utils.deleteBranches(true, remoteBranchName);
 
         // Fetch
-        List<FetchResult> fetchResults = utils.fetchFromRemote(null, null, true, false);
+        List<FetchResult> fetchResults = utils.fetchFromRemote(null, null, true);
         assertEquals(2, fetchResults.size());
 
         Collection<TrackingRefUpdate> refUpdates = fetchResults.get(0).getTrackingRefUpdates();

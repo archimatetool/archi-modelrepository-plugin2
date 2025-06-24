@@ -21,6 +21,7 @@ import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
+import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CloneDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
@@ -59,8 +60,8 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
         }
         
         String url = cloneDialog.getURL();
+        ICredentials credentials = cloneDialog.getCredentials();
         boolean storeCredentials = cloneDialog.doStoreCredentials();
-        UsernamePassword npw = cloneDialog.getUsernamePassword();
         File folder = RepoUtils.generateNewRepoFolder();
         archiRepository = new ArchiRepository(folder);
         
@@ -76,7 +77,7 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
             
             IRunnable.run(dialog, monitor -> {
                 monitor.beginTask(Messages.CloneModelWorkflow_1, IProgressMonitor.UNKNOWN);
-                archiRepository.cloneModel(url, npw, new ProgressMonitorWrapper(monitor, Messages.CloneModelWorkflow_1));
+                archiRepository.cloneModel(url, credentials.getCredentialsProvider(), new ProgressMonitorWrapper(monitor, Messages.CloneModelWorkflow_1));
             }, true);
 
             // Get the main model file
@@ -126,7 +127,7 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
             RepositoryTreeModel.getInstance().addNewRepositoryRef(archiRepository);
 
             // Store repo credentials if HTTP and option is set
-            if(RepoUtils.isHTTP(url) && storeCredentials) {
+            if(credentials instanceof UsernamePassword npw && storeCredentials) {
                 CredentialsStorage.getInstance().storeCredentials(archiRepository, npw);
             }
             

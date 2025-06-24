@@ -6,6 +6,8 @@ public class Messages extends NLS {
 
     private static final String BUNDLE_NAME = "com.archimatetool.modelrepository.workflows.messages"; //$NON-NLS-1$
 
+    public static String AbstractRepositoryWorkflow_0;
+
     public static String AbstractWorkflow_0;
     public static String AbstractWorkflow_1;
     public static String AbstractWorkflow_2;

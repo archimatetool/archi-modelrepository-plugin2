@@ -13,6 +13,7 @@ import org.apache.commons.cli.Options;
 import org.eclipse.osgi.util.NLS;
 
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -62,14 +63,14 @@ public class PushModelProvider extends AbstractModelRepositoryProvider {
             return;
         }
         
-        UsernamePassword npw = setCredentials(commandLine, url);
+        ICredentials credentials = getCredentials(commandLine, url);
         
         try {
             logMessage(NLS.bind("Pushing from {0} to {1}", folder, url));
-            repository.pushToRemote(npw, null);
+            repository.pushToRemote(credentials.getCredentialsProvider(), null);
         }
         finally {
-            if(npw != null) {
+            if(credentials instanceof UsernamePassword npw) {
                 npw.clear(); // Clear this
             }
         }

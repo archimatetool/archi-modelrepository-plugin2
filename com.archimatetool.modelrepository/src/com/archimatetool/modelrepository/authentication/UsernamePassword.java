@@ -7,12 +7,15 @@ package com.archimatetool.modelrepository.authentication;
 
 import java.util.Arrays;
 
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+
 /**
  * Username and Password pair
  * 
  * @author Phillip Beauvoir
  */
-public class UsernamePassword {
+public class UsernamePassword implements ICredentials {
 
     private String username;
     private char[] password;
@@ -48,5 +51,10 @@ public class UsernamePassword {
             Arrays.fill(password, (char)0);
             password = null;
         }
+    }
+    
+    @Override
+    public CredentialsProvider getCredentialsProvider() {
+        return new UsernamePasswordCredentialsProvider(getUsername(), getPassword());
     }
 }

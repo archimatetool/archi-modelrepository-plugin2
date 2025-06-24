@@ -13,17 +13,17 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.components.IRunnable;
-import com.archimatetool.modelrepository.authentication.UsernamePassword;
+import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.BranchInfo;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
-import com.archimatetool.modelrepository.repository.RepoUtils;
 
 /**
  * Delete Branch Workflow
@@ -61,16 +61,13 @@ public class DeleteBranchWorkflow extends AbstractPushResultWorkflow {
         // Delete remote (and local) branch
         if(deleteRemoteBranch) {
             try {
-                // Get credentials if HTTP
-                UsernamePassword npw = null;
-                if(RepoUtils.isHTTP(archiRepository.getRemoteURL())) {
-                    npw = getUsernamePassword();
-                    if(npw == null) { // User cancelled or there are no stored credentials
-                        return;
-                    }
+                // Get credentials
+                ICredentials credentials = getCredentials();
+                if(credentials == null) {
+                    return;
                 }
                 
-                deleteLocalAndRemoteBranch(currentBranchInfo, npw);
+                deleteLocalAndRemoteBranch(currentBranchInfo, credentials.getCredentialsProvider());
             }
             catch(Exception ex) {
                 logger.log(Level.SEVERE, "Delete Branch", ex); //$NON-NLS-1$
@@ -95,7 +92,7 @@ public class DeleteBranchWorkflow extends AbstractPushResultWorkflow {
     /**
      * Delete the local and remote refs and push to the remote deleting the remote branch
      */
-    private void deleteLocalAndRemoteBranch(BranchInfo branchInfo, UsernamePassword npw) throws Exception {
+    private void deleteLocalAndRemoteBranch(BranchInfo branchInfo, CredentialsProvider credentialsProvider) throws Exception {
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
         IRunnable.run(dialog, monitor -> {
@@ -104,7 +101,7 @@ public class DeleteBranchWorkflow extends AbstractPushResultWorkflow {
             try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
                 // Delete the remote branch first in case of error
                 logger.info("Deleting remote branch: " + branchInfo.getLocalBranchName()); //$NON-NLS-1$
-                PushResult pushResult = utils.deleteRemoteBranch(branchInfo.getLocalBranchName(), npw, new ProgressMonitorWrapper(monitor,
+                PushResult pushResult = utils.deleteRemoteBranch(branchInfo.getLocalBranchName(), credentialsProvider, new ProgressMonitorWrapper(monitor,
                                                                                         Messages.DeleteBranchWorkflow_0));
                 
                 // Logging

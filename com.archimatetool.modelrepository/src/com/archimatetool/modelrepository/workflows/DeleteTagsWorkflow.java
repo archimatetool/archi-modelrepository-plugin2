@@ -12,15 +12,15 @@ import java.util.logging.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.components.IRunnable;
-import com.archimatetool.modelrepository.authentication.UsernamePassword;
+import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
-import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.repository.TagInfo;
 
 /**
@@ -53,24 +53,14 @@ public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
             return;
         }
 
-        // Get credentials if HTTP
-        UsernamePassword npw = null;
-        try {
-            if(RepoUtils.isHTTP(archiRepository.getRemoteURL())) {
-                npw = getUsernamePassword();
-                if(npw == null) { // User cancelled or there are no stored credentials
-                    return;
-                }
-            }
-        }
-        catch(Exception ex) {
-            ex.printStackTrace();
-            logger.log(Level.SEVERE, "Get Credentials", ex); //$NON-NLS-1$
+        // Get credentials
+        ICredentials credentials = getCredentials();
+        if(credentials == null) {
             return;
         }
         
         try {
-            deleteTags(npw, tagInfos);
+            deleteTags(credentials.getCredentialsProvider(), tagInfos);
         }
         catch(Exception ex) {
             logger.log(Level.SEVERE, "Delete Branch", ex); //$NON-NLS-1$
@@ -81,7 +71,7 @@ public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
         }
     }
     
-    private void deleteTags(UsernamePassword npw, TagInfo... tagInfos) throws Exception {
+    private void deleteTags(CredentialsProvider credentialsProvider, TagInfo... tagInfos) throws Exception {
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
         IRunnable.run(dialog, monitor -> {
@@ -93,7 +83,7 @@ public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
             try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
                 // Delete the remote tags
                 logger.info("Deleting remote tags: " + names); //$NON-NLS-1$
-                PushResult pushResult = utils.deleteRemoteTags(npw, new ProgressMonitorWrapper(monitor, Messages.DeleteTagsWorkflow_0), tagNames);
+                PushResult pushResult = utils.deleteRemoteTags(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.DeleteTagsWorkflow_0), tagNames);
                 
                 // Logging
                 logPushResult(pushResult, logger);

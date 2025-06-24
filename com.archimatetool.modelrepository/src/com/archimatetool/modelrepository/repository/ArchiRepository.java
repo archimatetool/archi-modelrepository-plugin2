@@ -26,6 +26,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteConfig;
@@ -33,8 +34,6 @@ import org.eclipse.jgit.transport.RemoteConfig;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.modelrepository.authentication.CredentialsAuthenticator;
-import com.archimatetool.modelrepository.authentication.UsernamePassword;
 
 /**
  * Representation of a local repository
@@ -74,11 +73,11 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public void cloneModel(String url, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException {
+    public void cloneModel(String url, CredentialsProvider credentialsProvider, ProgressMonitor monitor) throws GitAPIException, IOException {
         try(Repository repository = Git.cloneRepository()
                 .setDirectory(getWorkingFolder())
                 .setURI(url)
-                .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .setCredentialsProvider(credentialsProvider)
                 .setProgressMonitor(monitor)
                 .setCloneAllBranches(true)
                 .call().getRepository()) {
@@ -129,9 +128,9 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public PushResult pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
+    public PushResult pushToRemote(CredentialsProvider credentialsProvider, ProgressMonitor monitor) throws IOException, GitAPIException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.pushToRemote(npw, monitor);
+            return utils.pushToRemote(credentialsProvider, monitor);
         }
     }
     
@@ -157,9 +156,9 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public List<FetchResult> fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean fetchTags, boolean isDryrun) throws IOException, GitAPIException {
+    public List<FetchResult> fetchFromRemote(CredentialsProvider credentialsProvider, ProgressMonitor monitor, boolean fetchTags) throws IOException, GitAPIException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.fetchFromRemote(npw, monitor, fetchTags, isDryrun);
+            return utils.fetchFromRemote(credentialsProvider, monitor, fetchTags);
         }
     }
 

@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -20,6 +21,7 @@ import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
+import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.NewRepoDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
@@ -54,8 +56,8 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
         
         File folder = RepoUtils.generateNewRepoFolder();
         String repoURL = dialog.getURL();
+        ICredentials credentials = dialog.getCredentials();
         boolean storeCredentials = dialog.doStoreCredentials();
-        UsernamePassword npw = dialog.getUsernamePassword();
         archiRepository = new ArchiRepository(folder);
         
         try {
@@ -88,11 +90,11 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
 
             // If we want to publish now then push...
             if(response == NewRepoDialog.ADD_AND_PUBLISH_ID) {
-                push(repoURL, npw);
+                push(repoURL, credentials.getCredentialsProvider());
             }
             
             // Store repo credentials if HTTP and option is set
-            if(RepoUtils.isHTTP(repoURL) && storeCredentials) {
+            if(credentials instanceof UsernamePassword npw && storeCredentials) {
                 CredentialsStorage.getInstance().storeCredentials(archiRepository, npw);
             }
             
@@ -122,7 +124,7 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
     /**
      * Push to remote
      */
-    private void push(final String repoURL, final UsernamePassword npw) throws Exception {
+    private void push(final String repoURL, CredentialsProvider credentialsProvider) throws Exception {
         logger.info("Pushing to remote: " + repoURL); //$NON-NLS-1$
         
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
@@ -130,7 +132,7 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.CreateRepoFromModelWorkflow_2, IProgressMonitor.UNKNOWN);
             
-            PushResult pushResult = archiRepository.pushToRemote(npw, new ProgressMonitorWrapper(monitor,
+            PushResult pushResult = archiRepository.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor,
                                                                                           Messages.CreateRepoFromModelWorkflow_2));
             
             // Logging

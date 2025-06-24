@@ -9,12 +9,12 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteConfig;
 
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.modelrepository.authentication.UsernamePassword;
 
 /**
  * IArchiRepository interface
@@ -31,7 +31,7 @@ public interface IArchiRepository {
     /**
      * Clone a model
      */
-    void cloneModel(String repoURL, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException;
+    void cloneModel(String repoURL, CredentialsProvider credentialsProvider, ProgressMonitor monitor) throws GitAPIException, IOException;
 
     /**
      * Commit any changes
@@ -67,7 +67,7 @@ public interface IArchiRepository {
      * @return the single PushResult
      *         As we're only pushing to one remote URI there should only be one PushResult
      */
-    PushResult pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException;
+    PushResult pushToRemote(CredentialsProvider credentialsProvider, ProgressMonitor monitor) throws IOException, GitAPIException;
 
     /**
      * Set the default "origin" remote to the given URL
@@ -91,7 +91,7 @@ public interface IArchiRepository {
     /**
      * Fetch from Remote
      */
-    List<FetchResult> fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean fetchTags, boolean isDryrun) throws IOException, GitAPIException;
+    List<FetchResult> fetchFromRemote(CredentialsProvider credentialsProvider, ProgressMonitor monitor, boolean fetchTags) throws IOException, GitAPIException;
 
     /**
      * Do a HARD reset to the given ref

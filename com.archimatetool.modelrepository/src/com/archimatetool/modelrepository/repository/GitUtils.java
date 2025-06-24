@@ -36,6 +36,7 @@ import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
@@ -50,8 +51,6 @@ import org.eclipse.jgit.util.io.EolStreamTypeUtil;
 
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.modelrepository.authentication.CredentialsAuthenticator;
-import com.archimatetool.modelrepository.authentication.UsernamePassword;
 
 /**
  * Extends JGit's Git class to offer some convenience methods.
@@ -134,9 +133,9 @@ public class GitUtils extends Git {
      * @return The first PushResult from the call.
      *         As we're only pushing to one remote URI there should only be one PushResult
      */
-    public PushResult pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
+    public PushResult pushToRemote(CredentialsProvider credentialsProvider, ProgressMonitor monitor) throws IOException, GitAPIException {
         Iterable<PushResult> results = push()
-                .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .setCredentialsProvider(credentialsProvider)
                 .add(getRepository().getFullBranch()) // Push current branch
                 .setPushTags() // Push tags
                 .setProgressMonitor(monitor)
@@ -163,14 +162,13 @@ public class GitUtils extends Git {
      * If fetchTags is true the first FetchResult will be for branches and the second for tags.
      * If fetchTags is false the first and only FetchResult will be for branches.
      */
-    public List<FetchResult> fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean fetchTags, boolean isDryrun) throws GitAPIException, IOException {
+    public List<FetchResult> fetchFromRemote(CredentialsProvider credentialsProvider, ProgressMonitor monitor, boolean fetchTags) throws GitAPIException, IOException {
         List<FetchResult> fetchresults = new ArrayList<>();
         
         // Fetch branches
         FetchResult fetchResult = fetch()
-                .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .setCredentialsProvider(credentialsProvider)
                 .setProgressMonitor(monitor)
-                .setDryRun(isDryrun)
                 .setRemoveDeletedRefs(true) // Delete any remote branch refs that we have but are not on the remote
                 .call();
         
@@ -179,9 +177,8 @@ public class GitUtils extends Git {
         // Fetch tags
         if(fetchTags) {
             FetchResult fetchResult2 = fetch()
-                    .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                    .setCredentialsProvider(credentialsProvider)
                     .setProgressMonitor(monitor)
-                    .setDryRun(isDryrun)
                     .setRefSpecs(new RefSpec("refs/tags/*:refs/tags/*")) // fetch all tags
                     //.setRefSpecs(new RefSpec("refs/tags/*:refs/remotes/origin/tags/*"))
                     .setForceUpdate(true) // Force update of tags
@@ -301,9 +298,9 @@ public class GitUtils extends Git {
      * @return The first PushResult from the call.
      *         As we're only pushing to one remote URI there should only be one PushResult
      */
-    public PushResult deleteRemoteBranch(String branchName, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException {
+    public PushResult deleteRemoteBranch(String branchName, CredentialsProvider credentialsProvider, ProgressMonitor monitor) throws GitAPIException {
         Iterable<PushResult> results = push()
-                .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .setCredentialsProvider(credentialsProvider)
                 .setRefSpecs(new RefSpec(":" + branchName))
                 .setRemote(RepoConstants.ORIGIN)
                 .setProgressMonitor(monitor)
@@ -498,11 +495,11 @@ public class GitUtils extends Git {
      * @return The first PushResult from the call.
      *         As we're only pushing to one remote URI there should only be one PushResult
      */
-    public PushResult deleteRemoteTags(UsernamePassword npw, ProgressMonitor monitor, String... tagNames) throws GitAPIException {
+    public PushResult deleteRemoteTags(CredentialsProvider credentialsProvider, ProgressMonitor monitor, String... tagNames) throws GitAPIException {
         RefSpec[] refSpecs = Arrays.stream(tagNames).map(tagName -> new RefSpec(":" + tagName)).toArray(RefSpec[]::new);
         
         Iterable<PushResult> results = push()
-                .setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(npw))
+                .setCredentialsProvider(credentialsProvider)
                 .setRefSpecs(refSpecs)
                 .setRemote(RepoConstants.ORIGIN)
                 .setProgressMonitor(monitor)

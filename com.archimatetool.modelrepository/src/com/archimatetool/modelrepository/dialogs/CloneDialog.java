@@ -25,6 +25,8 @@ import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.authentication.ICredentials;
+import com.archimatetool.modelrepository.authentication.SSHCredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.RepoUtils;
@@ -174,8 +176,8 @@ public class CloneDialog extends TitleAreaDialog {
         createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
     }
 
-    public UsernamePassword getUsernamePassword() {
-        return RepoUtils.isHTTP(url) ? new UsernamePassword(username, password) : null;
+    public ICredentials getCredentials() {
+        return RepoUtils.isHTTP(url) ? new UsernamePassword(username, password) : new SSHCredentials();
     }
     
     public String getURL() {

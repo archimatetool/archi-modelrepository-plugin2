@@ -14,6 +14,7 @@ import org.eclipse.osgi.util.NLS;
 
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 
@@ -60,7 +61,7 @@ public class CloneModelProvider extends AbstractModelRepositoryProvider {
             return;
         }
         
-        UsernamePassword npw = setCredentials(commandLine, url);
+        ICredentials credentials = getCredentials(commandLine, url);
         
         try {
             // Delete target folder first in case it's not empty
@@ -68,10 +69,10 @@ public class CloneModelProvider extends AbstractModelRepositoryProvider {
             FileUtils.deleteFolder(folder);
             
             logMessage(NLS.bind("Cloning from {0} to {1}", url, folder));
-            new ArchiRepository(folder).cloneModel(url, npw, null);
+            new ArchiRepository(folder).cloneModel(url, credentials.getCredentialsProvider(), null);
         }
         finally {
-            if(npw != null) {
+            if(credentials instanceof UsernamePassword npw) {
                 npw.clear(); // Clear this
             }
         }
