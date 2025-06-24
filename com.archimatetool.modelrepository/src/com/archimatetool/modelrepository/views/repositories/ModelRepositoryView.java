@@ -21,6 +21,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -45,6 +46,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.SelectionListenerFactory;
 import org.eclipse.ui.SelectionListenerFactory.Predicates;
 import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
@@ -315,9 +317,10 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             }
         };
         
-        // Register the Keybinding for actions
-//        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
-//        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
+        // Register the Keybinding for these actions
+        IHandlerService service = getViewSite().getService(IHandlerService.class);
+        service.activateHandler(fActionAddGroup.getActionDefinitionId(), new ActionHandler(fActionAddGroup));
+        service.activateHandler(fActionAddRepository.getActionDefinitionId(), new ActionHandler(fActionAddRepository));
     }
     
     private void addNewGroup() {
@@ -490,9 +493,6 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         actionBars.setGlobalActionHandler(ActionFactory.RENAME.getId(), fActionRenameEntry);
         actionBars.setGlobalActionHandler(ActionFactory.DELETE.getId(), fActionDelete);
         actionBars.setGlobalActionHandler(ActionFactory.SELECT_ALL.getId(), fActionSelectAll);
-        
-        actionBars.setGlobalActionHandler(fActionAddGroup.getActionDefinitionId(), fActionAddGroup);
-        actionBars.setGlobalActionHandler(fActionAddRepository.getActionDefinitionId(), fActionAddRepository);
     }
 
     /**
