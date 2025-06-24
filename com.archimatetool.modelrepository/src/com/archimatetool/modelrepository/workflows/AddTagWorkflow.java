@@ -69,6 +69,7 @@ public class AddTagWorkflow extends AbstractRepositoryWorkflow {
                .setObjectId(revCommit)
                .setName(tagName)
                .setMessage(tagMessage)
+               .setSigned(false) // No GPG signing
                .call();
 
             // Notify listeners

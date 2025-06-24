@@ -97,6 +97,7 @@ public class GitUtils extends Git {
                 .setAuthor(getUserDetails())
                 .setMessage(commitMessage)
                 .setAmend(amend)
+                .setSign(false) // No GPG signing
                 .call();
     }
 
