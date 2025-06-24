@@ -149,11 +149,11 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         
         // MERGED_OK or MERGED_WITH_CONFLICTS_RESOLVED
         
+        // Close and re-open model *before* notification
+        closeAndRestoreModel();
+        
         // Notify
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-        
-        // Close and re-open model
-        closeAndRestoreModel();
         
         if(mergeHandlerResult == MergeHandlerResult.MERGED_OK) {
             MessageDialog.openInformation(workbenchWindow.getShell(), Messages.RefreshModelWorkflow_0, Messages.RefreshModelWorkflow_5);

@@ -60,8 +60,6 @@ public class RestoreCommitWorkflow extends AbstractRepositoryWorkflow {
             // Commit changes
             logger.info("Committing changes..."); //$NON-NLS-1$
             archiRepository.commitChangesWithManifest(Messages.RestoreCommitWorkflow_3 + " '" + revCommit.getShortMessage() + "'", false); //$NON-NLS-1$ //$NON-NLS-2$
-            
-            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         }
         catch(IOException | GitAPIException ex) {
             logger.log(Level.SEVERE, "Restore to Commit", ex); //$NON-NLS-1$
@@ -74,8 +72,11 @@ public class RestoreCommitWorkflow extends AbstractRepositoryWorkflow {
             displayErrorDialog(Messages.RestoreCommitWorkflow_0, ex);
         }
         finally {
-            // Close and re-open model
+            // Close and re-open model *before* notification
             closeAndRestoreModel();
+            
+            // Notify
+            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         }
     }
     

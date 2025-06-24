@@ -108,11 +108,11 @@ public class MergeBranchWorkflow extends AbstractRepositoryWorkflow {
             return;
         }
         
+        // Close and open model *before* notification
+        closeAndRestoreModel();
+
         // Notify
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-        
-        // Close and open model
-        closeAndRestoreModel();
     }
     
     /**
