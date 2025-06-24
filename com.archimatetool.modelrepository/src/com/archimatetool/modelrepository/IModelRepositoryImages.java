@@ -32,6 +32,7 @@ public interface IModelRepositoryImages {
     String ICON_COMMIT = IMGPATH + "commit.png";
     String ICON_CREATE_REPOSITORY = IMGPATH + "createRepository.png";
     String ICON_DELETE = IMGPATH + "delete.png";
+    String ICON_FETCH = IMGPATH + "fetch.png";
     String ICON_GROUP = IMGPATH + "group.png";
     String ICON_HISTORY_VIEW = IMGPATH + "history_view.png";
     String ICON_MERGE = IMGPATH + "merge.png";
@@ -39,7 +40,8 @@ public interface IModelRepositoryImages {
     String ICON_NEW_BRANCH = IMGPATH + "new_branch_obj.png";
     String ICON_NEW_TAG = IMGPATH + "new_tag_obj.png";
     String ICON_PUSH = IMGPATH + "push.png";
-    String ICON_REFRESH = IMGPATH + "pull.png";
+    String ICON_PULL = IMGPATH + "pull.png";
+    String ICON_REFRESH = IMGPATH + "refresh.png";
     String ICON_RESET = IMGPATH + "reset.png";
     String ICON_REVERT = IMGPATH + "revert.png";
     String ICON_SYNCED = IMGPATH + "synced.png";
