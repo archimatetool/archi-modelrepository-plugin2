@@ -19,18 +19,18 @@ import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
  * 
  * @author Phillip Beauvoir
  */
-public class SSHIdentityProvider implements ISSHIdentityProvider {
+public class SSHIdentityProvider implements IIdentityProvider {
     
     /**
      * Default instance is with details from Prefs
      */
-    private static ISSHIdentityProvider instance = new SSHIdentityProvider();
+    private static IIdentityProvider instance = new SSHIdentityProvider();
     
-    public static void setInstance(ISSHIdentityProvider provider) {
+    public static void setInstance(IIdentityProvider provider) {
         instance = provider;
     }
     
-    public static ISSHIdentityProvider getInstance() {
+    public static IIdentityProvider getInstance() {
         return instance;
     }
     

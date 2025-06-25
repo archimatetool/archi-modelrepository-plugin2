@@ -10,14 +10,15 @@ import java.io.File;
 import org.eclipse.equinox.security.storage.StorageException;
 
 /**
- * Interface for a provider to supply SSH identity file and password to access that file
+ * Interface for a provider to supply identity file and password to access that file
+ * This is to access things like SSH key files that have been secured with a password.
  * 
  * @author Phillip Beauvoir
  */
-public interface ISSHIdentityProvider {
+public interface IIdentityProvider {
     
     /**
-     * @return The SSH identity file
+     * @return The identity file
      */
     File getIdentityFile();
     
