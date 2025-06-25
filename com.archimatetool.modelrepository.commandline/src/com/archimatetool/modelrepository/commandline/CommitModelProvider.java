@@ -48,7 +48,7 @@ public class CommitModelProvider extends AbstractModelRepositoryProvider {
         
         try(GitUtils utils = GitUtils.open(modelFolder)) {
             logMessage(NLS.bind("Committing: {0}", commitMessage));
-            utils.commitChanges(commitMessage, false);
+            utils.commitChangesWithManifest(commitMessage, false);
         }
     }
     
