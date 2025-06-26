@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.sshd.ServerKeyDatabase;
 import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
+import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
@@ -43,9 +44,16 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
      */
     private boolean useDefaultIdentities = false;
     
-    public CustomSshSessionFactory() {
+    private File identityFile;
+    
+    public CustomSshSessionFactory(File identityFile) {
         // Set ProxyDataFactory to null to allow SSH connections through the proxy if it's enabled
         super(null, null);
+        this.identityFile = identityFile;
+    }
+    
+    File getIdentityFile() {
+        return identityFile;
     }
     
     /**
@@ -60,8 +68,9 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
         
         List<Path> paths = new ArrayList<Path>();
         
-        // Scan SSH directory for all non-public files
-        if(Platform.getPreferencesService() != null  // Check Preference Service is running in case background fetch is running and we quit the app
+        // If preference set and not using ACLI scan the SSH directory for all non-public files
+        if(PlatformUI.isWorkbenchRunning()
+                && Platform.getPreferencesService() != null  // Check Preference Service is running in case background fetch is running and we quit the app
                 && ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_SCAN_DIR)) {
             
             File[] files = sshDir.listFiles((dir, name) -> !name.endsWith(".pub") && !name.startsWith("known_hosts"));
@@ -76,10 +85,9 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
             }
         }
         
-        // Single identity file as specified in prefs
-        File file = SSHIdentityProvider.getInstance().getIdentityFile();
-        if(file != null) {
-            paths.add(file.toPath());
+        // Single default identity file 
+        if(identityFile != null) {
+            paths.add(identityFile.toPath());
         }
         
         return paths;

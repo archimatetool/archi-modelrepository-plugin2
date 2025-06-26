@@ -5,6 +5,10 @@
  */
 package com.archimatetool.modelrepository.authentication;
 
+import java.io.File;
+import java.util.Objects;
+
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.transport.CredentialItem;
@@ -14,19 +18,45 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.URIish;
 
+import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
+
 /**
- * Our extended CredentialsProvider
+ * CredentialsProvider for SSH
  * 
  * @author Phillip Beauvoir
  */
 public class SSHCredentialsProvider extends CredentialsProvider {
     
+    public SSHCredentialsProvider() {
+        // Set the SshSessionFactory instance to our CustomSshSessionFactory
+        // And reset it if the identity file has changed
+        if(!(SshSessionFactory.getInstance() instanceof CustomSshSessionFactory factory) || !Objects.equals(factory.getIdentityFile(), getIdentityFile())) {
+            SshSessionFactory.setInstance(new CustomSshSessionFactory(getIdentityFile()));
+        }
+    }
+    
     /**
-     * Set the SshSessionFactory instance to our CustomSshSessionFactory.
-     * We statically initialise it here before using a SSHCredentialsProvider
+     * @return The identity file
      */
-    static {
-        SshSessionFactory.setInstance(new CustomSshSessionFactory());
+    protected File getIdentityFile() {
+        if(Platform.getPreferencesService() != null) { // Check Preference Service is running in case background fetch is running and we quit the app
+            return new File(ModelRepositoryPlugin.getInstance().getPreferenceStore().getString(IPreferenceConstants.PREFS_SSH_IDENTITY_FILE)); 
+        }
+
+        return null;
+    }
+    
+    /**
+     * @return The password to access the identity file
+     */
+    protected char[] getIdentityPassword() throws StorageException {
+        if(Platform.getPreferencesService() != null // Check Preference Service is running in case background fetch is running and we quit the app
+                && ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
+            return CredentialsStorage.getInstance().getSSHIdentityFilePassword();
+        }
+
+        return null;
     }
     
     @Override
@@ -50,7 +80,7 @@ public class SSHCredentialsProvider extends CredentialsProvider {
             // Password for ssh file
             else if(item instanceof Password password) {
                 try {
-                    password.setValue(SSHIdentityProvider.getInstance().getIdentityPassword());
+                    password.setValue(getIdentityPassword());
                 }
                 catch(StorageException ex) {
                     ex.printStackTrace();

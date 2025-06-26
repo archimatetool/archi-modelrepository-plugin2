@@ -14,8 +14,18 @@ import org.eclipse.jgit.transport.CredentialsProvider;
  */
 public class SSHCredentials implements ICredentials {
     
+    private CredentialsProvider provider;
+    
+    public SSHCredentials() {
+        provider = new SSHCredentialsProvider();
+    }
+    
+    public SSHCredentials(CredentialsProvider provider) {
+        this.provider = provider;
+    }
+    
     @Override
     public CredentialsProvider getCredentialsProvider() {
-        return new SSHCredentialsProvider();
+        return provider;
     }
 }
