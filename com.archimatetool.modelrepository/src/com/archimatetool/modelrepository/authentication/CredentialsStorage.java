@@ -31,9 +31,9 @@ public class CredentialsStorage {
     
     private static CredentialsStorage instance = new CredentialsStorage();
     
-    private static final String USERNAME = "username";
-    private static final String PASSWORD = "password";
-    private static final String SSH_PASSWORD = "sshPassword";
+    public static final String USERNAME = "username";
+    public static final String PASSWORD = "password";
+    public static final String SSH_PASSWORD = "sshPassword";
     
     public static CredentialsStorage getInstance() {
         return instance;
@@ -51,6 +51,9 @@ public class CredentialsStorage {
                                 : new UsernamePassword("", new char[0]); // repo node was null
     }
     
+    /**
+     * Store UsernamePassword for a repository
+     */
     public void storeCredentials(IArchiRepository repo, UsernamePassword npw) throws StorageException, IOException {
         if(npw != null) {
             logger.info("Storing user credentials for: " + repo.getWorkingFolder());
@@ -60,23 +63,35 @@ public class CredentialsStorage {
         }
     }
     
-    public void storeUserName(IArchiRepository repo, String userName) throws StorageException, IOException {
+    /**
+     * Store username for a repository
+     */
+    public void storeUserName(IArchiRepository repo, String username) throws StorageException, IOException {
         logger.info("Storing user name for: " + repo.getWorkingFolder());
-        storeEntry(USERNAME, userName, getRepositoryNode(repo));
+        storeEntry(USERNAME, username, getRepositoryNode(repo));
     }
     
+    /**
+     * Store password for a repository
+     */
     public void storePassword(IArchiRepository repo, char[] password) throws StorageException, IOException {
         logger.info("Storing password for: " + repo.getWorkingFolder());
         storeEntry(PASSWORD, getSafeString(password), getRepositoryNode(repo));
     }
     
-    public char[] getSSHIdentityFilePassword() throws StorageException {
-        return getMainNode().get(SSH_PASSWORD, "").toCharArray();
+    /**
+     * @return a secure entry (password/PAT) stored at /com.archimatetool.modelrepository/entryName
+     */
+    public char[] getSecureEntry(String entryName) throws StorageException {
+        return getMainNode().get(entryName, "").toCharArray();
     }
     
-    public void storeSSHIdentityFilePassword(char[] password) throws StorageException, IOException {
-        logger.info("Storing SSH Identifier password");
-        storeEntry(SSH_PASSWORD, getSafeString(password), getMainNode());
+    /**
+     * Store a secure entry (password/PAT) at /com.archimatetool.modelrepository/entryName
+     */
+    public void storeSecureEntry(String entryName, char[] data) throws StorageException, IOException {
+        logger.info("Storing secure entry: " + entryName);
+        storeEntry(entryName, getSafeString(data), getMainNode());
     }
     
     private void storeEntry(String entryName, String value, ISecurePreferences node) throws StorageException, IOException {

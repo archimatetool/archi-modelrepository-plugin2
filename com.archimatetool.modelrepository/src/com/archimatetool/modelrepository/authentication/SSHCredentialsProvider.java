@@ -51,12 +51,8 @@ public class SSHCredentialsProvider extends CredentialsProvider {
      * @return The password to access the identity file
      */
     protected char[] getIdentityPassword() throws StorageException {
-        if(Platform.getPreferencesService() != null // Check Preference Service is running in case background fetch is running and we quit the app
-                && ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
-            return CredentialsStorage.getInstance().getSSHIdentityFilePassword();
-        }
-
-        return null;
+        char[] pw = CredentialsStorage.getInstance().getSecureEntry(CredentialsStorage.SSH_PASSWORD);
+        return (pw != null && pw.length != 0) ? pw : null;
     }
     
     @Override

@@ -35,7 +35,6 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
 		store.setDefault(PREFS_STORE_REPO_CREDENTIALS, true);
 		
 		store.setDefault(PREFS_SSH_IDENTITY_FILE, new File(System.getProperty("user.home"), ".ssh/id_ed25519").getAbsolutePath());
-		store.setDefault(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD, true);
 		store.setDefault(PREFS_SSH_SCAN_DIR, false);
 		
 		store.setDefault(PREFS_FETCH_IN_BACKGROUND, false);
