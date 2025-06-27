@@ -135,20 +135,26 @@ public class AuthSection extends AbstractArchiPropertySection {
     private void updateControls() {
         textUserName.setText(""); //$NON-NLS-1$
         textPassword.setText(""); //$NON-NLS-1$
-
-        // Is this HTTP or SSH?
-        boolean isHTTP = true;
         
+        String url = null;
+        
+        // Is there a remote set?
         try {
-            isHTTP = RepoUtils.isHTTP(repository.getRemoteURL());
+            url = repository.getRemoteURL();
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
             logger.log(Level.SEVERE, "Get Auth", ex); //$NON-NLS-1$
+        }
+        
+        if(url == null) {
             enableControls(false);
             return;
         }
 
+        // Is this HTTP or SSH?
+        boolean isHTTP = RepoUtils.isHTTP(url);
+        
         textUserName.setEnabled(isHTTP);
         textPassword.setEnabled(isHTTP);
         prefsButton.setEnabled(!isHTTP);
