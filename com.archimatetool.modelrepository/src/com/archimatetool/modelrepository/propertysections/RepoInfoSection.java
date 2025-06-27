@@ -6,7 +6,6 @@
 package com.archimatetool.modelrepository.propertysections;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,6 +26,8 @@ import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.authentication.CredentialsStorage;
+import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -78,7 +79,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
                     return;
                 }
                 
-                // If changing repository URL or unsetting it ask for conformation
+                // If changing repository URL or unsetting it ask for confirmation
                 if(!previousText.isBlank()) {
                     // Dialog will cause a focus out event and trigger textChanged again
                     setNotifications(false);
@@ -101,6 +102,13 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
                     if(!previousText.isBlank()) {
                         logger.info("Deleting remote branch refs"); //$NON-NLS-1$
                         repository.removeRemoteRefs(newText);
+                        
+                        // And delete HTTP credentials
+                        if(RepoUtils.isHTTP(newText)) {
+                            logger.info("Removing credentials"); //$NON-NLS-1$
+                            CredentialsStorage.getInstance().storeCredentials(repository, new UsernamePassword(null, null));
+                        }
+                        
                         // Update History and Branches Views
                         RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(IRepositoryListener.HISTORY_CHANGED, repository);
                     }
@@ -109,7 +117,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
                     logger.info("Setting remote URL to: " + newText); //$NON-NLS-1$
                     repository.setRemote(newText);
                 }
-                catch(IOException | GitAPIException | URISyntaxException ex) {
+                catch(Exception ex) {
                     logger.log(Level.SEVERE, "Set Remote", ex); //$NON-NLS-1$
                 }
             }
