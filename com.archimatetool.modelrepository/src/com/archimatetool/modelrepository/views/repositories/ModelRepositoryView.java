@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -66,6 +67,8 @@ import com.archimatetool.modelrepository.actions.FetchUpdateAction;
 import com.archimatetool.modelrepository.actions.IRepositoryAction;
 import com.archimatetool.modelrepository.actions.PushModelAction;
 import com.archimatetool.modelrepository.actions.RefreshModelAction;
+import com.archimatetool.modelrepository.authentication.CredentialsStorage;
+import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -432,8 +435,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 // Close model without asking to save
                 IEditorModelManager.INSTANCE.closeModel(ref.getArchiRepository().getOpenModel(), false);
 
-                // Delete repository folder
+                // Delete repository folder and any HTTP credentials
                 if(delete) {
+                    // Delete credentials *first*
+                    CredentialsStorage.getInstance().storeCredentials(ref.getArchiRepository(), new UsernamePassword(null, null));
+                    // Delete folder
                     FileUtils.deleteFolder(ref.getArchiRepository().getWorkingFolder());
                 }
 
@@ -444,7 +450,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, ref.getArchiRepository());
             }
         }
-        catch(IOException ex) {
+        catch(IOException | StorageException ex) {
             ex.printStackTrace();
             logger.log(Level.SEVERE, "Deleting Tree Models", ex); //$NON-NLS-1$
             MessageDialog.openError(getViewSite().getShell(),
