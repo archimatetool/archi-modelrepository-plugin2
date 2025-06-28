@@ -84,9 +84,12 @@ public class GitUtils extends Git {
      * @return RevCommit
      */
     public RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException {
+        // Check lock file is deleted
+        checkLockFile();
+        
         // Add modified files to index
         add().addFilepattern(".").call();
-        //git.add().addFilepattern(RepoConstants.MODEL_FILENAME).addFilepattern(RepoConstants.IMAGES_FOLDER).call();
+        //add().addFilepattern(RepoConstants.MODEL_FILENAME).addFilepattern(RepoConstants.IMAGES_FOLDER).call();
         
         // Add missing (deleted) files to the index
         for(String s : status().call().getMissing()) {
@@ -766,6 +769,17 @@ public class GitUtils extends Git {
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, RepoConstants.ORIGIN);
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, RepoConstants.R_HEADS + branchName);
             config.save();
+        }
+    }
+    
+    /**
+     * If there's a crash, exception or whatever the lock file remains and needs to be deleted
+     * especially before calling the AddCommand
+     */
+    private void checkLockFile() {
+        File lockFile = new File(getRepository().getDirectory(), "index.lock");
+        if(lockFile.exists() && lockFile.canWrite()) {
+            lockFile.delete();
         }
     }
 }
