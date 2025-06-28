@@ -6,6 +6,7 @@
 package com.archimatetool.modelrepository.workflows;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,6 +19,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.components.IRunnable;
+import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
@@ -38,10 +40,12 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
     private static Logger logger = Logger.getLogger(CreateRepoFromModelWorkflow.class.getName());
     
     private IArchimateModel model;
+    private File modelFile;
 	
     public CreateRepoFromModelWorkflow(IWorkbenchWindow window, IArchimateModel model) {
         super(window, null);
         this.model = model;
+        modelFile = model.getFile();
     }
 
     @Override
@@ -103,12 +107,16 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
         catch(Exception ex) {
             logger.log(Level.SEVERE, "Creating repository from model", ex); //$NON-NLS-1$
             
-            // In case of an exception remove the remote
+            // If this does not complete properly restore the original model file name and delete the repo folder
+            model.setFile(modelFile);
+            
             try {
-                archiRepository.setRemote(null);
+                logger.info("Deleting failed repository: " + folder.getPath()); //$NON-NLS-1$
+                FileUtils.deleteFolder(folder);
             }
-            catch(Exception ex1) {
-                ex.printStackTrace();
+            catch(IOException ex1) {
+                logger.log(Level.SEVERE, "Could not delete folder", ex1); //$NON-NLS-1$
+                ex1.printStackTrace();
             }
             
             displayErrorDialog(Messages.CreateRepoFromModelWorkflow_0, ex);
