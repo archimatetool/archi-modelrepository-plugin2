@@ -121,7 +121,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             if(selection.size() == 1 && !(selection.get(0) instanceof RevCommit)) {
                 try {
                     BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(fSelectedRepository.getWorkingFolder());
-                    mc = new ModelComparison(fSelectedRepository, branchInfo.getLatestCommit());
+                    mc = branchInfo.getLatestCommit() != null ? new ModelComparison(fSelectedRepository, branchInfo.getLatestCommit()) : null;
                 }
                 catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();

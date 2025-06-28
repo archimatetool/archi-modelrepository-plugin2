@@ -94,12 +94,16 @@ public class TagInfo {
     }
     
     private boolean getIsOrphaned(Repository repository, RevWalk revWalk, List<Ref> branchRefs) throws IOException {
+        if(commit == null) {
+            return true;
+        }
+        
         // Check if any branch is reachable from this tag
         for(Ref branchRef : branchRefs) {
             // Get commit for branch
-            RevCommit branchCommit = revWalk.parseCommit(branchRef.getObjectId());
+            RevCommit branchCommit = branchRef.getObjectId() != null ? revWalk.parseCommit(branchRef.getObjectId()) : null;
             // Reachable so return false
-            if(revWalk.isMergedInto(commit, branchCommit)) {
+            if(branchCommit != null && revWalk.isMergedInto(commit, branchCommit)) {
                 return false;
             }
         }
@@ -112,11 +116,11 @@ public class TagInfo {
      * If this is an annotated tag return RevTag, else null
      */
     private RevTag getRevTag(Repository repository, RevWalk revWalk) throws IOException {
-        return revWalk.parseAny(ref.getObjectId()) instanceof RevTag revTag ? revTag : null;
+        return ref.getObjectId() != null ? (revWalk.parseAny(ref.getObjectId()) instanceof RevTag revTag ? revTag : null) : null;
     }
 
     private RevCommit getCommit(Repository repository, RevWalk revWalk) throws IOException {
-        return revWalk.parseCommit(ref.getObjectId());
+        return ref.getObjectId() != null ? revWalk.parseCommit(ref.getObjectId()) : null;
     }
     
     @Override

@@ -229,6 +229,10 @@ public class BranchInfo {
      * Get the latest commit
      */
     private RevCommit getLatestCommit(Repository repository) throws IOException {
+        if(ref.getObjectId() == null) {
+            return null;
+        }
+        
         try(RevWalk walk = new RevWalk(repository)) {
             return walk.parseCommit(ref.getObjectId());
         }
@@ -272,7 +276,7 @@ public class BranchInfo {
      * @param revWalk if this is not null use it for RevWalkUtils.findBranchesReachableFrom
      */
     private boolean isMergedIntoOtherBranches(Repository repository, RevWalk revWalk) throws GitAPIException, IOException {
-        if(isPrimaryBranch()) {
+        if(isPrimaryBranch() || latestCommit == null) {
             return true;
         }
         
