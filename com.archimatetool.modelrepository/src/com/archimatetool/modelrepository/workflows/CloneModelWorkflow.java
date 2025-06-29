@@ -101,7 +101,7 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
                 if(files != null && files.length != 0) {
                     logger.info("Model doesn't exist, but repo is not empty!"); //$NON-NLS-1$
                     
-                    if(!MessageDialog.openConfirm(workbenchWindow.getShell(),
+                    if(!MessageDialog.openQuestion(workbenchWindow.getShell(),
                             Messages.CloneModelWorkflow_0,
                             Messages.CloneModelWorkflow_3)) {
                         return;
