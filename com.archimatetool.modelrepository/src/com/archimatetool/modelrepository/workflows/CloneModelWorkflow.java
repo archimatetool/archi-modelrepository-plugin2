@@ -135,20 +135,20 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
         }
         catch(Exception ex) { // Catch all exceptions
             logger.log(Level.SEVERE, "Clone model", ex); //$NON-NLS-1$
-            displayErrorDialog(Messages.CloneModelWorkflow_0, ex);
-        }
-        finally {
-            // If this operation is not completed properly delete the repo folder
-            if(!RepoUtils.isArchiGitRepository(folder)) {
-                try {
-                    logger.info("Cleaning up failed clone. Deleting folder " + folder.getPath()); //$NON-NLS-1$
-                    FileUtils.deleteFolder(folder);
-                }
-                catch(IOException ex) {
-                    logger.log(Level.SEVERE, "Could not delete folder", ex); //$NON-NLS-1$
-                    ex.printStackTrace();
-                }
+            
+            // If this does not complete properly close the model and delete the repo folder
+            closeModel(false);
+            
+            try {
+                logger.info("Deleting failed repository: " + folder.getPath()); //$NON-NLS-1$
+                FileUtils.deleteFolder(folder);
             }
+            catch(IOException ex1) {
+                logger.log(Level.SEVERE, "Could not delete folder", ex1); //$NON-NLS-1$
+                ex1.printStackTrace();
+            }
+            
+            displayErrorDialog(Messages.CloneModelWorkflow_0, ex);
         }
     }
     
