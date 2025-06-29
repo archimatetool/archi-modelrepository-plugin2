@@ -6,7 +6,6 @@
 package com.archimatetool.modelrepository.authentication;
 
 import java.io.File;
-import java.util.Objects;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.security.storage.StorageException;
@@ -28,11 +27,20 @@ import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
  */
 public class SSHCredentialsProvider extends CredentialsProvider {
     
+    private static SSHCredentialsProvider defaultProvider = new SSHCredentialsProvider();
+    
+    public static SSHCredentialsProvider getDefault() {
+        return defaultProvider;
+    }
+    
+    public static void setDefault(SSHCredentialsProvider provider) {
+        defaultProvider = provider;
+    }
+    
     public SSHCredentialsProvider() {
-        // Set the SshSessionFactory instance to our CustomSshSessionFactory
-        // And reset it if the identity file has changed
-        if(!(SshSessionFactory.getInstance() instanceof CustomSshSessionFactory factory) || !Objects.equals(factory.getIdentityFile(), getIdentityFile())) {
-            SshSessionFactory.setInstance(new CustomSshSessionFactory(getIdentityFile()));
+        // Set the SshSessionFactory instance to our CustomSshSessionFactory.
+        if(!(SshSessionFactory.getInstance() instanceof CustomSshSessionFactory)) {
+            SshSessionFactory.setInstance(new CustomSshSessionFactory());
         }
     }
     

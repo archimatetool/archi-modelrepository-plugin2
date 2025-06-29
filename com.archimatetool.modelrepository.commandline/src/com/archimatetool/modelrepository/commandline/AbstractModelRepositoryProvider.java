@@ -77,10 +77,10 @@ public abstract class AbstractModelRepositoryProvider extends AbstractCommandLin
             return new UsernamePassword(username, password);
         }
         
-        // SSH - set the SSHCredentialsProvider to return provided details rather than using those from Archi preferences
+        // SSH - set the default SSHCredentialsProvider to return provided details rather than using those from Archi preferences
         File identityFile = getSSHIdentityFile(commandLine);
         
-        SSHCredentialsProvider provider = new SSHCredentialsProvider() {
+        SSHCredentialsProvider.setDefault(new SSHCredentialsProvider() {
             @Override
             protected File getIdentityFile() {
                 return identityFile;
@@ -90,9 +90,9 @@ public abstract class AbstractModelRepositoryProvider extends AbstractCommandLin
             public char[] getIdentityPassword() {
                 return password;
             }
-        };
+        });
         
-        return new SSHCredentials(provider);
+        return new SSHCredentials();
     }
     
     protected abstract boolean hasCorrectOptions(CommandLine commandLine);

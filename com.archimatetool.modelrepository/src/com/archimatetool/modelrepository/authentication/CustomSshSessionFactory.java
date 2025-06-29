@@ -44,16 +44,9 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
      */
     private boolean useDefaultIdentities = false;
     
-    private File identityFile;
-    
-    public CustomSshSessionFactory(File identityFile) {
+    public CustomSshSessionFactory() {
         // Set ProxyDataFactory to null to allow SSH connections through the proxy if it's enabled
         super(null, null);
-        this.identityFile = identityFile;
-    }
-    
-    File getIdentityFile() {
-        return identityFile;
     }
     
     /**
@@ -86,8 +79,8 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
         }
         
         // Single default identity file 
-        if(identityFile != null) {
-            paths.add(identityFile.toPath());
+        if(SSHCredentialsProvider.getDefault().getIdentityFile() != null) {
+            paths.add(SSHCredentialsProvider.getDefault().getIdentityFile().toPath());
         }
         
         return paths;
