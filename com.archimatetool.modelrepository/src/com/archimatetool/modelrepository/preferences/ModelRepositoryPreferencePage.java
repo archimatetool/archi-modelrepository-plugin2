@@ -62,7 +62,11 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private Text fSSHIdentityPasswordTextField;
     private Button fSSHScanDirButton;
     
+    private Text fGPGSecretTextField;
+    private Text fGPGSigningKeyTextField;
+    
     private boolean sshPasswordChanged;
+    private boolean gpgPasswordChanged;
     
 	public ModelRepositoryPreferencePage() {
 		setPreferenceStore(ModelRepositoryPlugin.getInstance().getPreferenceStore());
@@ -153,6 +157,20 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fSSHIdentityPasswordTextField = UIUtils.createSingleTextControl(sshGroup, SWT.BORDER | SWT.PASSWORD, false);
         GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fSSHIdentityPasswordTextField);
         
+        // GPG Group
+        Group gpgGroup = new Group(authGroup, SWT.NULL);
+        gpgGroup.setText("GPG");
+        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(gpgGroup);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(gpgGroup);
+        
+        new Label(gpgGroup, SWT.NULL).setText("Passphrase:");
+        fGPGSecretTextField = UIUtils.createSingleTextControl(gpgGroup, SWT.BORDER | SWT.PASSWORD, false);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fGPGSecretTextField);
+        
+        new Label(gpgGroup, SWT.NULL).setText("Signing Key:");
+        fGPGSigningKeyTextField = UIUtils.createSingleTextControl(gpgGroup, SWT.BORDER, false);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fGPGSigningKeyTextField);
+        
         setValues();
         
         return client;
@@ -194,10 +212,18 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fSSHIdentitySelectButton.setEnabled(!fSSHScanDirButton.getSelection());
         
         try {
+            // SSH password
             char[] pw = CredentialsStorage.getInstance().getSecureEntry(CredentialsStorage.SSH_PASSWORD);
             fSSHIdentityPasswordTextField.setText(pw.length == 0 ? "" : "********"); //$NON-NLS-1$ //$NON-NLS-2$
             fSSHIdentityPasswordTextField.addModifyListener(event -> {
                 sshPasswordChanged = true;
+            });
+            
+            // GPG password
+            pw = CredentialsStorage.getInstance().getSecureEntry(CredentialsStorage.GPG_PASSWORD);
+            fGPGSecretTextField.setText(pw.length == 0 ? "" : "********"); //$NON-NLS-1$ //$NON-NLS-2$
+            fGPGSecretTextField.addModifyListener(event -> {
+                gpgPasswordChanged = true;
             });
         }
         catch(StorageException ex) {
@@ -225,15 +251,19 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         getPreferenceStore().setValue(PREFS_SSH_SCAN_DIR, fSSHScanDirButton.getSelection());
         getPreferenceStore().setValue(PREFS_SSH_IDENTITY_FILE, fSSHIdentityFileTextField.getText());
 
-        // If SSH password changed
-        if(sshPasswordChanged) {
-            try {
+        try {
+            // If SSH password changed
+            if(sshPasswordChanged) {
                 CredentialsStorage.getInstance().storeSecureEntry(CredentialsStorage.SSH_PASSWORD, fSSHIdentityPasswordTextField.getTextChars());
             }
-            catch(StorageException | IOException ex) {
-                ex.printStackTrace();
-                showErrorDialog(ex);
+            // If GPG password changed
+            if(gpgPasswordChanged) {
+                CredentialsStorage.getInstance().storeSecureEntry(CredentialsStorage.GPG_PASSWORD, fGPGSecretTextField.getTextChars());
             }
+        }
+        catch(StorageException | IOException ex) {
+            ex.printStackTrace();
+            showErrorDialog(ex);
         }
         
         return true;
@@ -250,6 +280,9 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fSSHScanDirButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SSH_SCAN_DIR));
         fSSHIdentityFileTextField.setText(getPreferenceStore().getDefaultString(PREFS_SSH_IDENTITY_FILE));
         fSSHIdentityPasswordTextField.setText(""); //$NON-NLS-1$
+        
+        fGPGSecretTextField.setText(""); //$NON-NLS-1$
+        fGPGSigningKeyTextField.setText(""); //$NON-NLS-1$
         
         super.performDefaults();
     }

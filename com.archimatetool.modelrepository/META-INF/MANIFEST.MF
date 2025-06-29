@@ -10,7 +10,10 @@ Require-Bundle: org.eclipse.help.ui,
  com.archimatetool.jdom;bundle-version="5.6.0",
  org.eclipse.emf.compare,
  org.eclipse.jgit,
- org.eclipse.jgit.ssh.apache
+ org.eclipse.jgit.ssh.apache,
+ bcpg,
+ bcprov,
+ slf4j.api
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Eclipse-BundleShape: dir
@@ -24,7 +27,8 @@ Export-Package: com.archimatetool.modelrepository,
  com.archimatetool.modelrepository.repository,
  com.archimatetool.modelrepository.treemodel,
  com.archimatetool.modelrepository.views.repositories
-Bundle-ClassPath: com.archimatetool.modelrepository.jar
+Bundle-ClassPath: com.archimatetool.modelrepository.jar,
+ lib/org.eclipse.jgit.gpg.bc_6.10.0.202406032230-r.jar
 Automatic-Module-Name: com.archimatetool.modelrepository
 Import-Package: com.google.common.base,
  org.eclipse.equinox.security.storage
