@@ -5,6 +5,7 @@
  */
 package com.archimatetool.modelrepository.workflows;
 
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,6 +15,7 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.TrackingRefUpdate;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -25,6 +27,7 @@ import com.archimatetool.modelrepository.repository.BranchInfo.Option;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
+import com.google.common.base.Objects;
 
 /**
  * Push Model Workflow ("Publish")
@@ -56,9 +59,8 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         // Check if remote is ahead or Fetch needed first
         try(GitUtils utils = GitUtils.open(archiRepository.getGitFolder())) {
             // If there are ahead commits or remote updates...
-            if(BranchInfo.currentLocalBranchInfo(archiRepository.getGitFolder(), Option.COMMIT_STATUS).hasRemoteCommits() ||
-                    !fetchDryRun(credentials.getCredentialsProvider(), dialog).getTrackingRefUpdates().isEmpty()) {
-                
+            BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(archiRepository.getGitFolder(), Option.COMMIT_STATUS);
+            if(branchInfo.hasRemoteCommits() || hasRemoteUpdates(branchInfo.getRemoteBranchName(), credentials.getCredentialsProvider(), dialog)) {
                 int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.PushModelWorkflow_0,
                         Messages.PushModelWorkflow_5);
                 
@@ -100,22 +102,25 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         }
     }
     
-    /**
-     * Do a Fetch update
-     */
-    private FetchResult fetchDryRun(CredentialsProvider credentialsProvider, ProgressMonitorDialog dialog) throws Exception {
-        logger.info("Fetching with dry run from " + archiRepository.getRemoteURL()); //$NON-NLS-1$
-
-        FetchResult[] fetchResult = new FetchResult[1];
+    private boolean hasRemoteUpdates(String remoteRef, CredentialsProvider credentialsProvider, ProgressMonitorDialog dialog) throws Exception {
+        AtomicReference<FetchResult> fetchResult = new AtomicReference<>();
         
+        // Do a dry run fetch
         IRunnable.run(dialog, monitor -> {
             try(GitUtils utils = GitUtils.open(archiRepository.getGitFolder())) {
+                logger.info("Fetching with dry run from " + archiRepository.getRemoteURL()); //$NON-NLS-1$
                 monitor.beginTask(Messages.PushModelWorkflow_6, IProgressMonitor.UNKNOWN);
-                fetchResult[0] = utils.fetchFromRemoteDryRun(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_6));
+                fetchResult.set(utils.fetchFromRemoteDryRun(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_6)));
             }
         }, true);
         
-        return fetchResult[0];
+        for(TrackingRefUpdate refUpdate : fetchResult.get().getTrackingRefUpdates()) {
+            if(Objects.equal(remoteRef, refUpdate.getLocalName())) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**

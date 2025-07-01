@@ -215,18 +215,13 @@ public class GitUtils extends Git {
     }
     
     /**
-     * Do a dry run Fetch on remote to check if there are updates for the current branch
+     * Do a dry run Fetch on all branches but no tags on remote to check if there are updates
      */
-    public FetchResult fetchFromRemoteDryRun(CredentialsProvider credentialsProvider, ProgressMonitor monitor) throws GitAPIException, IOException {
-        // Current branch
-        String currentBranch = getRepository().getBranch();
-        String refSpec = RepoConstants.R_HEADS + currentBranch + ":" + RepoConstants.R_REMOTES_ORIGIN + currentBranch;
-        
+    public FetchResult fetchFromRemoteDryRun(CredentialsProvider credentialsProvider, ProgressMonitor monitor) throws GitAPIException {
         return fetch()
                     .setCredentialsProvider(credentialsProvider)
                     .setDryRun(true)
                     .setProgressMonitor(monitor)
-                    .setRefSpecs(refSpec)      // Only the current branch
                     .setTagOpt(TagOpt.NO_TAGS) // No tags
                     .call();
     }
