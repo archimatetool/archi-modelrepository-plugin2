@@ -10,7 +10,10 @@ import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jgit.transport.CredentialsProvider;
@@ -59,19 +62,15 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
             return super.getDefaultIdentities(sshDir);
         }
         
-        List<Path> paths = new ArrayList<Path>();
-        
         // If preference set and not using ACLI scan the SSH directory for all non-public files
         if(PlatformUI.isWorkbenchRunning()
                 && Platform.getPreferencesService() != null  // Check Preference Service is running in case background fetch is running and we quit the app
                 && ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_SCAN_DIR)) {
             
-            File[] files = sshDir.listFiles((dir, name) -> !name.endsWith(".pub") && !name.startsWith("known_hosts"));
-            if(files != null) {
-                for(File file : files) {
-                    paths.add(file.toPath());
-                }
-            }
+            List<Path> paths = Arrays.asList(sshDir.listFiles()).stream()
+                        .filter(file -> !file.getName().endsWith(".pub") && !file.getName().startsWith("known_hosts"))
+                        .map(File::toPath)
+                        .collect(Collectors.toList());
             
             if(!paths.isEmpty()) {
                 return paths;
@@ -80,10 +79,10 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
         
         // Single default identity file 
         if(SSHCredentialsProvider.getDefault().getIdentityFile() != null) {
-            paths.add(SSHCredentialsProvider.getDefault().getIdentityFile().toPath());
+            return List.of(SSHCredentialsProvider.getDefault().getIdentityFile().toPath());
         }
         
-        return paths;
+        return Collections.emptyList();
     }
 
     /**

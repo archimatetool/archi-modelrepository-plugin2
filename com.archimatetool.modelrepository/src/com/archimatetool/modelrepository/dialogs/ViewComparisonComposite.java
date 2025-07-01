@@ -151,15 +151,9 @@ public class ViewComparisonComposite extends Composite {
         }
 
         private void setScaledImage(int scale) {
-            Image image = null;
-            
-            if(scale > 0) {
-                image = scaledImages.get(scale);
-                if(image == null) {
-                    image = DiagramUtils.createImage(diagramModel, (double)scale / SCALE_MAX, 5);
-                    scaledImages.put(scale, image);
-                }
-            }
+            Image image = scale > 0 ?
+                    scaledImages.computeIfAbsent(scale, s -> DiagramUtils.createImage(diagramModel, (double)s / SCALE_MAX, 5))
+                    : null;
             
             viewLabel.setImage(image);
             viewLabel.setSize(viewLabel.computeSize( SWT.DEFAULT, SWT.DEFAULT));
@@ -167,9 +161,7 @@ public class ViewComparisonComposite extends Composite {
         
         private void disposeImages() {
             if(scaledImages != null) {
-                for(Image image : scaledImages.values()) {
-                    image.dispose();
-                }
+                scaledImages.values().forEach(Image::dispose);
             }
         }
     }

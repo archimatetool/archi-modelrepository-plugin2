@@ -106,13 +106,7 @@ public class ModelComparison {
         }
         
         private Change addChild(EObject eObject) {
-            Change child = children.get(eObject);
-            if(child == null) {
-                child = new Change(eObject);
-                children.put(eObject, child);
-            }
-            
-            return child;
+            return children.computeIfAbsent(eObject, object -> new Change(object));
         }
         
         private void addDiff(Diff diff) {
@@ -247,11 +241,7 @@ public class ModelComparison {
                 }
                 
                 // Add it
-                Change change = changes.get(rootObject);
-                if(change == null) {
-                    change = new Change(rootObject);
-                    changes.put(rootObject, change);
-                }
+                Change change = changes.computeIfAbsent(rootObject, object -> new Change(object));
                 
                 // If the parent object is a Diagram Model Component add it as a child
                 if(rootObject instanceof IDiagramModel) {

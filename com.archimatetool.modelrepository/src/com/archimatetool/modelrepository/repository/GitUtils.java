@@ -473,12 +473,8 @@ public class GitUtils extends Git {
             ObjectId tagObjectId = getTagCommitId(tagRef);
             if(tagObjectId != null) {
                 // Get the map entry or create a new one
-                List<String> tags = tagMap.get(tagObjectId.getName());
-                if(tags == null) {
-                    tags = new ArrayList<>();
-                    tagMap.put(tagObjectId.getName(), tags);
-                }
-                
+                List<String> tags = tagMap.computeIfAbsent(tagObjectId.getName(), commitId -> new ArrayList<>());
+                // Add the tag name
                 tags.add(Repository.shortenRefName(tagRef.getName()));
             }
         }
