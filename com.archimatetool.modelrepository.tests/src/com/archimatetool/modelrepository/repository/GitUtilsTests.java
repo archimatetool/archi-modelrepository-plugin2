@@ -240,6 +240,14 @@ public class GitUtilsTests {
         // Now there should be a tracking update
         fetchResult = utils.fetchFromRemoteDryRun(null, null);
         assertFalse(fetchResult.getTrackingRefUpdates().isEmpty());
+        
+        // Update again
+        utils.fetchFromRemote(null, null, false);
+        
+        // Ensure that a new current local branch with no remote ref returns no tracking updates or throws an exception
+        utils.checkout().setCreateBranch(true).setName("branch").call();
+        fetchResult = utils.fetchFromRemoteDryRun(null, null);
+        assertTrue(fetchResult.getTrackingRefUpdates().isEmpty());
     }
     
     @Test
