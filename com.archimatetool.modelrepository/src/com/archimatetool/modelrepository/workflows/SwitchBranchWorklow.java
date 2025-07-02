@@ -33,8 +33,6 @@ public class SwitchBranchWorklow extends AbstractRepositoryWorkflow {
 
     @Override
     public void run() {
-        logger.info("Switching branch to: " + currentBranchInfo.getShortName()); //$NON-NLS-1$
-        
         // If switched branch Ref == current HEAD Ref (i.e current branch and switched branch are same Ref) just switch branch
         if(currentBranchInfo.isRefAtHead()) {
             switchBranch(currentBranchInfo);
