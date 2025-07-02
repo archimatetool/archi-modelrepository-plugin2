@@ -127,16 +127,15 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
      * Push to Remote
      */
     private PushResult push(CredentialsProvider credentialsProvider, ProgressMonitorDialog dialog) throws Exception {
-        logger.info("Pushing to " + archiRepository.getRemoteURL()); //$NON-NLS-1$
-
-        PushResult[] pushResult = new PushResult[1];
+        AtomicReference<PushResult> pushResult = new AtomicReference<>();
         
         IRunnable.run(dialog, monitor -> {
+            logger.info("Pushing to " + archiRepository.getRemoteURL()); //$NON-NLS-1$
             monitor.beginTask(Messages.PushModelWorkflow_1, IProgressMonitor.UNKNOWN);
-            pushResult[0] = archiRepository.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_1));
+            pushResult.set(archiRepository.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_1)));
         }, true);
         
-        return pushResult[0];
+        return pushResult.get();
     }
     
     /**

@@ -7,6 +7,7 @@ package com.archimatetool.modelrepository.workflows;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -153,17 +154,16 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
     private List<FetchResult> fetch(CredentialsProvider credentialsProvider, boolean fetchTags) throws Exception {
         logger.info("Fetching from " + archiRepository.getRemoteURL()); //$NON-NLS-1$
 
-        @SuppressWarnings("unchecked")
-        List<FetchResult>[] fetchResults = new List[1];
+        AtomicReference<List<FetchResult>> fetchResults = new AtomicReference<>();
 
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.RefreshModelWorkflow_4, IProgressMonitor.UNKNOWN);
-            fetchResults[0] = archiRepository.fetchFromRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), fetchTags);
+            fetchResults.set(archiRepository.fetchFromRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), fetchTags));
         }, true);
 
-        return fetchResults[0];
+        return fetchResults.get();
     }
     
     private void logFetchResults(List<FetchResult> fetchResults) {
