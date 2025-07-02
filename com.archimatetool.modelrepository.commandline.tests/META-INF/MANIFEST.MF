@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: coArchi2 Commandline Tests
 Bundle-SymbolicName: com.archimatetool.modelrepository.commandline.tests
-Bundle-Version: 1.2.0.qualifier
+Bundle-Version: 1.2.1.qualifier
 Fragment-Host: com.archimatetool.modelrepository.commandline
 Import-Package: com.archimatetool.modelrepository.testsupport,
  org.junit.jupiter.api,
