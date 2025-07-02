@@ -104,6 +104,9 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
                     if(!MessageDialog.openQuestion(workbenchWindow.getShell(),
                             Messages.CloneModelWorkflow_0,
                             Messages.CloneModelWorkflow_3)) {
+                        
+                        // Delete it
+                        deleteRepository(folder);
                         return;
                     }
                 }
@@ -134,21 +137,22 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
             logger.info("Finished cloning model"); //$NON-NLS-1$
         }
         catch(Exception ex) { // Catch all exceptions
-            logger.log(Level.SEVERE, "Clone model", ex); //$NON-NLS-1$
-            
             // If this does not complete properly close the model and delete the repo folder
+            logger.log(Level.SEVERE, "Clone model", ex); //$NON-NLS-1$
             closeModel(false);
-            
-            try {
-                logger.info("Deleting failed repository: " + folder.getPath()); //$NON-NLS-1$
-                FileUtils.deleteFolder(folder);
-            }
-            catch(IOException ex1) {
-                logger.log(Level.SEVERE, "Could not delete folder", ex1); //$NON-NLS-1$
-                ex1.printStackTrace();
-            }
-            
+            deleteRepository(folder);
             displayErrorDialog(Messages.CloneModelWorkflow_0, ex);
+        }
+    }
+    
+    private void deleteRepository(File folder) {
+        try {
+            logger.info("Deleting failed repository: " + folder.getPath()); //$NON-NLS-1$
+            FileUtils.deleteFolder(folder);
+        }
+        catch(IOException ex) {
+            logger.log(Level.SEVERE, "Could not delete folder", ex); //$NON-NLS-1$
+            ex.printStackTrace();
         }
     }
     
