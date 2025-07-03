@@ -158,7 +158,7 @@ public class TagsTableViewer extends TableViewer {
 
                 // Date of annotated tag or commit
                 case 3 -> {
-                    Date date = (revtag != null && personIdent != null) ? personIdent.getWhen() : new Date(revCommit.getCommitTime() * 1000L);
+                    Date date = (revtag != null && personIdent != null) ? Date.from(personIdent.getWhenAsInstant()) : new Date(revCommit.getCommitTime() * 1000L);
                     yield dateFormat.format(date);
                 }
                 
