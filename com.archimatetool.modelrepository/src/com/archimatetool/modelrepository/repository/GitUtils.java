@@ -174,6 +174,7 @@ public class GitUtils extends Git {
         FetchResult fetchResult = fetch()
                 .setCredentialsProvider(credentialsProvider)
                 .setProgressMonitor(monitor)
+                .setRefSpecs(RepoConstants.REFSPEC_FETCH_ALL_BRANCHES) // Explicitly set this rather than from config file
                 .setRemoveDeletedRefs(true) // Delete any remote branch refs that we have but are not on the remote
                 .call();
         
@@ -184,9 +185,7 @@ public class GitUtils extends Git {
             FetchResult fetchResult2 = fetch()
                     .setCredentialsProvider(credentialsProvider)
                     .setProgressMonitor(monitor)
-                    .setRefSpecs(new RefSpec("refs/tags/*:refs/tags/*")) // fetch all tags
-                    //.setRefSpecs(new RefSpec("refs/tags/*:refs/remotes/origin/tags/*"))
-                    .setForceUpdate(true) // Force update of tags
+                    .setRefSpecs(RepoConstants.REFSPEC_FETCH_ALL_TAGS) // fetch all tags (force)
                     .setRemoveDeletedRefs(false) // Don't delete local tags that we have but are not on the remote
                     .call();
             
@@ -222,6 +221,7 @@ public class GitUtils extends Git {
                     .setCredentialsProvider(credentialsProvider)
                     .setDryRun(true)
                     .setProgressMonitor(monitor)
+                    .setRefSpecs(RepoConstants.REFSPEC_FETCH_ALL_BRANCHES) // Explicitly set this rather than from config file
                     .setTagOpt(TagOpt.NO_TAGS) // No tags
                     .call();
     }

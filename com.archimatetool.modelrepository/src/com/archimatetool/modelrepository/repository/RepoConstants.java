@@ -87,4 +87,15 @@ public final class RepoConstants {
      * Ref prefix for origin remote master
      */
     public static final String R_REMOTES_ORIGIN_MASTER = "refs/remotes/origin/master";
+    
+    /**
+     * RefSpec for Fetch all forced branches
+     */
+    public static final String REFSPEC_FETCH_ALL_BRANCHES = "+refs/heads/*:refs/remotes/origin/*";
+    
+    /**
+     * RefSpec for Fetch all forced tags
+     */
+    public static final String REFSPEC_FETCH_ALL_TAGS = "+refs/tags/*:refs/tags/*";
+
 }
