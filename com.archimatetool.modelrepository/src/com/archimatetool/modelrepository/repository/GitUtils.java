@@ -171,25 +171,28 @@ public class GitUtils extends Git {
         List<FetchResult> fetchresults = new ArrayList<>();
         
         // Fetch branches
-        FetchResult fetchResult = fetch()
+        FetchResult branchFetchResult = fetch()
                 .setCredentialsProvider(credentialsProvider)
                 .setProgressMonitor(monitor)
                 .setRefSpecs(RepoConstants.REFSPEC_FETCH_ALL_BRANCHES) // Explicitly set this rather than from config file
                 .setRemoveDeletedRefs(true) // Delete any remote branch refs that we have but are not on the remote
+                .setTagOpt(TagOpt.NO_TAGS)  // We'll fetch tags separately
                 .call();
         
-        fetchresults.add(fetchResult);
+        fetchresults.add(branchFetchResult);
 
         // Fetch tags
+        // Do this separately because we want to force fetch tags in case user has the same tag name but on a different commit
+        // and also because we want setRemoveDeletedRefs(false) so that local only tags are not deleted
         if(fetchTags) {
-            FetchResult fetchResult2 = fetch()
+            FetchResult tagFetchResult = fetch()
                     .setCredentialsProvider(credentialsProvider)
                     .setProgressMonitor(monitor)
                     .setRefSpecs(RepoConstants.REFSPEC_FETCH_ALL_TAGS) // fetch all tags (force)
                     .setRemoveDeletedRefs(false) // Don't delete local tags that we have but are not on the remote
                     .call();
             
-            fetchresults.add(fetchResult2);
+            fetchresults.add(tagFetchResult);
         }
         
         // Ensure that the current branch is tracking its remote (if there is one) 
