@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.eclipse.jgit.api.Git;
@@ -45,6 +47,9 @@ import com.archimatetool.model.IArchimateModel;
 public class ArchiRepository implements IArchiRepository {
     
     private static Logger logger = Logger.getLogger(ArchiRepository.class.getName());
+    
+    // For matching name attribute in model.archimate file
+    private static final Pattern NAME_PATTERN = Pattern.compile("name=\"([^\"]+)\"");
     
     /**
      * The working directory of the local git repository
@@ -209,19 +214,22 @@ public class ArchiRepository implements IArchiRepository {
         File modelFile = getModelFile();
         if(modelFile.exists()) {
             try(Stream<String> stream = Files.lines(modelFile.toPath())
-                                             .filter(line -> line.indexOf("<archimate:model") != -1)) {
+                                             .filter(line -> line.contains("<archimate:model"))) {
                 Optional<String> result = stream.findFirst();
                 if(result.isPresent()) {
-                    String segments[] = result.get().split("\"");
-                    for(int i = 0; i < segments.length; i++) {
-                        if(segments[i].contains("name=")) {
-                            return segments[i + 1];
-                        }
+                    Matcher matcher = NAME_PATTERN.matcher(result.get());
+                    if(matcher.find()) {
+                        return matcher.group(1)
+                                      .replace("&amp;", "&")
+                                      .replace("&lt;", "<")
+                                      .replace("&gt;", ">")
+                                      .replace("&quot;", "\"")
+                                      .replace("&apos;", "'");
                     }
                 }
             }
             catch(Exception ex) { // Catch all exceptions to stop exception dialog
-                logger.severe("Could not get repository name (wrong file type) for: " + getModelFile());
+                logger.severe("Could not read model name for: " + getModelFile());
             }
         }
         

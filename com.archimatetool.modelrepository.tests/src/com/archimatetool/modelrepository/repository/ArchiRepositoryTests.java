@@ -141,10 +141,11 @@ public class ArchiRepositoryTests {
         assertEquals("Test Model", repo.getName());
         
         // Save and close model and name will come from file
-        model.setName("Test Model 2");
+        String name = "Test \"Model\" '2' with <xml> & && <more> 'this'";
+        model.setName(name);
         IEditorModelManager.INSTANCE.saveModel(model);
         IEditorModelManager.INSTANCE.closeModel(model);
-        assertEquals("Test Model 2", repo.getName());
+        assertEquals(name, repo.getName());
     }
 
     @Test
