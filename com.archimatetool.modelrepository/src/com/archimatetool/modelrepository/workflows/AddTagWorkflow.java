@@ -10,13 +10,14 @@ import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.modelrepository.authentication.GPGCredentialsProvider;
 import com.archimatetool.modelrepository.dialogs.AddTagDialog;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoConstants;
@@ -51,11 +52,11 @@ public class AddTagWorkflow extends AbstractRepositoryWorkflow {
         
         logger.info("Adding tag..."); //$NON-NLS-1$
         
-        try(Git git = Git.open(archiRepository.getWorkingFolder())) {
+        try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
             String fullName = RepoConstants.R_TAGS + tagName;
             
             // If the tag exists show error
-            if(git.getRepository().exactRef(fullName) != null) {
+            if(utils.getRepository().exactRef(fullName) != null) {
                 logger.info("Tag already exists"); //$NON-NLS-1$
                 MessageDialog.openError(workbenchWindow.getShell(),
                         Messages.AddTagWorkflow_0,
@@ -65,11 +66,13 @@ public class AddTagWorkflow extends AbstractRepositoryWorkflow {
             
             // Create the tag
             logger.info("Creating tag: " + tagName); //$NON-NLS-1$
-            git.tag()
+            
+            utils.tag()
                .setObjectId(revCommit)
                .setName(tagName)
                .setMessage(tagMessage)
-               .setSigned(false) // No GPG signing
+               .setCredentialsProvider(GPGCredentialsProvider.getDefault())
+               .setSigningKey(GPGCredentialsProvider.getDefault().getSigningKey())
                .call();
 
             // Notify listeners
