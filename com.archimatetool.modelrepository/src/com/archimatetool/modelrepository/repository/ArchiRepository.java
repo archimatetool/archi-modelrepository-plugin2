@@ -312,12 +312,12 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     /**
-     * Create exclude file for ignored files
+     * Create /info/exclude file for ignored files
      */
     private void createExcludeFile() throws IOException {
-        String excludes = "*.bak\n.DS_Store";
+        List<String> excludes = List.of("*.bak", ".DS_Store");
         File excludeFile = new File(getGitFolder(), "/info/exclude");
         excludeFile.getParentFile().mkdirs();
-        Files.write(excludeFile.toPath(), excludes.getBytes());
+        Files.write(excludeFile.toPath(), excludes);
     }
 }
