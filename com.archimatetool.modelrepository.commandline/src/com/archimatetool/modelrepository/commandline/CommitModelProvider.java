@@ -10,8 +10,10 @@ import java.io.File;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.osgi.util.NLS;
 
+import com.archimatetool.modelrepository.authentication.GPGCredentialsProvider;
 import com.archimatetool.modelrepository.repository.GitUtils;
 
 /**
@@ -45,6 +47,19 @@ public class CommitModelProvider extends AbstractModelRepositoryProvider {
         }
         
         String commitMessage = commandLine.getOptionValue(OPTION_COMMIT);
+        
+        // TODO: get these from commmand line options
+        GPGCredentialsProvider.setDefault(new GPGCredentialsProvider() {
+            @Override
+            protected char[] getSecretKey() throws StorageException {
+                return new char[0];
+            }
+            
+            @Override
+            public String getSigningKey() {
+                return null;
+            }
+        });
         
         try(GitUtils utils = GitUtils.open(modelFolder)) {
             logMessage(NLS.bind("Committing: {0}", commitMessage));
