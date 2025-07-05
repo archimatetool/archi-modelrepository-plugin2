@@ -349,19 +349,9 @@ public class GitUtils extends Git {
      * Return the remote URL of the Git repo (or null if not found)
      * We assume that there is only one remote per repo, and its name is "origin"
      */
-    public String getRemoteURL() throws GitAPIException {
-        // Could do it this way:
-        // return getRepository().getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION,
-        //        RepoConstants.ORIGIN, ConfigConstants.CONFIG_KEY_URL);
-        
-        List<RemoteConfig> remotes = remoteList().call();
-        if(!remotes.isEmpty()) {
-            List<URIish> uris = remotes.get(0).getURIs();
-            if(!uris.isEmpty()) {
-                return uris.get(0).toASCIIString();
-            }
-        }
-        return null;
+    public String getRemoteURL() {
+        return getRepository().getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION,
+                                                     RepoConstants.ORIGIN, ConfigConstants.CONFIG_KEY_URL);
     }
 
     /**

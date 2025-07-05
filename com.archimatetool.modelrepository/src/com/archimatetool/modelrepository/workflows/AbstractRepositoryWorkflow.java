@@ -215,7 +215,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
                 return false;
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(IOException ex) {
             logger.log(Level.SEVERE, "Remote", ex); //$NON-NLS-1$
             ex.printStackTrace();
             return false;
@@ -240,7 +240,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
                 return new SSHCredentials();
             }
         }
-        catch(IOException | GitAPIException | StorageException ex) {
+        catch(IOException | StorageException ex) {
             logger.log(Level.SEVERE, "User Credentials", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.AbstractRepositoryWorkflow_0, ex);
         }

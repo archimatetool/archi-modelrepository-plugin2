@@ -142,7 +142,7 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public String getRemoteURL() throws IOException, GitAPIException {
+    public String getRemoteURL() throws IOException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.getRemoteURL();
         }

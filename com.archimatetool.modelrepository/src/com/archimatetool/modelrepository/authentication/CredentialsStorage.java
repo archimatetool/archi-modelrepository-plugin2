@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
-import org.eclipse.jgit.api.errors.GitAPIException;
 
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
@@ -122,7 +121,7 @@ public class CredentialsStorage {
         try {
             url = repo.getRemoteURL();
         }
-        catch(IOException | GitAPIException ex) {
+        catch(IOException ex) {
             ex.printStackTrace();
         }
         

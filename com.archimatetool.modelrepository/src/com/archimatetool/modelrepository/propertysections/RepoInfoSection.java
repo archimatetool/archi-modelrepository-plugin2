@@ -13,7 +13,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -153,7 +152,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
                 textURL.setText(utils.getRemoteURL());
                 textCurrentBranch.setText(StringUtils.safeString(utils.getCurrentLocalBranchName()));
             }
-            catch(IOException | GitAPIException ex) {
+            catch(IOException ex) {
                 logger.log(Level.SEVERE, "Update info", ex); //$NON-NLS-1$
             }
         }

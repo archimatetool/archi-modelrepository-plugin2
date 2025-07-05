@@ -15,7 +15,6 @@ import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -142,7 +141,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         try {
             url = repository.getRemoteURL();
         }
-        catch(IOException | GitAPIException ex) {
+        catch(IOException ex) {
             ex.printStackTrace();
             logger.log(Level.SEVERE, "Get Auth", ex); //$NON-NLS-1$
         }
