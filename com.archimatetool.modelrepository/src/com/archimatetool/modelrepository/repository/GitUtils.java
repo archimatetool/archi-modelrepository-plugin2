@@ -96,6 +96,9 @@ public class GitUtils extends Git {
             rm().addFilepattern(s).call();
         }
         
+        // In JGit 7.2 and later remove the add(), status() and rm() calls above and simply do this:
+        //add().setAll(true).addFilepattern(".").call();
+        
         return commit()
                 .setAuthor(getUserDetails())
                 .setMessage(commitMessage)
