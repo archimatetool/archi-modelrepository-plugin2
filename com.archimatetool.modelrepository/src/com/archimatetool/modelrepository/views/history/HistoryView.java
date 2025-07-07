@@ -304,7 +304,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
          * Listen to History Selections to update local Actions
          */
         fHistoryTableViewer.addSelectionChangedListener(event -> {
-            updateActions();
+            updateSelectionActions();
         });
     }
     
@@ -401,14 +401,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     /**
      * Update the Local Actions depending on the local selection 
      */
-    private void updateActions() {
+    private void updateSelectionActions() {
         IStructuredSelection selection = getHistoryViewer().getStructuredSelection();
         boolean isSingleSelection = selection.size() == 1;
         
-        fActionUndoLastCommit.setRepository(fSelectedRepository);
-        fActionResetToRemoteCommit.setRepository(fSelectedRepository);
-        fActionCommit.setRepository(getHistoryViewer().hasWorkingTree() ? fSelectedRepository : null);
-
         // Selected Working tree or an empty selection, not a RevCommit
         if(!(selection.getFirstElement() instanceof RevCommit revCommit)) {
             fActionExtractCommit.setCommit(null, null);
@@ -436,6 +432,15 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         
         // Commit Viewer
         fMessageViewer.setRevObject(isSingleSelection ? revCommit : null);
+    }
+    
+    /**
+     * Update actions depending on repository
+     */
+    private void updateRepositoryActions() {
+        fActionUndoLastCommit.setRepository(fSelectedRepository);
+        fActionResetToRemoteCommit.setRepository(fSelectedRepository);
+        fActionCommit.setRepository(getHistoryViewer().hasWorkingTree() ? fSelectedRepository : null);
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -506,8 +511,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             
             // If selectedRepository is null update actions, if it isn't null actions will be updated on first selection
             if(selectedRepository == null) {
-                updateActions();
+                updateSelectionActions();
             }
+
+            updateRepositoryActions();
         }
         // If it is the currently selected one then...
         else {
@@ -611,7 +618,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
                 updateLabel();
                 getHistoryViewer().setRepository(null);
                 getBranchesViewer().setRepository(null);
-                updateActions();
             }
                 
             case IRepositoryListener.MODEL_RENAMED -> {
@@ -631,8 +637,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             }
         }
 
-        // Actions need to be updated
-        updateActions();
+        // Repository actions need to be updated
+        updateRepositoryActions();
     }
     
     @Override
