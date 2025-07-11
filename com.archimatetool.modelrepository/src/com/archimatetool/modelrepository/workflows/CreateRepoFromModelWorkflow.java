@@ -6,7 +6,6 @@
 package com.archimatetool.modelrepository.workflows;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,7 +18,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.components.IRunnable;
-import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
@@ -89,14 +87,14 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
             logger.info("Doing a first commit"); //$NON-NLS-1$
             archiRepository.commitModelWithManifest(model, Messages.CreateRepoFromModelWorkflow_1);
             
-            // Add to the Tree Model
-            RepositoryTreeModel.getInstance().addNewRepositoryRef(archiRepository);
-
             // If we want to publish now then push...
             if(response == NewRepoDialog.ADD_AND_PUBLISH_ID) {
                 push(repoURL, credentials.getCredentialsProvider());
             }
             
+            // Add to the Tree Model
+            RepositoryTreeModel.getInstance().addNewRepositoryRef(archiRepository);
+
             // Store repo credentials if HTTP and option is set
             if(credentials instanceof UsernamePassword npw && storeCredentials) {
                 CredentialsStorage.getInstance().storeCredentials(archiRepository, npw);
@@ -105,27 +103,11 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
             logger.info("Finished creating repository from model"); //$NON-NLS-1$
         }
         catch(Exception ex) {
-            logger.log(Level.SEVERE, "Creating repository from model", ex); //$NON-NLS-1$
-            
             // If this does not complete properly restore the original model file name and delete the repo folder
+            logger.log(Level.SEVERE, "Creating repository from model", ex); //$NON-NLS-1$
             model.setFile(modelFile);
-            
-            try {
-                logger.info("Deleting failed repository: " + folder.getPath()); //$NON-NLS-1$
-                FileUtils.deleteFolder(folder);
-            }
-            catch(IOException ex1) {
-                logger.log(Level.SEVERE, "Could not delete folder", ex1); //$NON-NLS-1$
-                ex1.printStackTrace();
-            }
-            
+            deleteRepository();
             displayErrorDialog(Messages.CreateRepoFromModelWorkflow_0, ex);
-        }
-        finally {
-            // If the folder is empty because of an error, delete it
-            if(folder.exists() && folder.list().length == 0) {
-                folder.delete();
-            }
         }
     }
     
@@ -156,5 +138,4 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
     public boolean canRun() {
         return model != null;
     }
-
 }

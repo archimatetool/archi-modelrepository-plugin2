@@ -17,6 +17,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.ICredentials;
@@ -297,6 +298,20 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
      */
     protected IArchimateModel closeAndRestoreModel() {
         return closeModel(false).restoreModel();
+    }
+    
+    /**
+     * Delete the repository folder
+     */
+    protected void deleteRepository() {
+        try {
+            logger.info("Deleting repository folder: " + archiRepository.getWorkingFolder().getPath()); //$NON-NLS-1$
+            FileUtils.deleteFolder(archiRepository.getWorkingFolder());
+        }
+        catch(IOException ex) {
+            logger.log(Level.SEVERE, "Could not delete folder", ex); //$NON-NLS-1$
+            ex.printStackTrace();
+        }
     }
     
     /**

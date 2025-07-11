@@ -6,7 +6,6 @@
 package com.archimatetool.modelrepository.workflows;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,7 +17,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.components.IRunnable;
-import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.ICredentials;
@@ -106,7 +104,7 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
                             Messages.CloneModelWorkflow_3)) {
                         
                         // Delete it
-                        deleteRepository(folder);
+                        deleteRepository();
                         return;
                     }
                 }
@@ -140,19 +138,8 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
             // If this does not complete properly close the model and delete the repo folder
             logger.log(Level.SEVERE, "Clone model", ex); //$NON-NLS-1$
             closeModel(false);
-            deleteRepository(folder);
+            deleteRepository();
             displayErrorDialog(Messages.CloneModelWorkflow_0, ex);
-        }
-    }
-    
-    private void deleteRepository(File folder) {
-        try {
-            logger.info("Deleting failed repository: " + folder.getPath()); //$NON-NLS-1$
-            FileUtils.deleteFolder(folder);
-        }
-        catch(IOException ex) {
-            logger.log(Level.SEVERE, "Could not delete folder", ex); //$NON-NLS-1$
-            ex.printStackTrace();
         }
     }
     
