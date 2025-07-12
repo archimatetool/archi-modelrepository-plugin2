@@ -124,8 +124,19 @@ public class MergeHandler {
 
         // Load the three models...
         IArchimateModel ourModel = loadModel(utils, RepoConstants.HEAD);
+        if(ourModel == null) {
+            throw new IOException("Our model was null.");
+        }
+
         IArchimateModel theirModel = loadModel(utils, branchToMerge.getFullName());
+        if(theirModel == null) {
+            throw new IOException("Their model was null.");
+        }
+        
         IArchimateModel baseModel = loadBaseModel(utils, branchToMerge.getFullName());
+        if(baseModel == null) {
+            throw new IOException("Base model was null.");
+        }
         
         // Make copies of our models so we can retrieve objects from the originals before they are merged
         IArchimateModel ourModelCopy = copyModel(ourModel);

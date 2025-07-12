@@ -16,6 +16,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -26,8 +27,10 @@ import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.merge.MergeHandler;
 import com.archimatetool.modelrepository.merge.MergeHandler.MergeHandlerResult;
 import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Refresh Model Workflow
@@ -112,11 +115,36 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
                 return;
             }
             
+            // Check whether HEAD and the remote branch share a base commit
+            // If they don't it means that HEAD is on an orphaned branch probably because
+            // user set a remote URL containing a different model
+            try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
+                RevCommit mergeBase = utils.getBaseCommit(RepoConstants.HEAD, remoteBranchInfo.getRemoteBranchName());
+                if(mergeBase == null) {
+                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                    displayErrorDialog(Messages.RefreshModelWorkflow_0, Messages.RefreshModelWorkflow_6 + ' '
+                                        + Messages.RefreshModelWorkflow_7 + "\n\n" + Messages.RefreshModelWorkflow_8); //$NON-NLS-1$
+                    return;
+                }
+            }
+            
             // Try to merge
             mergeHandlerResult = MergeHandler.getInstance().merge(archiRepository, remoteBranchInfo);
         }
         catch(IOException | GitAPIException ex) {
             logger.log(Level.SEVERE, "Merge", ex); //$NON-NLS-1$
+            
+            // Reset to HEAD in case of repo being in temporary merge state or other bad state
+            try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
+                logger.info("Resetting to HEAD."); //$NON-NLS-1$
+                utils.resetToRef(RepoConstants.HEAD);
+            }
+            catch(IOException | GitAPIException ex1) {
+                ex1.printStackTrace();
+                logger.log(Level.SEVERE, "Merge", ex1); //$NON-NLS-1$
+            }
+            
+            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
             displayErrorDialog(Messages.RefreshModelWorkflow_0, ex);
             return;
         }
