@@ -273,11 +273,17 @@ public class BranchInfo {
     /**
      * Update merge status of this branch from a RevWalk
      * This is slow and expensive so re-use a RevWalk if called multiple times
-     * @param revWalk if this is not null use it for RevWalkUtils.findBranchesReachableFrom
+     * @param revWalk can be null. If not null use it but don't close it.
      */
     private boolean isMergedIntoOtherBranches(Repository repository, RevWalk revWalk) throws GitAPIException, IOException {
-        if(isPrimaryBranch() || latestCommit == null) {
+        // If this branch is "main" or "master" we assume that it is merged
+        if(isPrimaryBranch()) {
             return true;
+        }
+        
+        // Check that the Ref is valid
+        if(ref.getObjectId() == null) {
+            return false;
         }
         
         // Get ALL other branch refs
@@ -288,9 +294,15 @@ public class BranchInfo {
         // Remove this Ref
         otherRefs.remove(ref);
         
-        try(RevWalk walk = revWalk != null ? revWalk : new RevWalk(repository)) {
-            // If there are other reachable branches then this is merged
-            return !RevWalkUtils.findBranchesReachableFrom(latestCommit, walk, otherRefs).isEmpty();
+        RevWalk walk = revWalk != null ? revWalk : new RevWalk(repository);
+        
+        // If there are other reachable branches then this is merged
+        boolean result = !RevWalkUtils.findBranchesReachableFrom(latestCommit, walk, otherRefs).isEmpty();
+            
+        if(walk != revWalk) { // close our RevWalk but not the caller's
+            walk.close();
         }
+        
+        return result;
     }
 }

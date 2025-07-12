@@ -40,31 +40,22 @@ public class BranchInfoTests {
     }
     
     @Test
-    public void currentLocalBranchInfo() throws Exception {
+    public void currentLocalBranchInfo_Main() throws Exception {
         RevCommit commit = utils.commitChanges("Commit 1", false);
-        
         BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.ALL);
-        
-        assertFalse(branchInfo.getRef().isSymbolic());
-        assertEquals(RepoConstants.R_HEADS_MAIN, branchInfo.getFullName());
-        assertEquals(commit, branchInfo.getLatestCommit());
-        assertEquals(RepoConstants.R_HEADS_MAIN, branchInfo.getLocalBranchName());
-        assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getRemoteBranchName());
-        assertEquals(RepoConstants.MAIN, branchInfo.getShortName());
-        assertEquals(repo.getWorkingFolder(), branchInfo.getWorkingFolder());
-        assertTrue(branchInfo.hasLocalRef());
-        assertFalse(branchInfo.hasRemoteRef());
-        assertFalse(branchInfo.hasRemoteCommits());
-        assertFalse(branchInfo.hasUnpushedCommits());
-        assertTrue(branchInfo.isCurrentBranch());
-        assertTrue(branchInfo.isLocal());
-        assertTrue(branchInfo.isMerged());
+        checkLocalBranchInfo(branchInfo, commit, RepoConstants.MAIN);
         assertTrue(branchInfo.isPrimaryBranch());
-        assertTrue(branchInfo.isRefAtHead());
-        assertFalse(branchInfo.isRemote());
-        assertFalse(branchInfo.isRemoteDeleted());
     }
-
+    
+    @Test
+    public void currentLocalBranchInfo_Branch() throws Exception {
+        RevCommit commit = utils.commitChanges("Commit 1", false);
+        utils.checkout().setName("branch").setCreateBranch(true).call();
+        BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.ALL);
+        checkLocalBranchInfo(branchInfo, commit, "branch");
+        assertFalse(branchInfo.isPrimaryBranch());
+    }
+    
     @Test
     public void currentRemoteFullBranchInfo() throws Exception {
         repo.setRemote(GitHelper.createBareRepository().getAbsolutePath());
@@ -72,25 +63,8 @@ public class BranchInfoTests {
         utils.pushToRemote(null, null);
         
         BranchInfo branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder(), Option.ALL);
-        
-        assertFalse(branchInfo.getRef().isSymbolic());
-        assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getFullName());
-        assertEquals(commit, branchInfo.getLatestCommit());
-        assertEquals(RepoConstants.R_HEADS_MAIN, branchInfo.getLocalBranchName());
-        assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getRemoteBranchName());
-        assertEquals(RepoConstants.MAIN, branchInfo.getShortName());
-        assertEquals(repo.getWorkingFolder(), branchInfo.getWorkingFolder());
-        assertTrue(branchInfo.hasLocalRef());
-        assertTrue(branchInfo.hasRemoteRef());
-        assertFalse(branchInfo.hasRemoteCommits());
-        assertFalse(branchInfo.hasUnpushedCommits());
-        assertFalse(branchInfo.isCurrentBranch());
-        assertFalse(branchInfo.isLocal());
-        assertTrue(branchInfo.isMerged());
+        checkRemoteBranchInfo(branchInfo, commit, RepoConstants.MAIN);
         assertTrue(branchInfo.isPrimaryBranch());
-        assertTrue(branchInfo.isRefAtHead());
-        assertTrue(branchInfo.isRemote());
-        assertFalse(branchInfo.isRemoteDeleted());
         
         // Add another commit but not pushed
         RevCommit commit2 = utils.commitChanges("Commit 2", false);
@@ -108,4 +82,43 @@ public class BranchInfoTests {
         assertTrue(branchInfo.hasRemoteCommits());
     }
     
+    private void checkLocalBranchInfo(BranchInfo branchInfo, RevCommit expectedCommit, String expectedBranch) {
+        assertFalse(branchInfo.getRef().isSymbolic());
+        assertEquals(RepoConstants.R_HEADS + expectedBranch, branchInfo.getFullName());
+        assertEquals(expectedCommit, branchInfo.getLatestCommit());
+        assertEquals(RepoConstants.R_HEADS + expectedBranch, branchInfo.getLocalBranchName());
+        assertEquals(RepoConstants.R_REMOTES_ORIGIN + expectedBranch, branchInfo.getRemoteBranchName());
+        assertEquals(expectedBranch, branchInfo.getShortName());
+        assertEquals(repo.getWorkingFolder(), branchInfo.getWorkingFolder());
+        assertTrue(branchInfo.hasLocalRef());
+        assertFalse(branchInfo.hasRemoteRef());
+        assertFalse(branchInfo.hasRemoteCommits());
+        assertFalse(branchInfo.hasUnpushedCommits());
+        assertTrue(branchInfo.isCurrentBranch());
+        assertTrue(branchInfo.isLocal());
+        assertTrue(branchInfo.isMerged());
+        assertTrue(branchInfo.isRefAtHead());
+        assertFalse(branchInfo.isRemote());
+        assertFalse(branchInfo.isRemoteDeleted());
+    }
+
+    private void checkRemoteBranchInfo(BranchInfo branchInfo, RevCommit expectedCommit, String expectedBranch) {
+        assertFalse(branchInfo.getRef().isSymbolic());
+        assertEquals(RepoConstants.R_REMOTES_ORIGIN + expectedBranch, branchInfo.getFullName());
+        assertEquals(expectedCommit, branchInfo.getLatestCommit());
+        assertEquals(RepoConstants.R_HEADS + expectedBranch, branchInfo.getLocalBranchName());
+        assertEquals(RepoConstants.R_REMOTES_ORIGIN + expectedBranch, branchInfo.getRemoteBranchName());
+        assertEquals(expectedBranch, branchInfo.getShortName());
+        assertEquals(repo.getWorkingFolder(), branchInfo.getWorkingFolder());
+        assertTrue(branchInfo.hasLocalRef());
+        assertTrue(branchInfo.hasRemoteRef());
+        assertFalse(branchInfo.hasRemoteCommits());
+        assertFalse(branchInfo.hasUnpushedCommits());
+        assertFalse(branchInfo.isCurrentBranch());
+        assertFalse(branchInfo.isLocal());
+        assertTrue(branchInfo.isMerged());
+        assertTrue(branchInfo.isRefAtHead());
+        assertTrue(branchInfo.isRemote());
+        assertFalse(branchInfo.isRemoteDeleted());
+    }
 }
