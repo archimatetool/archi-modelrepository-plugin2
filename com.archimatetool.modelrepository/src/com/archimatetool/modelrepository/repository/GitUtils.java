@@ -199,22 +199,9 @@ public class GitUtils extends Git {
         }
         
         // Ensure that the current branch is tracking its remote (if there is one) 
-        List<Ref> refs = branchList()
-                .setListMode(ListMode.REMOTE)
-                .setContains(getRepository().getBranch())
-                .call();
-        
-        if(!refs.isEmpty()) {
+        if(getRemoteRefForCurrentBranch() != null) {
             setTrackedBranch(getRepository().getBranch());
         }
-        
-        // Ensure that all local refs are tracking the remote ref
-//        for(Ref ref : branchList().setListMode(ListMode.REMOTE).call()) {
-//            String shortName = getRepository().shortenRemoteBranchName(ref.getName());
-//            if(shortName != null) {
-//                setTrackedBranch(shortName);
-//            }
-//        }
         
         return fetchresults;
     }
