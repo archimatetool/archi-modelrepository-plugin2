@@ -14,8 +14,11 @@ import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.util.SystemReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,7 +91,25 @@ public class ArchiRepositoryTests {
     }
 
     @Test
-    public void cloneModel_EmptyRepo() throws Exception {
+    public void cloneModel_EmptyRepo_Main() throws Exception {
+        cloneModel_EmptyRepo(RepoConstants.MAIN);
+    }
+
+    @Test
+    public void cloneModel_EmptyRepo_Master() throws Exception {
+        cloneModel_EmptyRepo(RepoConstants.MASTER);
+    }
+
+    @Test
+    public void cloneModel_EmptyRepo_Other() throws Exception {
+        cloneModel_EmptyRepo("other");
+    }
+
+    private void cloneModel_EmptyRepo(String defaultBranch) throws Exception {
+        // Write the default branch to the global .gitconfig file but don't save it
+        StoredConfig config = SystemReader.getInstance().getUserConfig();
+        config.setString(ConfigConstants.CONFIG_INIT_SECTION, null, ConfigConstants.CONFIG_KEY_DEFAULT_BRANCH, defaultBranch);
+
         IArchiRepository archiRepo = GitHelper.createNewRepository();
         String repoURL = GitHelper.createBareRepository().getAbsolutePath();
         archiRepo.cloneModel(repoURL, null, null);

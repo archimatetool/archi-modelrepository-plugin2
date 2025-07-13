@@ -25,6 +25,7 @@ import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -67,6 +68,7 @@ public class ArchiRepository implements IArchiRepository {
                 .setInitialBranch(RepoConstants.MAIN)
                 .setDirectory(getWorkingFolder())
                 .call().getRepository()) {
+            
             // Config Defaults
             setDefaultConfigSettings(repository);
             
@@ -86,20 +88,21 @@ public class ArchiRepository implements IArchiRepository {
                 .setProgressMonitor(monitor)
                 .setCloneAllBranches(true)
                 .call().getRepository()) {
+            
             // Config Defaults
             setDefaultConfigSettings(repository);
             
             // Exclude file
             createExcludeFile();
             
-            // If this is an empty repository, ensure that we have HEAD pointing to "main"
+            // If this is an empty repository, ensure that HEAD references "refs/heads/main" and not, say, "refs/heads/master"
             Ref refHead = repository.exactRef(RepoConstants.HEAD); // What's HEAD referencing?
-            // This is an empty repo because HEAD file points to an non-existing branch
-            if(refHead != null && refHead.getTarget().getObjectId() == null) {
-                // So write this ref to the HEAD file
-                String ref = "ref: refs/heads/main";
-                File headFile = new File(getGitFolder(), RepoConstants.HEAD);
-                Files.write(headFile.toPath(), ref.getBytes());
+            // This is an empty repo because HEAD file points to an non-existing branch (objectId is null)
+            if(refHead != null && refHead.getTarget().getObjectId() == null
+                               && !RepoConstants.R_HEADS_MAIN.equals(refHead.getTarget().getName())) {
+                RefUpdate refUpdate = repository.updateRef(RepoConstants.HEAD);
+                refUpdate.disableRefLog();
+                refUpdate.link(RepoConstants.R_HEADS_MAIN);
             }
         }
     }
