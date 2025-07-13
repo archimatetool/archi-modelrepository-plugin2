@@ -68,7 +68,6 @@ import com.archimatetool.modelrepository.actions.IRepositoryAction;
 import com.archimatetool.modelrepository.actions.PushModelAction;
 import com.archimatetool.modelrepository.actions.RefreshModelAction;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
-import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -432,22 +431,25 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         // Delete repositories
         try {
             for(RepositoryRef ref : refsToDelete) {
+                IArchiRepository repository = ref.getArchiRepository();
+                
                 // Close model without asking to save
-                IEditorModelManager.INSTANCE.closeModel(ref.getArchiRepository().getOpenModel(), false);
+                IEditorModelManager.INSTANCE.closeModel(repository.getOpenModel(), false);
 
                 // Delete repository folder and any HTTP credentials
                 if(delete) {
                     // Delete credentials *first*
-                    CredentialsStorage.getInstance().storeCredentials(ref.getArchiRepository(), new UsernamePassword(null, null));
+                    CredentialsStorage.getInstance().clearCredentials(repository);
                     // Delete folder
-                    FileUtils.deleteFolder(ref.getArchiRepository().getWorkingFolder());
+                    logger.info("Deleting repository folder: " + repository.getWorkingFolder()); //$NON-NLS-1$
+                    FileUtils.deleteFolder(repository.getWorkingFolder());
                 }
 
                 // Delete from tree model
                 ref.delete();
 
                 // Notify deleted
-                RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, ref.getArchiRepository());
+                RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, repository);
             }
         }
         catch(IOException | StorageException ex) {

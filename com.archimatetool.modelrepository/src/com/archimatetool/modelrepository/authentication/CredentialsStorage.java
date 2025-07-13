@@ -62,6 +62,13 @@ public class CredentialsStorage {
         }
     }
     
+    public void clearCredentials(IArchiRepository repo) throws StorageException, IOException {
+        logger.info("Clearing user credentials for: " + repo.getWorkingFolder());
+        ISecurePreferences node = getRepositoryNode(repo);
+        storeEntry(USERNAME, null, node);
+        storeEntry(PASSWORD, null, node);
+    }
+    
     /**
      * Store username for a repository
      */
