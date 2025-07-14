@@ -323,6 +323,18 @@ public class GitUtilsTests {
         assertEquals(RepoConstants.ORIGIN, config.getName());
         assertEquals(1, config.getURIs().size());
         assertEquals(url, config.getURIs().get(0).toASCIIString());
+        
+        // Add another one, should only be one
+        url = "https://www.somewhereelse.net/myRepo.git";
+        utils.setRemote(url);
+
+        remotes = utils.remoteList().call();
+        assertEquals(1, remotes.size());
+        
+        config = remotes.get(0);
+        assertEquals(RepoConstants.ORIGIN, config.getName());
+        assertEquals(1, config.getURIs().size());
+        assertEquals(url, config.getURIs().get(0).toASCIIString());
     }
     
     @Test
