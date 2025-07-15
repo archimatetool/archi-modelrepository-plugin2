@@ -564,14 +564,10 @@ public class GitUtils extends Git {
             revWalk.setRevFilter(RevFilter.MERGE_BASE); // Merge Base = Common Ancestor
 
             ObjectId id1 = getRepository().resolve(revStr1);
-            if(id1 != null) {
-                revWalk.markStart(revWalk.parseCommit(id1));
-            }
-
+            revWalk.markStart(revWalk.parseCommit(id1));
+            
             ObjectId id2 = getRepository().resolve(revStr2);
-            if(id2 != null) {
-                revWalk.markStart(revWalk.parseCommit(id2));
-            }
+            revWalk.markStart(revWalk.parseCommit(id2));
 
             return revWalk.next();
         }
