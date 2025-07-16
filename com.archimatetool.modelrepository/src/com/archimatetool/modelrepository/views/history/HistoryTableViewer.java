@@ -28,7 +28,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -340,31 +339,28 @@ public class HistoryTableViewer extends TableViewer {
          * We want to show a different colored line between the local and remote commit if there are ahead/behind commits.
          * Store the IDs of commits that are ahead/behind mapped to their status.
          */
-        void getCommitStatus(Git git) throws IOException, GitAPIException {
+        void getCommitStatus(Git git) throws IOException {
             // There will only be ahead/behind commits if we have a tracked remote branch
-            if(fLocalCommit != null && fRemoteCommit != null && fSelectedBranch != null) {
-                BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(git.getRepository(), fSelectedBranch.getShortName());
-                if(trackingStatus == null) {
-                    return;
-                }
+            if(fLocalCommit != null && fRemoteCommit != null) {
+                // Local commits that are ahead of the remote commit
+                addCommitStatus(git, fRemoteCommit, fLocalCommit, CommitStatus.AHEAD);
                 
-                // If the local branch is ahead of the remote
-                if(trackingStatus.getAheadCount() > 0) {
-                    addCommitStatus(git, fRemoteCommit, fLocalCommit, CommitStatus.AHEAD);
-                }
-                
-                // If the local branch is behind the remote
-                if(trackingStatus.getBehindCount() > 0) {
-                    addCommitStatus(git, fLocalCommit, fRemoteCommit, CommitStatus.BEHIND);
-                }
+                // Local commits that are behind the remote commit
+                addCommitStatus(git, fLocalCommit, fRemoteCommit, CommitStatus.BEHIND);
             }
         }
         
-        private void addCommitStatus(Git git, RevCommit since, RevCommit until, CommitStatus status) throws IOException, GitAPIException {
-            // Call Git.log() with a range between the local commit and the remote commit
-            // This will return a RevWalk and we can add the commit IDs to our list
-            try(RevWalk revWalk = (RevWalk)git.log().addRange(since.getId(), until.getId()).call()) {
+        /**
+         * Collect commits that are ahead/behind remote so we can show their status
+         * @param sinceId The oldest commit
+         * @param untilId The newest commit
+         */
+        private void addCommitStatus(Git git, ObjectId sinceId, ObjectId untilId, CommitStatus status) throws IOException {
+            // This is the equivalent of git.log().addRange(sinceId, untilId).call()
+            try(RevWalk revWalk = new RevWalk(git.getRepository())) {
                 revWalk.setRetainBody(false);
+                revWalk.markStart(revWalk.parseCommit(untilId));
+                revWalk.markUninteresting(revWalk.parseCommit(sinceId));
                 for(RevCommit commit : revWalk) {
                     commitStatusMap.put(commit.getName(), status);
                 }
