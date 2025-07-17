@@ -83,6 +83,7 @@ public class BranchInfo {
     
     /**
      * Initialise this BranchInfo from Ref and the Repository
+     * @param revWalk Only use this revWalk for isMergedIntoOtherBranches
      */
     protected void init(Repository repository, Ref ref, RevWalk revWalk) throws IOException, GitAPIException {
         this.ref = ref.getTarget(); // Important - get the target Ref in case it's a symbolic Ref
@@ -274,6 +275,8 @@ public class BranchInfo {
      * Update merge status of this branch from a RevWalk
      * This is slow and expensive so re-use a RevWalk if called multiple times
      * @param revWalk can be null. If not null use it but don't close it.
+     *        IMPORTANT - the revWalk should only be used for this one method as RevWalkUtils.findBranchesReachableFrom
+     *                    can dispose of any RevCommits in the RevWalk
      */
     private boolean isMergedIntoOtherBranches(Repository repository, RevWalk revWalk) throws GitAPIException, IOException {
         // If this branch is "main" or "master" we assume that it is merged

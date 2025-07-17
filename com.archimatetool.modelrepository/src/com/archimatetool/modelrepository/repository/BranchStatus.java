@@ -40,7 +40,10 @@ public class BranchStatus {
         try(Git git = Git.open(repoFolder)) {
             Repository repository = git.getRepository();
 
+            // This RevWalk should only be used once in BranchInfo#isMergedIntoOtherBranches
             try(RevWalk revWalk = new RevWalk(repository)) {
+                revWalk.setRetainBody(false);
+                
                 // Get all known branches
                 for(Ref ref : git.branchList().setListMode(ListMode.ALL).call()) {
                     BranchInfo info = new BranchInfo(repository, ref, revWalk, options);

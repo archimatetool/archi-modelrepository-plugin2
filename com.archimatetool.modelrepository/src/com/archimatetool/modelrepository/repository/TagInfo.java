@@ -19,6 +19,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.RevWalkUtils;
 
 /**
  * Tag Info
@@ -42,9 +43,12 @@ public class TagInfo {
             // Get all branches now
             List<Ref> branchRefs = git.branchList().setListMode(ListMode.ALL).call();
             
-            try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+            // Use two RevWalks, one for the commit and tag, and one for getIsOrphaned
+            try(RevWalk revWalk1 = new RevWalk(git.getRepository()); RevWalk revWalk2 = new RevWalk(git.getRepository())) {
+                revWalk2.setRetainBody(false); // This one doesn't need to retain body
+                
                 for(Ref tagRef : git.tagList().call()) {
-                    list.add(new TagInfo(git.getRepository(), tagRef, revWalk, branchRefs));
+                    list.add(new TagInfo(git.getRepository(), tagRef, revWalk1, revWalk2, branchRefs));
                 }
             }
         }
@@ -52,13 +56,16 @@ public class TagInfo {
         return list;
     }
     
-    TagInfo(Repository repository, Ref ref, RevWalk revWalk, List<Ref> branchRefs) throws IOException {
+    TagInfo(Repository repository, Ref ref, RevWalk revWalk1, RevWalk revWalk2,  List<Ref> branchRefs) throws IOException {
         repoDir = repository.getWorkTree();
         this.ref = ref.getTarget();
         
-        commit = getCommit(repository, revWalk);
-        tag = getRevTag(repository, revWalk);
-        isOrphaned = getIsOrphaned(repository, revWalk, branchRefs);
+        // Use a separate RevWalk for these
+        commit = getCommit(repository, revWalk1);
+        tag = getRevTag(repository, revWalk1);
+        
+        // And a separate RevWalk for this
+        isOrphaned = getIsOrphaned(repository, revWalk2, branchRefs);
     }
     
     public File getWorkingFolder() {
@@ -94,22 +101,8 @@ public class TagInfo {
     }
     
     private boolean getIsOrphaned(Repository repository, RevWalk revWalk, List<Ref> branchRefs) throws IOException {
-        if(commit == null) {
-            return true;
-        }
-        
-        // Check if any branch is reachable from this tag
-        for(Ref branchRef : branchRefs) {
-            // Get commit for branch
-            RevCommit branchCommit = branchRef.getObjectId() != null ? revWalk.parseCommit(branchRef.getObjectId()) : null;
-            // Reachable so return false
-            if(branchCommit != null && revWalk.isMergedInto(commit, branchCommit)) {
-                return false;
-            }
-        }
-        
-        // Got here so must be true
-        return true;
+        // If there are no other reachable branches from the tag's commit
+        return commit != null ? RevWalkUtils.findBranchesReachableFrom(commit, revWalk, branchRefs).isEmpty() : true;
     }
 
     /**
