@@ -121,4 +121,20 @@ public class BranchInfoTests {
         assertTrue(branchInfo.isRemote());
         assertFalse(branchInfo.isRemoteDeleted());
     }
+    
+    @Test
+    public void testHashCode() throws Exception {
+        utils.commitChanges("Commit 1", false);
+        BranchInfo branchInfo1 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder());
+        BranchInfo branchInfo2 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder());
+        assertEquals(branchInfo1.hashCode(), branchInfo2.hashCode());
+    }
+    
+    @Test
+    public void testEquals() throws Exception {
+        utils.commitChanges("Commit 1", false);
+        BranchInfo branchInfo1 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder());
+        BranchInfo branchInfo2 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder());
+        assertEquals(branchInfo1, branchInfo2);
+    }
 }

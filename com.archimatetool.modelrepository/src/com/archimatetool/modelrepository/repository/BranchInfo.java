@@ -214,6 +214,11 @@ public class BranchInfo {
                 && Objects.equals(repoDir, other.repoDir) && Objects.equals(getFullName(), other.getFullName());
     }
     
+    @Override
+    public int hashCode() {
+        return Objects.hash(repoDir, getFullName());
+    }
+
     // ======================================================================================
     // These methods are a little expensive so are done once on initialisation
     // ======================================================================================

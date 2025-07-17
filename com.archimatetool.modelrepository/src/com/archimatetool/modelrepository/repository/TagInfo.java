@@ -122,4 +122,9 @@ public class TagInfo {
                 && Objects.equals(repoDir, other.repoDir) && Objects.equals(getFullName(), other.getFullName());
     }
     
+    @Override
+    public int hashCode() {
+        return Objects.hash(repoDir, getFullName());
+    }
+
 }

@@ -129,4 +129,22 @@ public class TagInfoTests {
                     .setTagger(new PersonIdent("Montgomery Flange", "m.flange@drama.org"))
                     .call();
     }
+    
+    @Test
+    public void testHashCode() throws Exception {
+        RevCommit commit = utils.commitChanges("Commit 1", false);
+        addAnnotatedTag(commit, "tag1");
+        List<TagInfo> tagInfos1 = TagInfo.getTags(repo.getGitFolder());
+        List<TagInfo> tagInfos2 = TagInfo.getTags(repo.getGitFolder());
+        assertEquals(tagInfos1.get(0).hashCode(), tagInfos2.get(0).hashCode());
+    }
+    
+    @Test
+    public void testEquals() throws Exception {
+        RevCommit commit = utils.commitChanges("Commit 1", false);
+        addAnnotatedTag(commit, "tag1");
+        List<TagInfo> tagInfos1 = TagInfo.getTags(repo.getGitFolder());
+        List<TagInfo> tagInfos2 = TagInfo.getTags(repo.getGitFolder());
+        assertEquals(tagInfos1.get(0), tagInfos2.get(0));
+    }
 }
