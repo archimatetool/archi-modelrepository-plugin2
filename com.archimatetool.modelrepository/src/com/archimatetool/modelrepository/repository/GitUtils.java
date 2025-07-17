@@ -442,37 +442,25 @@ public class GitUtils extends Git {
     }
     
     /**
-     * Return a map of tags mapping a commit Id to a list of tag short names
+     * Return a map of a commit Id to a list of tag short names that are on that commit 
      */
     public Map<String, List<String>> getTagsMap() throws GitAPIException, IOException {
         Map<String, List<String>> tagMap = new HashMap<>();
         
-        for(Ref tagRef : tagList().call()) {
-            ObjectId tagObjectId = getTagCommitId(tagRef);
-            if(tagObjectId != null) {
-                // Get the map entry or create a new one
-                List<String> tags = tagMap.computeIfAbsent(tagObjectId.getName(), commitId -> new ArrayList<>());
-                // Add the tag name
-                tags.add(Repository.shortenRefName(tagRef.getName()));
+        try(RevWalk revWalk = new RevWalk(getRepository())) {
+            revWalk.setRetainBody(false);
+            for(Ref tagRef : tagList().call()) {
+                if(tagRef.getObjectId() != null) {
+                    RevCommit commit = revWalk.parseCommit(tagRef.getObjectId());
+                    // Get the map entry or create a new one
+                    List<String> tags = tagMap.computeIfAbsent(commit.getName(), id -> new ArrayList<>());
+                    // Add the tag name
+                    tags.add(Repository.shortenRefName(tagRef.getName()));
+                }
             }
         }
         
         return tagMap;
-    }
-    
-    /**
-     * Get the ObjectId for a tag's commit, or null if not found
-     */
-    public ObjectId getTagCommitId(Ref tagRef) throws IOException {
-        // Peel annotated tag to get the tagged object
-        ObjectId tagObjectId = getRepository().getRefDatabase().peel(tagRef).getPeeledObjectId();
-        
-        // Lightweight tag, directly points to the commit
-        if(tagObjectId == null) {
-            tagObjectId = tagRef.getObjectId();
-        }
-        
-        return tagObjectId;
     }
     
     /**

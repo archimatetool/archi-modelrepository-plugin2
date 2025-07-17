@@ -22,7 +22,6 @@ import java.util.Map;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.lib.ConfigConstants;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.RefUpdate;
@@ -496,23 +495,6 @@ public class GitUtilsTests {
         list = map.get(commit2.getName());
         assertEquals("tag3", list.get(0));
         assertEquals("tag4", list.get(1));
-    }
-    
-    @Test
-    public void getTagCommitId() throws Exception {
-        RevCommit commit = utils.commitChanges("Message 1", false);
-        
-        // Annotated tag ref's ObjectId not equal to commit Id
-        Ref ref = utils.tag().setObjectId(commit).setName("tag1").call();
-        ObjectId commitId = utils.getTagCommitId(ref);
-        assertEquals(commit, commitId);
-        assertNotEquals(commit, ref.getObjectId());
-        
-        // Lightweight tag ref's ObjectId is equal to commit Id
-        ref = utils.tag().setObjectId(commit).setName("tag2").setAnnotated(false).call();
-        commitId = utils.getTagCommitId(ref);
-        assertEquals(commit, commitId);
-        assertEquals(commit, ref.getObjectId());
     }
     
     @Test
