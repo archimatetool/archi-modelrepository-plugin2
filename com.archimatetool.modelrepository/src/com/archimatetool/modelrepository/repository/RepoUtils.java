@@ -8,6 +8,8 @@ package com.archimatetool.modelrepository.repository;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -67,11 +69,12 @@ public class RepoUtils {
      * Generate a new random folder name for a new repo
      */
     public static File generateNewRepoFolder() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         File rootFolder = ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder();
         File newFolder;
         
         do {
-            newFolder = new File(rootFolder, Long.valueOf(System.currentTimeMillis()).toString());
+            newFolder = new File(rootFolder, LocalDateTime.now().format(formatter));
         }
         while(newFolder.exists()); // just in case
         
