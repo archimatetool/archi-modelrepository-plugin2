@@ -15,7 +15,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
@@ -76,24 +75,14 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
             fetchResults = fetch(credentials.getCredentialsProvider());
         }
         catch(Exception ex) {
-            // If this exception is thrown then the remote doesn't have the current branch ref
-            // TODO: quietly absorb this?
-            if(ex instanceof RefNotAdvertisedException) {
-                logger.warning(ex.getMessage());
-                MessageDialog.openWarning(workbenchWindow.getShell(), Messages.RefreshModelWorkflow_0, Messages.RefreshModelWorkflow_1);
-            }
-            else {
-                logger.log(Level.SEVERE, "Fetch", ex); //$NON-NLS-1$
-                displayErrorDialog(Messages.RefreshModelWorkflow_0, ex);
-            }
-            
+            logger.log(Level.SEVERE, "Fetch", ex); //$NON-NLS-1$
+            displayErrorDialog(Messages.RefreshModelWorkflow_0, ex);
             return;
         }
-        finally {
-            logFetchResults(fetchResults);
-        }
         
-        // Check for branch and tag tracking updates
+        logFetchResults(fetchResults);
+        
+        // Check if there are either branch or tag tracking updates
         boolean hasTrackingRefUpdates = !(fetchResults.get(0).getTrackingRefUpdates().isEmpty() &&
                                           fetchResults.get(1).getTrackingRefUpdates().isEmpty());
 

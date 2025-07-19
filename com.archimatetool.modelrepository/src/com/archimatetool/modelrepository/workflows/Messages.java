@@ -53,7 +53,6 @@ public class Messages extends NLS {
 
     public static String ExtractModelFromCommitWorkflow_0;
     public static String ExtractModelFromCommitWorkflow_1;
-
     public static String ExtractModelFromCommitWorkflow_2;
 
     public static String MergeBranchWorkflow_0;
@@ -62,7 +61,6 @@ public class Messages extends NLS {
     public static String MergeBranchWorkflow_3;
     public static String MergeBranchWorkflow_4;
     public static String MergeBranchWorkflow_5;
-
     public static String MergeBranchWorkflow_6;
 
     public static String PushModelWorkflow_0;
@@ -70,23 +68,16 @@ public class Messages extends NLS {
     public static String PushModelWorkflow_2;
     public static String PushModelWorkflow_3;
     public static String PushModelWorkflow_4;
-
     public static String PushModelWorkflow_5;
-
     public static String PushModelWorkflow_6;
 
     public static String RefreshModelWorkflow_0;
-    public static String RefreshModelWorkflow_1;
     public static String RefreshModelWorkflow_2;
     public static String RefreshModelWorkflow_3;
     public static String RefreshModelWorkflow_4;
-
     public static String RefreshModelWorkflow_5;
-
     public static String RefreshModelWorkflow_6;
-
     public static String RefreshModelWorkflow_7;
-
     public static String RefreshModelWorkflow_8;
 
     public static String ResetToRemoteCommitWorkflow_0;
