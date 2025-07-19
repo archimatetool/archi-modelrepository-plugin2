@@ -19,6 +19,7 @@ import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.transport.TrackingRefUpdate;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.components.IRunnable;
@@ -72,7 +73,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         // The first FetchResult will be for branches and the second for tags.
         List<FetchResult> fetchResults = null;
         try {
-            fetchResults = fetch(credentials.getCredentialsProvider(), true);
+            fetchResults = fetch(credentials.getCredentialsProvider());
         }
         catch(Exception ex) {
             // If this exception is thrown then the remote doesn't have the current branch ref
@@ -92,21 +93,18 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
             logFetchResults(fetchResults);
         }
         
-        // Check for tracking updates
-        FetchResult branchesResult = fetchResults.get(0);
-        boolean hasTrackingRefUpdates = !branchesResult.getTrackingRefUpdates().isEmpty();
-        if(hasTrackingRefUpdates) {
-            logger.info("Found new tracking ref updates."); //$NON-NLS-1$
-        }
+        // Check for branch and tag tracking updates
+        boolean hasTrackingRefUpdates = !(fetchResults.get(0).getTrackingRefUpdates().isEmpty() &&
+                                          fetchResults.get(1).getTrackingRefUpdates().isEmpty());
 
-        MergeHandlerResult mergeHandlerResult = MergeHandlerResult.MERGED_OK;
+        MergeHandlerResult mergeHandlerResult;
         
         try {
             // Get the remote tracking branch info
             BranchInfo remoteBranchInfo = BranchInfo.currentRemoteBranchInfo(archiRepository.getWorkingFolder());
             
-            // There wasn't a remote tracked branch to merge
-            if(remoteBranchInfo == null) {
+            // There wasn't a remote tracked branch to merge or there is but it's at HEAD
+            if(remoteBranchInfo == null || remoteBranchInfo.isRefAtHead()) {
                 if(hasTrackingRefUpdates) {
                     notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 }
@@ -179,7 +177,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }
     }
     
-    private List<FetchResult> fetch(CredentialsProvider credentialsProvider, boolean fetchTags) throws Exception {
+    private List<FetchResult> fetch(CredentialsProvider credentialsProvider) throws Exception {
         logger.info("Fetching from " + archiRepository.getRemoteURL()); //$NON-NLS-1$
 
         AtomicReference<List<FetchResult>> fetchResults = new AtomicReference<>();
@@ -188,7 +186,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.RefreshModelWorkflow_4, IProgressMonitor.UNKNOWN);
-            fetchResults.set(archiRepository.fetchFromRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), fetchTags));
+            fetchResults.set(archiRepository.fetchFromRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), true));
         }, true);
 
         return fetchResults.get();
@@ -200,7 +198,10 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
                 // Remove zero byte from message
                 String msg = fetchResult.getMessages().replace("\0", "").trim(); //$NON-NLS-1$ //$NON-NLS-2$
                 if(StringUtils.isSet(msg)) {
-                    logger.info("Message: " + msg); //$NON-NLS-1$
+                    logger.info("FetchResult Message: " + msg); //$NON-NLS-1$
+                }
+                for(TrackingRefUpdate refUpdate : fetchResult.getTrackingRefUpdates()) {
+                    logger.info(refUpdate.toString());
                 }
             }
         }

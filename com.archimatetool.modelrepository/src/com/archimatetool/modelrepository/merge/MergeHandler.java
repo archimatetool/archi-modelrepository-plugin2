@@ -83,6 +83,11 @@ public class MergeHandler {
     public MergeHandlerResult merge(IArchiRepository repo, BranchInfo branchToMerge) throws IOException, GitAPIException {
         logger.info("Merging " + branchToMerge.getFullName()); //$NON-NLS-1$
         
+        // If the branch to merge is at HEAD there's nothing to merge
+        if(branchToMerge.isRefAtHead()) {
+            return MergeHandlerResult.ALREADY_UP_TO_DATE;
+        }
+        
         try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
             // If a FF merge is possible (head is reachable from the branch to merge) just move HEAD to the target branch ref
             if(ALLOW_FF_MERGE && utils.isMergedInto(RepoConstants.HEAD, branchToMerge.getFullName())) {
