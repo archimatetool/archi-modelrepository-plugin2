@@ -234,7 +234,7 @@ public class HistoryTableViewer extends TableViewer {
     
     private boolean getHasWorkingTree(IArchiRepository repo) {
         try {
-            return repo != null && repo.hasChangesToCommit() && fSelectedBranch != null && fSelectedBranch.isCurrentBranch();
+            return repo != null && fSelectedBranch != null && fSelectedBranch.isCurrentBranch() && repo.hasChangesToCommit();
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
