@@ -40,15 +40,18 @@ public class TagInfo {
         List<TagInfo> list = new ArrayList<>();
         
         try(Git git = Git.open(repoFolder)) {
-            // Get all branches now
-            List<Ref> branchRefs = git.branchList().setListMode(ListMode.ALL).call();
-            
-            // Use two RevWalks, one for the commit and tag, and one for getIsOrphaned
-            try(RevWalk revWalk1 = new RevWalk(git.getRepository()); RevWalk revWalk2 = new RevWalk(git.getRepository())) {
-                revWalk2.setRetainBody(false); // This one doesn't need to retain body
+            List<Ref> tags = git.tagList().call();
+            if(!tags.isEmpty()) {
+                // Get all branches now
+                List<Ref> branchRefs = git.branchList().setListMode(ListMode.ALL).call();
                 
-                for(Ref tagRef : git.tagList().call()) {
-                    list.add(new TagInfo(git.getRepository(), tagRef, revWalk1, revWalk2, branchRefs));
+                // Use two RevWalks, one for the commit and tag, and one for getIsOrphaned
+                try(RevWalk revWalk1 = new RevWalk(git.getRepository()); RevWalk revWalk2 = new RevWalk(git.getRepository())) {
+                    revWalk2.setRetainBody(false); // This one doesn't need to retain body
+                    
+                    for(Ref tagRef : tags) {
+                        list.add(new TagInfo(git.getRepository(), tagRef, revWalk1, revWalk2, branchRefs));
+                    }
                 }
             }
         }
@@ -57,8 +60,8 @@ public class TagInfo {
     }
     
     TagInfo(Repository repository, Ref ref, RevWalk revWalk1, RevWalk revWalk2,  List<Ref> branchRefs) throws IOException {
+        this.ref = ref;
         repoDir = repository.getWorkTree();
-        this.ref = ref.getTarget();
         
         // Use a separate RevWalk for these
         commit = getCommit(repository, revWalk1);
