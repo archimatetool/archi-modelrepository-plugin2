@@ -38,16 +38,16 @@ public abstract class AbstractPushResultWorkflow extends AbstractRepositoryWorkf
             return;
         }
         
+        String msg = getSanitisedOperationResultResultMessages(pushResult);
+        if(StringUtils.isSet(msg)) {
+            logger.info("PushResult Message: " + msg); //$NON-NLS-1$
+        }
+
         for(RemoteRefUpdate refUpdate : pushResult.getRemoteUpdates()) {
             logger.info("PushResult status for " + refUpdate.getRemoteName() + ": " + refUpdate.getStatus()); //$NON-NLS-1$ //$NON-NLS-2$
             if(refUpdate.getMessage() != null) {
                 logger.info("RefUpdate message: " + refUpdate.getMessage()); //$NON-NLS-1$
             }
-        }
-        
-        String msg = getSanitisedPushResultMessages(pushResult);
-        if(StringUtils.isSet(msg)) {
-            logger.info("Message: " + msg); //$NON-NLS-1$
         }
     }
     
@@ -129,7 +129,7 @@ public abstract class AbstractPushResultWorkflow extends AbstractRepositoryWorkf
                           sb.append(refUpdate.getMessage());
                       }
                       
-                      String msgs = getSanitisedPushResultMessages(pushResult);
+                      String msgs = getSanitisedOperationResultResultMessages(pushResult);
                       if(StringUtils.isSet(msgs)) {
                           sb.append('\n');
                           sb.append(msgs);
@@ -138,14 +138,5 @@ public abstract class AbstractPushResultWorkflow extends AbstractRepositoryWorkf
             
         String result = sb.toString().trim();
         return result.length() > 1 ? result : null; // 1 character == "\n"
-    }
-    
-    /**
-     * There is a bug in JGit where the first byte of PushResult's message can be a zero byte.
-     * This means that the message won't display in a dialog box on Windows, so we remove it.
-     * @return The sanitised messages from a PushResult, or null.
-     */
-    private String getSanitisedPushResultMessages(PushResult pushResult) {
-        return pushResult.getMessages().replace("\0", "").trim(); //$NON-NLS-1$ //$NON-NLS-2$
     }
 }

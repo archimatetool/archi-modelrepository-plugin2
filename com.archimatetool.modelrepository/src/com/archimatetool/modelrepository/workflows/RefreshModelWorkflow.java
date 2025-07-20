@@ -182,16 +182,19 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
     }
     
     private void logFetchResults(List<FetchResult> fetchResults) {
-        if(fetchResults != null) {
-            for(FetchResult fetchResult : fetchResults) {
-                // Remove zero byte from message
-                String msg = fetchResult.getMessages().replace("\0", "").trim(); //$NON-NLS-1$ //$NON-NLS-2$
-                if(StringUtils.isSet(msg)) {
-                    logger.info("FetchResult Message: " + msg); //$NON-NLS-1$
-                }
-                for(TrackingRefUpdate refUpdate : fetchResult.getTrackingRefUpdates()) {
-                    logger.info(refUpdate.toString());
-                }
+        if(fetchResults == null) {
+            return;
+        }
+        
+        for(FetchResult fetchResult : fetchResults) {
+            // Remove zero byte from message
+            String msgs = getSanitisedOperationResultResultMessages(fetchResult);
+            if(StringUtils.isSet(msgs)) {
+                logger.info("FetchResult Message: " + msgs); //$NON-NLS-1$
+            }
+
+            for(TrackingRefUpdate refUpdate : fetchResult.getTrackingRefUpdates()) {
+                logger.info(refUpdate.toString());
             }
         }
     }

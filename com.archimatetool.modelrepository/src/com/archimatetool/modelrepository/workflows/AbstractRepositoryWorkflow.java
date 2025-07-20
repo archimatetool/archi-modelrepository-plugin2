@@ -13,6 +13,7 @@ import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.OperationResult;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -314,6 +315,15 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
         }
     }
     
+    /**
+     * There is a bug in JGit where the first byte of OperationResult's message can be a zero byte.
+     * This means that the message won't display in a dialog box on Windows, so we remove it.
+     * @return The sanitised messages from an OperationResult, or null.
+     */
+    protected String getSanitisedOperationResultResultMessages(OperationResult result) {
+        return result.getMessages().replace("\0", "").trim(); //$NON-NLS-1$ //$NON-NLS-2$
+    }
+
     /**
      * Run the workflow
      */
