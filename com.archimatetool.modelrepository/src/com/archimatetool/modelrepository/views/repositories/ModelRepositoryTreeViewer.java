@@ -80,6 +80,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         setContentProvider(new ModelRepoTreeContentProvider());
         setLabelProvider(new ModelRepoTreeLabelProvider());
         
+        setUseHashlookup(true);
+        
         RepositoryListenerManager.getInstance().addListener(this);
         
         // Dispose of this and clean up
