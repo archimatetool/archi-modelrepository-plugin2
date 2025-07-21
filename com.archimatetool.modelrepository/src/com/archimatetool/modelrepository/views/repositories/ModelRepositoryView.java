@@ -8,6 +8,7 @@ package com.archimatetool.modelrepository.views.repositories;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -139,13 +140,13 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
          * Listen to Selections to update local Actions
          */
         getViewer().addSelectionChangedListener(event -> {
-            updateActions(event.getSelection());
-            updateStatusBar(event.getSelection());
+            updateActions(event.getStructuredSelection());
+            updateStatusBar(event.getStructuredSelection());
         });
         
         // Listen to workbench selections using a SelectionListenerFactory
         getSite().getPage().addSelectionListener(SelectionListenerFactory.createListener(this,
-                                                 Predicates.alreadyDeliveredAnyPart.and(Predicates.selfMute)));
+                                                 Predicates.emptySelection.and(Predicates.selfMute)));
         
         // Initialise with whatever is selected in the workbench
         selectionChanged(getSite().getPage().getActivePart(), getSite().getPage().getSelection());
@@ -156,10 +157,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         getViewer().addDoubleClickListener(event -> {
             Object obj = ((IStructuredSelection)event.getSelection()).getFirstElement();
             if(obj instanceof RepositoryRef ref) {
-                IArchiRepository repo = ref.getArchiRepository();
-                
                 BusyIndicator.showWhile(Display.getCurrent(), () -> {
-                    IEditorModelManager.INSTANCE.openModel(repo.getModelFile());
+                    IEditorModelManager.INSTANCE.openModel(ref.getArchiRepository().getModelFile());
                 });
             }
         });
@@ -192,11 +191,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             @Override
             public void run() {
                 if(getViewer().getStructuredSelection().getFirstElement() instanceof RepositoryRef ref) {
-                    BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
-                        @Override
-                        public void run() {
-                            IEditorModelManager.INSTANCE.openModel(ref.getArchiRepository().getModelFile());
-                        }
+                    BusyIndicator.showWhile(Display.getCurrent(), () -> {
+                        IEditorModelManager.INSTANCE.openModel(ref.getArchiRepository().getModelFile());
                     });
                 }
             }
@@ -379,8 +375,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     }
     
     private void deleteSelected() {
-        Set<RepositoryRef> refsToDelete = new HashSet<RepositoryRef>();
-        Set<Group> groupsToDelete = new HashSet<Group>();
+        Set<RepositoryRef> refsToDelete = new HashSet<>();
+        Set<Group> groupsToDelete = new HashSet<>();
         boolean delete = false;
 
         // Get all selected Repository Refs and Groups
@@ -584,8 +580,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
      * Update the Local Actions depending on the selection 
      * @param selection
      */
-    private void updateActions(ISelection selection) {
-        Object obj = ((IStructuredSelection)selection).getFirstElement();
+    private void updateActions(IStructuredSelection selection) {
+        Object obj = selection.getFirstElement();
         
         if(obj instanceof RepositoryRef ref) {
             IArchiRepository repo = ref.getArchiRepository();
@@ -599,8 +595,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         fActionUpdate.setEnabled();
     }
     
-    private void updateStatusBar(ISelection selection) {
-        Object obj = ((IStructuredSelection)selection).getFirstElement();
+    private void updateStatusBar(IStructuredSelection selection) {
+        Object obj = selection.getFirstElement();
         
         if(obj instanceof RepositoryRef ref) {
             IArchiRepository repo = ref.getArchiRepository();
@@ -618,7 +614,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     }
     
     private void fillContextMenu(IMenuManager manager) {
-        Object obj = ((IStructuredSelection)getViewer().getSelection()).getFirstElement();
+        Object obj = getViewer().getStructuredSelection().getFirstElement();
         
         if(obj instanceof RepositoryRef) {
             manager.add(fActionOpen);
@@ -633,7 +629,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             manager.add(fActionAddGroup);
             manager.add(new Separator());
             manager.add(fActionUpdate);
-       }
+        }
         else {
             if(obj instanceof RepositoryRef) {
                 manager.add(fActionAddGroup);
@@ -669,23 +665,17 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
         // Model selected
         if(part != null) {
-            IArchimateModel model = part.getAdapter(IArchimateModel.class);
-            selectObject(model);
+            selectRepositoryForModel(part.getAdapter(IArchimateModel.class));
         }
     }
 
-    public void selectObject(Object object) {
-        // Model
-        if(object instanceof IArchimateModel model) {
-            object = RepositoryTreeModel.getInstance().findRepositoryRef(RepoUtils.getWorkingFolderForModel(model));
-        }
-        // Repository
-        else if(object instanceof IArchiRepository repo) {
-            object = RepositoryTreeModel.getInstance().findRepositoryRef(repo.getWorkingFolder());
-        }
-        
-        if(object != null) {
-            getViewer().setSelection(new StructuredSelection(object));
+    public void selectRepositoryForModel(IArchimateModel model) {
+        if(model != null) {
+            // Get RepositoryRef corresponding to selected model
+            RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(RepoUtils.getWorkingFolderForModel(model));
+            if(ref != null && !Objects.equals(ref, getViewer().getStructuredSelection().getFirstElement())) {
+                getViewer().setSelection(new StructuredSelection(ref));
+            }
         }
     }
     

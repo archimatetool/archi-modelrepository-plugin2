@@ -24,9 +24,9 @@ public class ShowInRepositoryViewHandler extends AbstractModelHandler {
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ModelRepositoryView part = (ModelRepositoryView)ViewManager.showViewPart(ModelRepositoryView.ID, false);
         
-        // This is not really necessary as ModelRepositoryView synchronises model selections anyway
+        // This is not really necessary if the ModelRepositoryView is synchronising model selections
         if(part != null && getActiveArchimateModel() != null) {
-            part.selectObject(getActiveArchimateModel());
+            part.selectRepositoryForModel(getActiveArchimateModel());
         }
         
         return null;
