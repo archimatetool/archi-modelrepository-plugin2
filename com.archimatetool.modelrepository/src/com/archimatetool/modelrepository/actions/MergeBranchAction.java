@@ -31,7 +31,7 @@ public class MergeBranchAction extends AbstractRepositoryAction {
         if(selectedBranchInfo != branchInfo) {
             selectedBranchInfo = branchInfo;
             workflow = branchInfo != null ? new MergeBranchWorkflow(workbenchWindow, branchInfo) : null;
-            setEnabled(shouldBeEnabled());
+            update();
         }
     }
 

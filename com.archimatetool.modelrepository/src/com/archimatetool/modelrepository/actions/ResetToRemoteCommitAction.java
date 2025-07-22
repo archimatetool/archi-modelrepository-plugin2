@@ -29,7 +29,7 @@ public class ResetToRemoteCommitAction extends AbstractRepositoryAction {
     @Override
     public void setRepository(IArchiRepository archiRepository) {
         workflow = archiRepository != null ? new ResetToRemoteCommitWorkflow(workbenchWindow, archiRepository) : null;
-        setEnabled(shouldBeEnabled());
+        update();
     }
 
     @Override

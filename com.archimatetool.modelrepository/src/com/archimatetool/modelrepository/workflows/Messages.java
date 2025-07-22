@@ -55,6 +55,10 @@ public class Messages extends NLS {
     public static String ExtractModelFromCommitWorkflow_1;
     public static String ExtractModelFromCommitWorkflow_2;
 
+    public static String FetchUpdateWorkflow_0;
+    public static String FetchUpdateWorkflow_1;
+    public static String FetchUpdateWorkflow_2;
+
     public static String MergeBranchWorkflow_0;
     public static String MergeBranchWorkflow_1;
     public static String MergeBranchWorkflow_2;

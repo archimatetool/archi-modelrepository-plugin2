@@ -32,7 +32,7 @@ public class AddBranchAction extends AbstractRepositoryAction {
         if(this.objectId != objectId) {
             this.objectId = objectId;
             workflow = objectId != null ? new AddBranchWorkflow(workbenchWindow, archiRepository, objectId) : null;
-            setEnabled(shouldBeEnabled());
+            update();
         }
     }
     

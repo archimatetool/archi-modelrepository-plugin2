@@ -32,7 +32,7 @@ public class AddTagAction extends AbstractRepositoryAction {
         if(this.revCommit != commit) {
             this.revCommit = commit;
             workflow = revCommit != null ? new AddTagWorkflow(workbenchWindow, archiRepository, revCommit) : null;
-            setEnabled(shouldBeEnabled());
+            update();
         }
     }
     

@@ -27,7 +27,7 @@ public abstract class AbstractRepositoryAction extends Action implements IReposi
 	@Override
 	public void setRepository(IArchiRepository archiRepository) {
 	    this.archiRepository = archiRepository;
-	    setEnabled(shouldBeEnabled());
+	    update();
 	}
 	
     @Override

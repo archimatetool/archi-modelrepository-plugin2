@@ -33,7 +33,7 @@ public class DeleteBranchAction extends AbstractRepositoryAction {
         if(selectedBranchInfo != branchInfo) {
             selectedBranchInfo = branchInfo;
             workflow = branchInfo != null ? new DeleteBranchWorkflow(workbenchWindow, branchInfo) : null;
-            setEnabled(shouldBeEnabled());
+            update();
         }
     }
 

@@ -31,7 +31,7 @@ public class DeleteTagsAction extends AbstractRepositoryAction {
 
     public void setTags(IArchiRepository archiRepository, TagInfo... tagInfos) {
         workflow = tagInfos != null && tagInfos.length != 0 ? new DeleteTagsWorkflow(workbenchWindow, archiRepository, tagInfos) : null;
-        setEnabled(shouldBeEnabled());
+        update();
     }
 
     @Override

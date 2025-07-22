@@ -107,8 +107,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     private IRepositoryAction fActionCommit;
     private IRepositoryAction fActionPush;
     private IRepositoryAction fActionDiscardChanges;
-
-    private FetchUpdateAction fActionUpdate;
+    private IRepositoryAction fActionUpdate;
 
     private IAction fActionShowInHistory;
     private IAction fActionShowInBranches;
@@ -592,7 +591,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             fActionDiscardChanges.setRepository(repo);
         }
         
-        fActionUpdate.setEnabled();
+        fActionUpdate.update();
     }
     
     private void updateStatusBar(IStructuredSelection selection) {

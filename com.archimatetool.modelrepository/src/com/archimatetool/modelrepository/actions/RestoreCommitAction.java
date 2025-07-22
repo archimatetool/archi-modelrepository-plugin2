@@ -32,7 +32,7 @@ public class RestoreCommitAction extends AbstractRepositoryAction {
         if(revCommit != commit) {
             revCommit = commit;
             workflow = archiRepository != null && revCommit != null ? new RestoreCommitWorkflow(workbenchWindow, archiRepository, revCommit) : null;
-            setEnabled(shouldBeEnabled());
+            update();
         }
     }
     

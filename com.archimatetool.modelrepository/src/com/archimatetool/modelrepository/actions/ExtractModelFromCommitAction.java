@@ -32,7 +32,7 @@ public class ExtractModelFromCommitAction extends AbstractRepositoryAction {
         if(revCommit != commit) {
             revCommit = commit;
             workflow = archiRepository != null && revCommit != null ? new ExtractModelFromCommitWorkflow(workbenchWindow, archiRepository, revCommit) : null;
-            setEnabled(shouldBeEnabled());
+            update();
         }
     }
     

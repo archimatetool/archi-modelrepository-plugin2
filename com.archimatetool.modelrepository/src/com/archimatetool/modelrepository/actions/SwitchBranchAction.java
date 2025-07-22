@@ -30,7 +30,7 @@ public class SwitchBranchAction extends AbstractRepositoryAction {
         if(selectedBranchInfo != branchInfo) {
             selectedBranchInfo = branchInfo;
             workflow = branchInfo != null ? new SwitchBranchWorklow(workbenchWindow, branchInfo) : null;
-            setEnabled(shouldBeEnabled());
+            update();
         }
     }
     

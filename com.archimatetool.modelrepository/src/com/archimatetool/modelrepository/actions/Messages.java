@@ -20,14 +20,6 @@ public class Messages extends NLS {
 
     public static String FetchUpdateAction_0;
 
-    public static String FetchUpdateAction_1;
-
-    public static String FetchUpdateAction_2;
-
-    public static String FetchUpdateAction_3;
-
-    public static String FetchUpdateAction_4;
-
     public static String MergeBranchAction_0;
 
     public static String PushModelAction_0;

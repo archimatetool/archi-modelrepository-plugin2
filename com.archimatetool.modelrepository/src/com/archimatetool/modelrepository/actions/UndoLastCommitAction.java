@@ -29,7 +29,7 @@ public class UndoLastCommitAction extends AbstractRepositoryAction {
     @Override
     public void setRepository(IArchiRepository archiRepository) {
         workflow = archiRepository != null ? new UndoLastCommitWorkflow(workbenchWindow, archiRepository) : null;
-        setEnabled(shouldBeEnabled());
+        update();
     }
 
     @Override
