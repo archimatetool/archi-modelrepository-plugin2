@@ -15,10 +15,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.transport.TrackingRefUpdate;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.components.IRunnable;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.ICredentials;
@@ -87,6 +89,7 @@ public class FetchUpdateAction extends Action {
                             
                             // If there were updates add the repo to be updated
                             for(FetchResult fetchResult : fetchResults) {
+                                logFetchResult(fetchResult);
                                 if(!fetchResult.getTrackingRefUpdates().isEmpty()) {
                                     updatedRepos.add(repository);
                                 }
@@ -115,5 +118,17 @@ public class FetchUpdateAction extends Action {
     
     public void setEnabled() {
         setEnabled(!RepositoryTreeModel.getInstance().getAllChildRepositoryRefs().isEmpty());
+    }
+    
+    private void logFetchResult(FetchResult fetchResult) {
+        // Remove zero byte from message
+        String msgs = fetchResult.getMessages().replace("\0", "").trim(); //$NON-NLS-1$ //$NON-NLS-2$
+        if(StringUtils.isSet(msgs)) {
+            logger.info("FetchResult Message: " + msgs); //$NON-NLS-1$
+        }
+
+        for(TrackingRefUpdate refUpdate : fetchResult.getTrackingRefUpdates()) {
+            logger.info(refUpdate.toString());
+        }
     }
 }
