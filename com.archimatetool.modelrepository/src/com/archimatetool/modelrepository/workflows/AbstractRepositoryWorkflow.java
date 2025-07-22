@@ -59,7 +59,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
         ex.printStackTrace();
         ErrorMessageDialog.open(workbenchWindow.getShell(),
                 title,
-                Messages.AbstractWorkflow_0,
+                Messages.AbstractRepositoryWorkflow_0,
                 ex);
     }
 
@@ -79,7 +79,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     protected void displayErrorDialog(String title, String message) {
         MessageDialog.openError(workbenchWindow.getShell(),
                 title,
-                Messages.AbstractWorkflow_0 +
+                Messages.AbstractRepositoryWorkflow_0 +
                     "\n" + //$NON-NLS-1$
                     message);
     }
@@ -122,7 +122,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
      * @return SWT.YES, SWT.NO or SWT.CANCEL
      */
     protected int askToSaveModel(IArchimateModel model) throws IOException {
-        int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.AbstractWorkflow_1, Messages.AbstractWorkflow_2);
+        int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.AbstractRepositoryWorkflow_1, Messages.AbstractRepositoryWorkflow_2);
         if(response == SWT.YES) {
             IEditorModelManager.INSTANCE.saveModel(model);
         }
@@ -141,7 +141,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     protected boolean checkIfCommitNeeded() {
         try {
             if(archiRepository.hasChangesToCommit()) {
-                int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.AbstractWorkflow_3, Messages.AbstractWorkflow_4);
+                int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.AbstractRepositoryWorkflow_3, Messages.AbstractRepositoryWorkflow_4);
                 // Cancel
                 if(response == SWT.CANCEL) {
                     // Cancel
@@ -192,7 +192,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
             }
             catch(Exception ex) {
                 logger.log(Level.SEVERE, "Commit Exception", ex); //$NON-NLS-1$
-                displayErrorDialog(Messages.AbstractWorkflow_3, ex);
+                displayErrorDialog(Messages.AbstractRepositoryWorkflow_3, ex);
                 return false;
             }
             finally {
@@ -213,7 +213,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
         try {
             if(archiRepository.getRemoteURL() == null) {
                 logger.warning("Remote not set for: " + archiRepository.getWorkingFolder()); //$NON-NLS-1$
-                MessageDialog.openError(workbenchWindow.getShell(), Messages.AbstractWorkflow_5, Messages.AbstractWorkflow_6);
+                MessageDialog.openError(workbenchWindow.getShell(), Messages.AbstractRepositoryWorkflow_5, Messages.AbstractRepositoryWorkflow_6);
                 return false;
             }
         }
@@ -244,7 +244,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
         }
         catch(IOException | StorageException ex) {
             logger.log(Level.SEVERE, "User Credentials", ex); //$NON-NLS-1$
-            displayErrorDialog(Messages.AbstractRepositoryWorkflow_0, ex);
+            displayErrorDialog(Messages.AbstractRepositoryWorkflow_7, ex);
         }
         
         return null;

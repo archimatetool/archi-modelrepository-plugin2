@@ -7,14 +7,13 @@ public class Messages extends NLS {
     private static final String BUNDLE_NAME = "com.archimatetool.modelrepository.workflows.messages"; //$NON-NLS-1$
 
     public static String AbstractRepositoryWorkflow_0;
-
-    public static String AbstractWorkflow_0;
-    public static String AbstractWorkflow_1;
-    public static String AbstractWorkflow_2;
-    public static String AbstractWorkflow_3;
-    public static String AbstractWorkflow_4;
-    public static String AbstractWorkflow_5;
-    public static String AbstractWorkflow_6;
+    public static String AbstractRepositoryWorkflow_1;
+    public static String AbstractRepositoryWorkflow_2;
+    public static String AbstractRepositoryWorkflow_3;
+    public static String AbstractRepositoryWorkflow_4;
+    public static String AbstractRepositoryWorkflow_5;
+    public static String AbstractRepositoryWorkflow_6;
+    public static String AbstractRepositoryWorkflow_7;
 
     public static String AddBranchWorkflow_0;
     public static String AddBranchWorkflow_1;
