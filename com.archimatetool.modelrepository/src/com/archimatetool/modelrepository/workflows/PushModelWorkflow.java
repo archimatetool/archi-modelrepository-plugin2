@@ -5,6 +5,7 @@
  */
 package com.archimatetool.modelrepository.workflows;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +28,6 @@ import com.archimatetool.modelrepository.repository.BranchInfo.Option;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
-import com.google.common.base.Objects;
 
 /**
  * Push Model Workflow ("Publish")
@@ -57,7 +57,7 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
         // Check if remote is ahead or Fetch needed first
-        try(GitUtils utils = GitUtils.open(archiRepository.getGitFolder())) {
+        try {
             // If there are ahead commits or remote updates...
             BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(archiRepository.getGitFolder(), Option.COMMIT_STATUS);
             if(branchInfo.hasRemoteCommits() || hasRemoteUpdates(branchInfo.getRemoteBranchName(), credentials.getCredentialsProvider(), dialog)) {
@@ -115,7 +115,7 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         }, true);
         
         for(TrackingRefUpdate refUpdate : fetchResult.get().getTrackingRefUpdates()) {
-            if(Objects.equal(remoteRef, refUpdate.getLocalName())) {
+            if(Objects.equals(remoteRef, refUpdate.getLocalName())) {
                 return true;
             }
         }
