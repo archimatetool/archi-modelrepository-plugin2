@@ -26,10 +26,10 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -300,8 +300,8 @@ public class HistoryTableViewer extends TableViewer {
          * Loads all commits and keeps a reference to the current local and remote commits
          */
         void loadCommits(IArchiRepository repo) throws IOException, GitAPIException {
-            try(Git git = Git.open(repo.getWorkingFolder())) {
-                try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+            try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
+                try(RevWalk revWalk = new RevWalk(utils.getRepository())) {
                     revWalk.sort(revSort);
                     
                     // Add a filter to show only commits that contain an object's Id
@@ -310,14 +310,14 @@ public class HistoryTableViewer extends TableViewer {
                     }
 
                     // Set the local branch commit start
-                    ObjectId localCommitID = git.getRepository().resolve(fSelectedBranch.getLocalBranchName());
+                    ObjectId localCommitID = utils.getRepository().resolve(fSelectedBranch.getLocalBranchName());
                     if(localCommitID != null) {
                         fLocalCommit = revWalk.parseCommit(localCommitID);
                         revWalk.markStart(fLocalCommit);
                     }
 
                     // Set the remote branch commit start
-                    ObjectId remoteCommitID = git.getRepository().resolve(fSelectedBranch.getRemoteBranchName());
+                    ObjectId remoteCommitID = utils.getRepository().resolve(fSelectedBranch.getRemoteBranchName());
                     if(remoteCommitID != null) {
                         fRemoteCommit = revWalk.parseCommit(remoteCommitID);
                         revWalk.markStart(fRemoteCommit);
@@ -329,9 +329,9 @@ public class HistoryTableViewer extends TableViewer {
                     }
                 }
                 
-                tagMap = GitUtils.wrap(git.getRepository()).getTagsMap();
+                tagMap = utils.getTagsMap();
                 
-                getCommitStatus(git);
+                getCommitStatus(utils.getRepository());
             }
         }
         
@@ -339,14 +339,14 @@ public class HistoryTableViewer extends TableViewer {
          * We want to show a different colored line between the local and remote commit if there are ahead/behind commits.
          * Store the IDs of commits that are ahead/behind mapped to their status.
          */
-        void getCommitStatus(Git git) throws IOException {
+        void getCommitStatus(Repository repository) throws IOException {
             // There will only be ahead/behind commits if we have a tracked remote branch
             if(fLocalCommit != null && fRemoteCommit != null) {
                 // Local commits that are ahead of the remote commit
-                addCommitStatus(git, fRemoteCommit, fLocalCommit, CommitStatus.AHEAD);
+                addCommitStatus(repository, fRemoteCommit, fLocalCommit, CommitStatus.AHEAD);
                 
                 // Local commits that are behind the remote commit
-                addCommitStatus(git, fLocalCommit, fRemoteCommit, CommitStatus.BEHIND);
+                addCommitStatus(repository, fLocalCommit, fRemoteCommit, CommitStatus.BEHIND);
             }
         }
         
@@ -355,9 +355,9 @@ public class HistoryTableViewer extends TableViewer {
          * @param sinceId The oldest commit
          * @param untilId The newest commit
          */
-        private void addCommitStatus(Git git, ObjectId sinceId, ObjectId untilId, CommitStatus status) throws IOException {
+        private void addCommitStatus(Repository repository, ObjectId sinceId, ObjectId untilId, CommitStatus status) throws IOException {
             // This is the equivalent of git.log().addRange(sinceId, untilId).call()
-            try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+            try(RevWalk revWalk = new RevWalk(repository)) {
                 revWalk.setRetainBody(false);
                 revWalk.markStart(revWalk.parseCommit(untilId));
                 revWalk.markUninteresting(revWalk.parseCommit(sinceId));
