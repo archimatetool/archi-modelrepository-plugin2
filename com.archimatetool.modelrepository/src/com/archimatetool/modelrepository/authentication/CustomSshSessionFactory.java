@@ -77,9 +77,10 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
             }
         }
         
-        // Single default identity file 
-        if(SSHCredentialsProvider.getDefault().getIdentityFile() != null) {
-            return List.of(SSHCredentialsProvider.getDefault().getIdentityFile().toPath());
+        // Single default identity file
+        File identityFile = SSHCredentialsProvider.getDefault().getIdentityFile();
+        if(identityFile != null && identityFile.exists() && identityFile.isFile()) {
+            return List.of(identityFile.toPath());
         }
         
         return Collections.emptyList();
