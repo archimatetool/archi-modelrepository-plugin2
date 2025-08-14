@@ -79,7 +79,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         // User Details Group
         Group userDetailsGroup = new Group(client, SWT.NULL);
         userDetailsGroup.setText(Messages.ModelRepositoryPreferencePage_0);
-        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(userDetailsGroup);
+        GridLayoutFactory.swtDefaults().numColumns(2).applyTo(userDetailsGroup);
         GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(userDetailsGroup);
         
         new Label(userDetailsGroup, SWT.NULL).setText(Messages.ModelRepositoryPreferencePage_1);
@@ -97,7 +97,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         // Workspace Group
         Group workspaceGroup = new Group(client, SWT.NULL);
         workspaceGroup.setText(Messages.ModelRepositoryPreferencePage_3);
-        GridLayoutFactory.fillDefaults().numColumns(3).applyTo(workspaceGroup);
+        GridLayoutFactory.swtDefaults().numColumns(3).applyTo(workspaceGroup);
         GridDataFactory.create(GridData.FILL_HORIZONTAL).hint(500, SWT.DEFAULT).applyTo(workspaceGroup);
         
         // Workspace folder location
@@ -118,13 +118,13 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         // Authentication Group
         Group authGroup = new Group(client, SWT.NULL);
         authGroup.setText(Messages.ModelRepositoryPreferencePage_7);
-        GridLayoutFactory.fillDefaults().applyTo(authGroup);
+        GridLayoutFactory.swtDefaults().applyTo(authGroup);
         GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(authGroup);
         
         // SSH Credentials Group
         Group sshGroup = new Group(authGroup, SWT.NULL);
         sshGroup.setText(Messages.ModelRepositoryPreferencePage_8);
-        GridLayoutFactory.fillDefaults().numColumns(3).applyTo(sshGroup);
+        GridLayoutFactory.swtDefaults().numColumns(3).applyTo(sshGroup);
         GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(sshGroup);
 
         fSSHScanDirButton = new Button(sshGroup, SWT.CHECK);
