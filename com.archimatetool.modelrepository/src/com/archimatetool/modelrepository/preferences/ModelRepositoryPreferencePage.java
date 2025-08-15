@@ -13,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.equinox.security.storage.StorageException;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.PreferencePage;
@@ -52,15 +51,15 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     
     public static final String ID = "com.archimatetool.com.modelrepository.preferences.ModelRepositoryPreferencePage";  //$NON-NLS-1$
     
-    private Text fUserNameTextField;
-    private Text fUserEmailTextField;
+    private Text userNameTextField;
+    private Text userEmailTextField;
     
-    private Text fUserRepoFolderTextField;
+    private Text userRepoFolderTextField;
     
-    private Button fSSHIdentitySelectButton;
-    private Text fSSHIdentityFileTextField;
-    private Text fSSHIdentityPasswordTextField;
-    private Button fSSHScanDirButton;
+    private Button sshIdentitySelectButton;
+    private Text sshIdentityFileTextField;
+    private Text sshIdentityPasswordTextField;
+    private Button sshScanDirButton;
     
     private boolean sshPasswordChanged;
     
@@ -84,15 +83,15 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         
         new Label(userDetailsGroup, SWT.NULL).setText(Messages.ModelRepositoryPreferencePage_1);
         
-        fUserNameTextField = UIUtils.createSingleTextControl(userDetailsGroup, SWT.BORDER, false);
-        fUserNameTextField.setMessage(Messages.ModelRepositoryPreferencePage_17);
-        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fUserNameTextField);
+        userNameTextField = UIUtils.createSingleTextControl(userDetailsGroup, SWT.BORDER, false);
+        userNameTextField.setMessage(Messages.ModelRepositoryPreferencePage_17);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(userNameTextField);
 
         new Label(userDetailsGroup, SWT.NULL).setText(Messages.ModelRepositoryPreferencePage_2);
         
-        fUserEmailTextField = UIUtils.createSingleTextControl(userDetailsGroup, SWT.BORDER, false);
-        fUserEmailTextField.setMessage(Messages.ModelRepositoryPreferencePage_18);
-        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fUserEmailTextField);
+        userEmailTextField = UIUtils.createSingleTextControl(userDetailsGroup, SWT.BORDER, false);
+        userEmailTextField.setMessage(Messages.ModelRepositoryPreferencePage_18);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(userEmailTextField);
         
         // Workspace Group
         Group workspaceGroup = new Group(client, SWT.NULL);
@@ -103,15 +102,15 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         // Workspace folder location
         new Label(workspaceGroup, SWT.NULL).setText(Messages.ModelRepositoryPreferencePage_4);
         
-        fUserRepoFolderTextField = UIUtils.createSingleTextControl(workspaceGroup, SWT.BORDER, false);
-        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fUserRepoFolderTextField);
+        userRepoFolderTextField = UIUtils.createSingleTextControl(workspaceGroup, SWT.BORDER, false);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(userRepoFolderTextField);
         
         Button folderButton = new Button(workspaceGroup, SWT.PUSH);
         folderButton.setText(Messages.ModelRepositoryPreferencePage_5);
         folderButton.addSelectionListener(widgetSelectedAdapter(event -> {
             String folderPath = chooseFolderPath();
             if(folderPath != null) {
-                fUserRepoFolderTextField.setText(folderPath);
+                userRepoFolderTextField.setText(folderPath);
             }
         }));
         
@@ -127,31 +126,31 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         GridLayoutFactory.swtDefaults().numColumns(3).applyTo(sshGroup);
         GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(sshGroup);
 
-        fSSHScanDirButton = new Button(sshGroup, SWT.CHECK);
-        fSSHScanDirButton.setText(Messages.ModelRepositoryPreferencePage_9);
-        GridDataFactory.fillDefaults().span(3, 0).applyTo(fSSHScanDirButton);
-        fSSHScanDirButton.addSelectionListener(widgetSelectedAdapter(event -> {
-            fSSHIdentityFileTextField.setEnabled(!fSSHScanDirButton.getSelection());
-            fSSHIdentitySelectButton.setEnabled(!fSSHScanDirButton.getSelection());
+        sshScanDirButton = new Button(sshGroup, SWT.CHECK);
+        sshScanDirButton.setText(Messages.ModelRepositoryPreferencePage_9);
+        GridDataFactory.fillDefaults().span(3, 0).applyTo(sshScanDirButton);
+        sshScanDirButton.addSelectionListener(widgetSelectedAdapter(event -> {
+            sshIdentityFileTextField.setEnabled(!sshScanDirButton.getSelection());
+            sshIdentitySelectButton.setEnabled(!sshScanDirButton.getSelection());
         }));
 
         new Label(sshGroup, SWT.NULL).setText(Messages.ModelRepositoryPreferencePage_11);
         
-        fSSHIdentityFileTextField = UIUtils.createSingleTextControl(sshGroup, SWT.BORDER, false);
-        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fSSHIdentityFileTextField);
+        sshIdentityFileTextField = UIUtils.createSingleTextControl(sshGroup, SWT.BORDER, false);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(sshIdentityFileTextField);
         
-        fSSHIdentitySelectButton = new Button(sshGroup, SWT.PUSH);
-        fSSHIdentitySelectButton.setText(Messages.ModelRepositoryPreferencePage_12);
-        fSSHIdentitySelectButton.addSelectionListener(widgetSelectedAdapter(event -> {
+        sshIdentitySelectButton = new Button(sshGroup, SWT.PUSH);
+        sshIdentitySelectButton.setText(Messages.ModelRepositoryPreferencePage_12);
+        sshIdentitySelectButton.addSelectionListener(widgetSelectedAdapter(event -> {
             String identityFile = chooseSSHIdentityFile();
             if(identityFile != null) {
-                fSSHIdentityFileTextField.setText(identityFile);
+                sshIdentityFileTextField.setText(identityFile);
             }
         }));
         
         new Label(sshGroup, SWT.NULL).setText(Messages.ModelRepositoryPreferencePage_14);
-        fSSHIdentityPasswordTextField = UIUtils.createSingleTextControl(sshGroup, SWT.BORDER | SWT.PASSWORD, false);
-        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(fSSHIdentityPasswordTextField);
+        sshIdentityPasswordTextField = UIUtils.createSingleTextControl(sshGroup, SWT.BORDER | SWT.PASSWORD, false);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(sshIdentityPasswordTextField);
         
         setValues();
         
@@ -162,9 +161,9 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         DirectoryDialog dialog = new DirectoryDialog(getShell());
         dialog.setText(Messages.ModelRepositoryPreferencePage_6);
         dialog.setMessage(Messages.ModelRepositoryPreferencePage_10);
-        File file = new File(fUserRepoFolderTextField.getText());
+        File file = new File(userRepoFolderTextField.getText());
         if(file.exists()) {
-            dialog.setFilterPath(fUserRepoFolderTextField.getText());
+            dialog.setFilterPath(userRepoFolderTextField.getText());
         }
         return dialog.open();
     }
@@ -172,7 +171,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private String chooseSSHIdentityFile() {
         FileDialog dialog = new FileDialog(getShell());
         dialog.setText(Messages.ModelRepositoryPreferencePage_15);
-        File file = new File(fSSHIdentityFileTextField.getText());
+        File file = new File(sshIdentityFileTextField.getText());
         dialog.setFilterPath(file.getParent());
         return dialog.open();
     }
@@ -180,59 +179,58 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private void setValues() {
         // Gobal user details
         PersonIdent result = getUserDetails();
-        fUserNameTextField.setText(result.getName());
-        fUserEmailTextField.setText(result.getEmailAddress());
+        userNameTextField.setText(result.getName());
+        userEmailTextField.setText(result.getEmailAddress());
         
         // Workspace folder
-        fUserRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
+        userRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
         
         // SSH details
-        fSSHScanDirButton.setSelection(getPreferenceStore().getBoolean(PREFS_SSH_SCAN_DIR));
-        fSSHIdentityFileTextField.setText(getPreferenceStore().getString(PREFS_SSH_IDENTITY_FILE));
+        sshScanDirButton.setSelection(getPreferenceStore().getBoolean(PREFS_SSH_SCAN_DIR));
+        sshIdentityFileTextField.setText(getPreferenceStore().getString(PREFS_SSH_IDENTITY_FILE));
         
-        fSSHIdentityFileTextField.setEnabled(!fSSHScanDirButton.getSelection());
-        fSSHIdentitySelectButton.setEnabled(!fSSHScanDirButton.getSelection());
+        sshIdentityFileTextField.setEnabled(!sshScanDirButton.getSelection());
+        sshIdentitySelectButton.setEnabled(!sshScanDirButton.getSelection());
         
         try {
-            char[] pw = CredentialsStorage.getInstance().getSecureEntry(CredentialsStorage.SSH_PASSWORD);
-            fSSHIdentityPasswordTextField.setText(pw.length == 0 ? "" : "********"); //$NON-NLS-1$ //$NON-NLS-2$
-            fSSHIdentityPasswordTextField.addModifyListener(event -> {
-                sshPasswordChanged = true;
-            });
+            if(CredentialsStorage.getInstance().hasEntry(CredentialsStorage.SSH_PASSWORD)) {
+                sshIdentityPasswordTextField.setText("********"); //$NON-NLS-1$
+            }
         }
         catch(StorageException ex) {
+            logger.log(Level.WARNING, "Could not get user password.", ex); //$NON-NLS-1$
             ex.printStackTrace();
-            showErrorDialog(ex);
         }
+
+        sshIdentityPasswordTextField.addModifyListener(event -> {
+            sshPasswordChanged = true;
+        });
     }
     
     @Override
     public boolean performOk() {
-        String name = fUserNameTextField.getText();
-        String email = fUserEmailTextField.getText();
-        
         try {
-            RepoUtils.saveGitConfigUserDetails(name, email);
+            RepoUtils.saveGitConfigUserDetails(userNameTextField.getText(), userEmailTextField.getText());
         }
         catch(IOException | ConfigInvalidException ex) {
             logger.log(Level.WARNING, "Could not save user details.", ex); //$NON-NLS-1$
             ex.printStackTrace();
         }
         
-        getPreferenceStore().setValue(PREFS_REPOSITORY_FOLDER, fUserRepoFolderTextField.getText());
+        getPreferenceStore().setValue(PREFS_REPOSITORY_FOLDER, userRepoFolderTextField.getText());
         
         // SSH
-        getPreferenceStore().setValue(PREFS_SSH_SCAN_DIR, fSSHScanDirButton.getSelection());
-        getPreferenceStore().setValue(PREFS_SSH_IDENTITY_FILE, fSSHIdentityFileTextField.getText());
+        getPreferenceStore().setValue(PREFS_SSH_SCAN_DIR, sshScanDirButton.getSelection());
+        getPreferenceStore().setValue(PREFS_SSH_IDENTITY_FILE, sshIdentityFileTextField.getText());
 
         // If SSH password changed
         if(sshPasswordChanged) {
             try {
-                CredentialsStorage.getInstance().storeSecureEntry(CredentialsStorage.SSH_PASSWORD, fSSHIdentityPasswordTextField.getTextChars());
+                CredentialsStorage.getInstance().storeSecureEntry(CredentialsStorage.SSH_PASSWORD, sshIdentityPasswordTextField.getTextChars());
             }
             catch(StorageException | IOException ex) {
+                logger.log(Level.WARNING, "Could not save user password.", ex); //$NON-NLS-1$
                 ex.printStackTrace();
-                showErrorDialog(ex);
             }
         }
         
@@ -242,14 +240,14 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     @Override
     protected void performDefaults() {
         PersonIdent result = getUserDetails();
-        fUserNameTextField.setText(result.getName());
-        fUserEmailTextField.setText(result.getEmailAddress());
+        userNameTextField.setText(result.getName());
+        userEmailTextField.setText(result.getEmailAddress());
 
-        fUserRepoFolderTextField.setText(getPreferenceStore().getDefaultString(PREFS_REPOSITORY_FOLDER));
+        userRepoFolderTextField.setText(getPreferenceStore().getDefaultString(PREFS_REPOSITORY_FOLDER));
         
-        fSSHScanDirButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SSH_SCAN_DIR));
-        fSSHIdentityFileTextField.setText(getPreferenceStore().getDefaultString(PREFS_SSH_IDENTITY_FILE));
-        fSSHIdentityPasswordTextField.setText(""); //$NON-NLS-1$
+        sshScanDirButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SSH_SCAN_DIR));
+        sshIdentityFileTextField.setText(getPreferenceStore().getDefaultString(PREFS_SSH_IDENTITY_FILE));
+        sshIdentityPasswordTextField.setText(""); //$NON-NLS-1$
         
         super.performDefaults();
     }
@@ -266,10 +264,6 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         
         // Default
         return new PersonIdent(getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_NAME), getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_EMAIL));
-    }
-    
-    private void showErrorDialog(Object obj) {
-        MessageDialog.openError(getShell(), Messages.ModelRepositoryPreferencePage_16, obj.toString());
     }
     
     @Override

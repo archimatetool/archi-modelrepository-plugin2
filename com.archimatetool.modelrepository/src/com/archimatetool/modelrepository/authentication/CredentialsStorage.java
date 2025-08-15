@@ -100,6 +100,13 @@ public class CredentialsStorage {
         storeEntry(entryName, getSafeString(data), getMainNode());
     }
     
+    /**
+     * @return true if there is a string entry
+     */
+    public boolean hasEntry(String entryName) throws StorageException {
+        return getMainNode().get(entryName, "").length() > 0;
+    }
+    
     private void storeEntry(String entryName, String value, ISecurePreferences node) throws StorageException, IOException {
         if(node == null) {
             return;
