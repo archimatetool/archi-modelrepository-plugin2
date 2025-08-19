@@ -253,12 +253,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
     }
     
     // ===============================================================================================
-    // ===================================== Tree Model ==============================================
+    // ================================== Content Provider ===========================================
     // ===============================================================================================
     
-    /**
-     * The model for the Tree.
-     */
     class ModelRepoTreeContentProvider implements ITreeContentProvider {
         
         @Override
@@ -302,7 +299,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
     }
     
     // ===============================================================================================
-    // ===================================== Label Model ==============================================
+    // =================================== Label Provider ============================================
     // ===============================================================================================
 
     class ModelRepoTreeLabelProvider extends CellLabelProvider {

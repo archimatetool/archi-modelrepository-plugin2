@@ -100,13 +100,10 @@ public class BranchesTableViewer extends TableViewer {
     }
     
     // ===============================================================================================
-	// ===================================== Table Model ==============================================
+	// ================================== Content Provider ===========================================
 	// ===============================================================================================
     
-    /**
-     * The Model for the Table.
-     */
-   private static class BranchesContentProvider implements IStructuredContentProvider {
+    private static class BranchesContentProvider implements IStructuredContentProvider {
         @Override
         public Object[] getElements(Object parent) {
             if(parent instanceof IArchiRepository repo) {
@@ -130,7 +127,7 @@ public class BranchesTableViewer extends TableViewer {
     }
 
     // ===============================================================================================
-	// ===================================== Label Model ==============================================
+	// ===================================== Label Provider ==========================================
 	// ===============================================================================================
 
     private static class BranchesLabelProvider extends CellLabelProvider {

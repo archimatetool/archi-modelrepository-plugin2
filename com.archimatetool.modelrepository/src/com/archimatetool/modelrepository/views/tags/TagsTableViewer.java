@@ -95,13 +95,10 @@ public class TagsTableViewer extends TableViewer {
     }
     
     // ===============================================================================================
-	// ===================================== Table Model ==============================================
+	// =================================== Content Provider ==========================================
 	// ===============================================================================================
     
-    /**
-     * The Model for the Table.
-     */
-   private static class TagsContentProvider implements IStructuredContentProvider {
+    private static class TagsContentProvider implements IStructuredContentProvider {
         @Override
         public Object[] getElements(Object parent) {
             if(parent instanceof IArchiRepository repo) {
@@ -124,7 +121,7 @@ public class TagsTableViewer extends TableViewer {
     }
 
     // ===============================================================================================
-	// ===================================== Label Model ==============================================
+	// =================================== Label Provider ============================================
 	// ===============================================================================================
 
     private static class TagsLabelProvider extends CellLabelProvider {
