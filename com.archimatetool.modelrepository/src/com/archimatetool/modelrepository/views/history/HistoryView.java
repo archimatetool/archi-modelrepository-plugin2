@@ -440,7 +440,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     private void updateRepositoryActions() {
         fActionUndoLastCommit.setRepository(fSelectedRepository);
         fActionResetToRemoteCommit.setRepository(fSelectedRepository);
-        fActionCommit.setRepository(getHistoryViewer().hasWorkingTree() ? fSelectedRepository : null);
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -449,7 +448,13 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         
         manager.add(fActionCompare);
         manager.add(new Separator());
-        manager.add(fActionCommit);
+        
+        // Commit Changes when working tree is selected
+        if(!isRevCommit) {
+            fActionCommit.setRepository(fSelectedRepository);
+            manager.add(fActionCommit);
+        }
+        
         manager.add(fActionExtractCommit);
         manager.add(fActionRestoreCommit);
         manager.add(new Separator());

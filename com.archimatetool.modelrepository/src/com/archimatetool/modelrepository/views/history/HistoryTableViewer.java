@@ -228,10 +228,6 @@ public class HistoryTableViewer extends TableViewer {
         return revSort;
     }
     
-    boolean hasWorkingTree() {
-        return hasWorkingTree;
-    }
-    
     private boolean getHasWorkingTree(IArchiRepository repo) {
         try {
             return repo != null && fSelectedBranch != null && fSelectedBranch.isCurrentBranch() && repo.hasChangesToCommit();
@@ -262,6 +258,8 @@ public class HistoryTableViewer extends TableViewer {
         
         @Override
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
+            hasWorkingTree = false; // Reset this
+            
             if(oldInput == null && newInput == null) { // nothing to do
                 return;
             }
