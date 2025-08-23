@@ -62,8 +62,6 @@ import com.archimatetool.model.IArchimateModel;
 @SuppressWarnings("nls")
 public class GitUtils extends Git {
     
-    private final boolean closeRepo;
-    
     public static GitUtils open(File repoFolder) throws IOException {
         return new GitUtils(Git.open(repoFolder).getRepository(), true);
     }
@@ -73,8 +71,7 @@ public class GitUtils extends Git {
     }
     
     private GitUtils(Repository repository, boolean closeRepo) {
-        super(repository);
-        this.closeRepo = closeRepo;
+        super(repository, closeRepo);
     }
 
     /**
@@ -87,17 +84,7 @@ public class GitUtils extends Git {
         // Check lock file is deleted
         checkLockFile();
         
-        // Add modified files to index
-        add().addFilepattern(".").call();
-        //add().addFilepattern(RepoConstants.MODEL_FILENAME).addFilepattern(RepoConstants.IMAGES_FOLDER).call();
-        
-        // Add missing (deleted) files to the index
-        for(String s : status().call().getMissing()) {
-            rm().addFilepattern(s).call();
-        }
-        
-        // In JGit 7.2 and later remove the add(), status() and rm() calls above and simply do this:
-        //add().setAll(true).addFilepattern(".").call();
+        add().setAll(true).addFilepattern(".").call();
         
         return commit()
                 .setAuthor(getUserDetails())
@@ -699,17 +686,6 @@ public class GitUtils extends Git {
                 
                 return baos.toByteArray();
             }
-        }
-    }
-    
-    @Override
-    public void close() {
-        // we have to close the repository
-        if(closeRepo) {
-            getRepository().close();
-        }
-        else {
-            new Error("Closing GitUtils is not necessary.").printStackTrace();
         }
     }
     
