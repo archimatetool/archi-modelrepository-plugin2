@@ -649,7 +649,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     @Override
     public <T> T getAdapter(Class<T> adapter) {
         if(adapter == IArchiRepository.class) {
-            return adapter.cast(getHistoryViewer().getInput());
+            return adapter.cast(fSelectedRepository);
         }
         
         return super.getAdapter(adapter);
