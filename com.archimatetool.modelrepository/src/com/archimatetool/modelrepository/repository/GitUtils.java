@@ -736,7 +736,7 @@ public class GitUtils extends Git {
      */
     private void checkLockFile() {
         File lockFile = new File(getRepository().getDirectory(), "index.lock");
-        if(lockFile.exists() && lockFile.canWrite()) {
+        if(lockFile.exists()) {
             lockFile.delete();
         }
     }
