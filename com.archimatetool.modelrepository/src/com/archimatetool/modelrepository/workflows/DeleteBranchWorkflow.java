@@ -95,7 +95,7 @@ public class DeleteBranchWorkflow extends AbstractPushResultWorkflow {
     private void deleteLocalAndRemoteBranch(BranchInfo branchInfo, CredentialsProvider credentialsProvider) throws Exception {
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
-        IRunnable.run(dialog, monitor -> {
+        IRunnable.run(dialog, true, monitor -> {
             monitor.beginTask(Messages.DeleteBranchWorkflow_0, IProgressMonitor.UNKNOWN);
             
             try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
@@ -117,7 +117,7 @@ public class DeleteBranchWorkflow extends AbstractPushResultWorkflow {
                                    branchInfo.getRemoteBranchName());
                 
             }
-        }, true);
+        });
     }
     
     /**

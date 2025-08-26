@@ -73,10 +73,10 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
             
             ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
             
-            IRunnable.run(dialog, monitor -> {
+            IRunnable.run(dialog, true, monitor -> {
                 monitor.beginTask(Messages.CloneModelWorkflow_1, IProgressMonitor.UNKNOWN);
                 archiRepository.cloneModel(url, credentials.getCredentialsProvider(), new ProgressMonitorWrapper(monitor, Messages.CloneModelWorkflow_1));
-            }, true);
+            });
 
             // Get the main model file
             File modelFile = archiRepository.getModelFile();

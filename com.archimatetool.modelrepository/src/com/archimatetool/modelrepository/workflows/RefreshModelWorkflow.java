@@ -173,10 +173,10 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
 
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
-        IRunnable.run(dialog, monitor -> {
+        IRunnable.run(dialog, true, monitor -> {
             monitor.beginTask(Messages.RefreshModelWorkflow_4, IProgressMonitor.UNKNOWN);
             fetchResults.set(archiRepository.fetchFromRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), true));
-        }, true);
+        });
 
         return fetchResults.get();
     }
