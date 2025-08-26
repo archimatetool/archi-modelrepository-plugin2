@@ -6,13 +6,17 @@
 package com.archimatetool.modelrepository.commandline;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.eclipse.osgi.util.NLS;
 
+import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.repository.GitUtils;
+import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Command Line interface for committing to a repository
@@ -48,7 +52,28 @@ public class CommitModelProvider extends AbstractModelRepositoryProvider {
         
         try(GitUtils utils = GitUtils.open(modelFolder)) {
             logMessage(NLS.bind("Committing: {0}", commitMessage));
-            utils.commitChangesWithManifest(commitMessage, false);
+            
+            // Check there are changes
+            if(!utils.hasChangesToCommit()) {
+                logMessage("No changes to commit.");
+                return;
+            }
+            
+            // If it's the initial commit
+            if(utils.getLatestCommit() == null) {
+                // Load model
+                File modelFile = new File(modelFolder, RepoConstants.MODEL_FILENAME);
+                if(!modelFile.exists()) {
+                    throw new IOException(NLS.bind("Model file {0} does not exist.", modelFile));
+                }
+                // Initial commit with full manifest
+                IArchimateModel model = IEditorModelManager.INSTANCE.load(modelFile);
+                utils.commitModelWithManifest(model, commitMessage);
+            }
+            // Another commit
+            else {
+                utils.commitChangesWithManifest(commitMessage, false);
+            }
         }
     }
     
