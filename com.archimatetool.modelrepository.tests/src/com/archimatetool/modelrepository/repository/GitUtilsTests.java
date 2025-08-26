@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.List;
@@ -34,6 +35,8 @@ import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.RemoteRefUpdate.Status;
 import org.eclipse.jgit.transport.TrackingRefUpdate;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,6 +82,35 @@ public class GitUtilsTests {
         RevCommit commit3 = utils.commitChanges("Message 3", true);
         assertEquals("Message 3", commit3.getFullMessage());
         assertEquals(2, utils.getCommitCount());
+    }
+    
+    @Test
+    public void commitChangesDeletedFile() throws Exception {
+        // Commit two files
+        GitHelper.writeFileToTestRepo(repo, "file1.txt", "123");
+        GitHelper.writeFileToTestRepo(repo, "file2.txt", "1234");
+        utils.commitChanges("Commit 1", false);
+        
+        // Delete a file
+        Path filePath = Path.of(repo.getWorkingFolder().getPath(), "file2.txt");
+        Files.delete(filePath);
+        assertFalse(filePath.toFile().exists());
+        
+        // Should be missing in index
+        assertTrue(utils.status().call().getMissing().contains("file2.txt"));
+        
+        // Commit it
+        RevCommit commit = utils.commitChanges("Commit 2", false);
+        
+        // Should not be missing in index
+        assertTrue(utils.status().call().getMissing().isEmpty());
+        
+        // Should be missing in commit tree
+        try(TreeWalk treeWalk = new TreeWalk(utils.getRepository())) {
+            treeWalk.addTree(commit.getTree());
+            treeWalk.setFilter(PathFilter.create("file2.txt"));
+            assertFalse(treeWalk.next());
+        }
     }
     
     @Test
