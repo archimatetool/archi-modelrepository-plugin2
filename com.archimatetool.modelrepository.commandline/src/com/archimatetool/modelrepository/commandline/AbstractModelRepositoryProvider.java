@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import org.apache.commons.cli.CommandLine;
+import org.eclipse.jgit.lib.EmptyProgressMonitor;
 import org.eclipse.osgi.util.NLS;
 
 import com.archimatetool.commandline.AbstractCommandLineProvider;
@@ -120,5 +121,15 @@ public abstract class AbstractModelRepositoryProvider extends AbstractCommandLin
         }
         
         return null;
+    }
+    
+    /**
+     * Progress Monitor for CLI
+     */
+    protected class CLIProgressMonitor extends EmptyProgressMonitor {
+        @Override
+        public void beginTask(String title, int totalWork) {
+            logMessage(title + "...");
+        }
     }
  }

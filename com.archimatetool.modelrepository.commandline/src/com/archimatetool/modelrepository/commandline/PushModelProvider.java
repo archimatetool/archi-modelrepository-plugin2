@@ -67,7 +67,7 @@ public class PushModelProvider extends AbstractModelRepositoryProvider {
         
         try {
             logMessage(NLS.bind("Pushing from {0} to {1}", folder, url));
-            repository.pushToRemote(credentials.getCredentialsProvider(), null);
+            repository.pushToRemote(credentials.getCredentialsProvider(), new CLIProgressMonitor());
         }
         finally {
             if(credentials instanceof UsernamePassword npw) {

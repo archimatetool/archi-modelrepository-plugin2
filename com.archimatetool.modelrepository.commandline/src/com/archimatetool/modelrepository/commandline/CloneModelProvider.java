@@ -69,7 +69,7 @@ public class CloneModelProvider extends AbstractModelRepositoryProvider {
             FileUtils.deleteFolder(folder);
             
             logMessage(NLS.bind("Cloning from {0} to {1}", url, folder));
-            new ArchiRepository(folder).cloneModel(url, credentials.getCredentialsProvider(), null);
+            new ArchiRepository(folder).cloneModel(url, credentials.getCredentialsProvider(), new CLIProgressMonitor());
         }
         finally {
             if(credentials instanceof UsernamePassword npw) {
