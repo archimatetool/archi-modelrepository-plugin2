@@ -19,11 +19,13 @@ Export-Package: com.archimatetool.modelrepository,
  com.archimatetool.modelrepository.actions,
  com.archimatetool.modelrepository.authentication,
  com.archimatetool.modelrepository.dialogs,
+ com.archimatetool.modelrepository.merge,
  com.archimatetool.modelrepository.preferences,
  com.archimatetool.modelrepository.propertysections,
  com.archimatetool.modelrepository.repository,
  com.archimatetool.modelrepository.treemodel,
- com.archimatetool.modelrepository.views.repositories
+ com.archimatetool.modelrepository.views.repositories,
+ com.archimatetool.modelrepository.workflows
 Bundle-ClassPath: com.archimatetool.modelrepository.jar
 Automatic-Module-Name: com.archimatetool.modelrepository
 Import-Package: com.google.common.base,
