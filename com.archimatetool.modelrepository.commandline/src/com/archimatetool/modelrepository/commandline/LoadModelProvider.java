@@ -85,6 +85,6 @@ public class LoadModelProvider extends AbstractModelRepositoryProvider {
     
     @Override
     protected String getLogPrefix() {
-        return "[LoadModelFromRepositoryProvider]";
+        return "[Load Repository Model]";
     }
 }

@@ -104,6 +104,6 @@ public class PushModelProvider extends AbstractModelRepositoryProvider {
     
     @Override
     protected String getLogPrefix() {
-        return "[PushModelToRepositoryProvider]";
+        return "[Push Repository Model]";
     }
 }

@@ -104,6 +104,6 @@ public class CommitModelProvider extends AbstractModelRepositoryProvider {
     
     @Override
     protected String getLogPrefix() {
-        return "[CommitModelToRepositoryProvider]";
+        return "[Commit Repository Model]";
     }
 }

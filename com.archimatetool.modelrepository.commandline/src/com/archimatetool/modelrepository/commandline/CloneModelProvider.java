@@ -107,6 +107,6 @@ public class CloneModelProvider extends AbstractModelRepositoryProvider {
     
     @Override
     protected String getLogPrefix() {
-        return "[CloneModelFromRepositoryProvider]";
+        return "[Clone Repository Model]";
     }
 }

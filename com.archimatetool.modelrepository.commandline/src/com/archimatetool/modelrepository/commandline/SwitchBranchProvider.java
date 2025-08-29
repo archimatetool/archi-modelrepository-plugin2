@@ -99,6 +99,6 @@ public class SwitchBranchProvider extends AbstractModelRepositoryProvider {
     
     @Override
     protected String getLogPrefix() {
-        return "[SwitchBranchInRepositoryProvider]";
+        return "[Switch Repository Branch]";
     }
 }
