@@ -447,15 +447,19 @@ public class GitUtils extends Git {
     public Map<String, List<String>> getTagsMap() throws GitAPIException, IOException {
         Map<String, List<String>> tagMap = new HashMap<>();
         
-        try(RevWalk revWalk = new RevWalk(getRepository())) {
-            revWalk.setRetainBody(false);
-            for(Ref tagRef : tagList().call()) {
-                if(tagRef.getObjectId() != null) {
-                    RevCommit commit = revWalk.parseCommit(tagRef.getObjectId());
-                    // Get the map entry or create a new one
-                    List<String> tags = tagMap.computeIfAbsent(commit.getName(), id -> new ArrayList<>());
-                    // Add the tag name
-                    tags.add(Repository.shortenRefName(tagRef.getName()));
+        List<Ref> tagRefs = tagList().call();
+        
+        if(!tagRefs.isEmpty()) {
+            try(RevWalk revWalk = new RevWalk(getRepository())) {
+                revWalk.setRetainBody(false);
+                for(Ref tagRef : tagRefs) {
+                    if(tagRef.getObjectId() != null) {
+                        RevCommit commit = revWalk.parseCommit(tagRef.getObjectId());
+                        // Get the map entry or create a new one
+                        List<String> tags = tagMap.computeIfAbsent(commit.getName(), id -> new ArrayList<>());
+                        // Add the tag name
+                        tags.add(Repository.shortenRefName(tagRef.getName()));
+                    }
                 }
             }
         }
