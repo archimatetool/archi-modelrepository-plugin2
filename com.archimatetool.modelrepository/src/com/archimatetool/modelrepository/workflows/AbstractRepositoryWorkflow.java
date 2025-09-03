@@ -18,6 +18,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.dialog.ErrorMessageDialog;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
@@ -26,7 +27,6 @@ import com.archimatetool.modelrepository.authentication.SSHCredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CommitDialog;
 import com.archimatetool.modelrepository.dialogs.Dialogs;
-import com.archimatetool.modelrepository.dialogs.ErrorMessageDialog;
 import com.archimatetool.modelrepository.dialogs.UserNamePasswordDialog;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;

@@ -56,8 +56,6 @@ public class Messages extends NLS {
 
     public static String CommitDialog_7;
 
-    public static String ErrorMessageDialog_0;
-
     public static String NewRepoDialog_0;
 
     public static String NewRepoDialog_1;
