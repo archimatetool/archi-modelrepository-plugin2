@@ -5,9 +5,9 @@
  */
 package com.archimatetool.modelrepository.propertysections;
 
-import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Image;
 
 import com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry;
@@ -18,33 +18,23 @@ import com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class LabelProvider implements ILabelProvider {
     
-    /**
-     * Adapter factory to return this LabelProvider for the host Archi Property section.
-     * This IAdapterFactory is registered in plugin.xml
-     */
-    public static class LabelProviderAdapterFactory implements IAdapterFactory {
-        private LabelProvider labelProvider = new LabelProvider();
-        
-        @Override
-        public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
-            if(adapterType == ILabelProvider.class) {
-                return adapterType.cast(labelProvider);
-            }
-            
-            return null;            
-        }
-    }
-
     @Override
     public Image getImage(Object element) {
-        return element instanceof IModelRepositoryTreeEntry entry ? entry.getImage() : null;
+        if(element instanceof IStructuredSelection selection) {
+            return selection.getFirstElement() instanceof IModelRepositoryTreeEntry entry ? entry.getImage() : null;
+        }
+        return null;
     }
 
     @Override
     public String getText(Object element) {
-        return element instanceof IModelRepositoryTreeEntry entry ? entry.getName() : null;
+        if(element instanceof IStructuredSelection selection) {
+            return selection.getFirstElement() instanceof IModelRepositoryTreeEntry entry ? entry.getName() : " ";
+        }
+        return " ";
     }
 
     @Override

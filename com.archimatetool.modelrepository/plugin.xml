@@ -493,15 +493,17 @@
    <extension
          point="org.eclipse.ui.views.properties.tabbed.propertyContributor">
       <propertyContributor
-            contributorId="com.archimatetool.editor">
+            contributorId="com.archimatetool.modelrepository"
+            labelProvider="com.archimatetool.modelrepository.propertysections.LabelProvider">
          <propertyCategory
-               category="com.archimatetool.modelrepository.category"></propertyCategory>
+               category="com.archimatetool.modelrepository.category">
+         </propertyCategory>
       </propertyContributor>
    </extension>
    <extension
          point="org.eclipse.ui.views.properties.tabbed.propertyTabs">
       <propertyTabs
-            contributorId="com.archimatetool.editor">
+            contributorId="com.archimatetool.modelrepository">
          <propertyTab
                category="com.archimatetool.modelrepository.category"
                id="repo.tab"
@@ -529,7 +531,7 @@
    <extension
          point="org.eclipse.ui.views.properties.tabbed.propertySections">
       <propertySections
-            contributorId="com.archimatetool.editor">
+            contributorId="com.archimatetool.modelrepository">
          <propertySection
                class="com.archimatetool.modelrepository.propertysections.RepoInfoSection"
                filter="com.archimatetool.modelrepository.propertysections.RepoInfoSection$Filter"
@@ -557,6 +559,52 @@
       </propertySections>
    </extension>
    <extension
+         point="org.eclipse.ui.views.properties.tabbed.propertyContributor">
+      <propertyContributor
+            contributorId="com.archimatetool.editor">
+         <propertyCategory
+               category="com.archimatetool.modelrepository.category">
+         </propertyCategory>
+      </propertyContributor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views.properties.tabbed.propertyTabs">
+      <propertyTabs
+            contributorId="com.archimatetool.editor">
+         <propertyTab
+               category="com.archimatetool.modelrepository.category"
+               id="repo.tab"
+               label="Repository">
+         </propertyTab>
+      </propertyTabs>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views.properties.tabbed.propertySections">
+      <propertySections
+            contributorId="com.archimatetool.editor">
+         <propertySection
+               class="com.archimatetool.modelrepository.propertysections.RepoInfoSection"
+               filter="com.archimatetool.modelrepository.propertysections.RepoInfoSection$Filter"
+               id="infoSection"
+               tab="repo.tab">
+         </propertySection>
+         <propertySection
+               afterSection="infoSection"
+               class="com.archimatetool.modelrepository.propertysections.UserDetailsSection"
+               filter="com.archimatetool.modelrepository.propertysections.UserDetailsSection$Filter"
+               id="userSection"
+               tab="repo.tab">
+         </propertySection>
+         <propertySection
+               afterSection="userSection"
+               class="com.archimatetool.modelrepository.propertysections.AuthSection"
+               filter="com.archimatetool.modelrepository.propertysections.AuthSection$Filter"
+               id="authSection"
+               tab="repo.tab">
+         </propertySection>
+      </propertySections>
+   </extension>
+   <extension
          point="org.eclipse.help.toc">
       <toc
             file="help/toc.xml"
@@ -569,16 +617,6 @@
             file="help/contexts.xml"
             plugin="com.archimatetool.modelrepository">
       </contexts>
-   </extension>
-   <extension
-         point="org.eclipse.core.runtime.adapters">
-      <factory
-            adaptableType="com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry"
-            class="com.archimatetool.modelrepository.propertysections.LabelProvider$LabelProviderAdapterFactory">
-         <adapter
-               type="org.eclipse.jface.viewers.ILabelProvider">
-         </adapter>
-      </factory>
    </extension>
 
 </plugin>
