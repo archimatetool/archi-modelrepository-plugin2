@@ -6,6 +6,7 @@
 package com.archimatetool.modelrepository.propertysections;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,7 +42,7 @@ import com.archimatetool.modelrepository.treemodel.RepositoryRef;
  * 
  * @author Phillip Beauvoir
  */
-public class RepoInfoSection extends AbstractArchiPropertySection {
+public class RepoInfoSection extends AbstractArchiPropertySection implements IRepositoryListener {
     
     private static Logger logger = Logger.getLogger(RepoInfoSection.class.getName());
 
@@ -125,6 +126,9 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         createLabel(group, Messages.RepoInfoSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
         textCurrentBranch = createSingleTextControl(group, SWT.READ_ONLY | SWT.BORDER);
         
+        // Listen to branch changes
+        RepositoryListenerManager.getInstance().addListener(this);
+        
         // Help ID
         PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, ModelRepositoryPlugin.HELP_ID);
     }
@@ -145,6 +149,10 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
             repository = null;
         }
         
+        updateControls();
+    }
+    
+    private void updateControls() {
         if(repository != null) {
             textFile.setText(repository.getWorkingFolder().getAbsolutePath());
 
@@ -156,5 +164,19 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
                 logger.log(Level.SEVERE, "Update info", ex); //$NON-NLS-1$
             }
         }
+    }
+    
+    @Override
+    public void repositoryChanged(String eventName, IArchiRepository repo) {
+        // Branch changed
+        if(Objects.equals(IRepositoryListener.BRANCHES_CHANGED, eventName) && Objects.equals(repository, repo)) {
+            updateControls();
+        }
+    }
+
+    @Override
+    public void dispose() {
+        RepositoryListenerManager.getInstance().removeListener(this);
+        super.dispose();
     }
 }
