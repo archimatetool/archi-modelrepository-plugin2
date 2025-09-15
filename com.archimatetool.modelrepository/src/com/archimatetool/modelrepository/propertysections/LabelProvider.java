@@ -5,29 +5,62 @@
  */
 package com.archimatetool.modelrepository.propertysections;
 
+import org.eclipse.core.runtime.IAdapterFactory;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 
-import com.archimatetool.editor.ui.IArchiLabelProvider;
 import com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry;
 
 
-public class LabelProvider implements IArchiLabelProvider {
-
-    @Override
-    public Image getImage(Object element) {
-        if(element instanceof IModelRepositoryTreeEntry entry) {
-            return entry.getImage();
-        }
+/**
+ * Label Provider for property section
+ * 
+ * @author Phillip Beauvoir
+ */
+public class LabelProvider implements ILabelProvider {
+    
+    /**
+     * Adapter factory to return this LabelProvider for the host Archi Property section.
+     * This IAdapterFactory is registered in plugin.xml
+     */
+    public static class LabelProviderAdapterFactory implements IAdapterFactory {
+        private LabelProvider labelProvider = new LabelProvider();
         
-        return null;
+        @Override
+        public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
+            if(adapterType == ILabelProvider.class) {
+                return adapterType.cast(labelProvider);
+            }
+            
+            return null;            
+        }
     }
 
     @Override
-    public String getLabel(Object element) {
-        if(element instanceof IModelRepositoryTreeEntry entry) {
-            return entry.getName();
-        }
-        
-        return null;
+    public Image getImage(Object element) {
+        return element instanceof IModelRepositoryTreeEntry entry ? entry.getImage() : null;
+    }
+
+    @Override
+    public String getText(Object element) {
+        return element instanceof IModelRepositoryTreeEntry entry ? entry.getName() : null;
+    }
+
+    @Override
+    public boolean isLabelProperty(Object element, String property) {
+        return false;
+    }
+
+    @Override
+    public void addListener(ILabelProviderListener listener) {
+    }
+
+    @Override
+    public void removeListener(ILabelProviderListener listener) {
+    }
+    
+    @Override
+    public void dispose() {
     }
 }

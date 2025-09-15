@@ -557,13 +557,6 @@
       </propertySections>
    </extension>
    <extension
-         point="com.archimatetool.editor.labelProvider">
-      <labelProvider
-            class="com.archimatetool.modelrepository.propertysections.LabelProvider"
-            id="com.archimatetool.modelrepository.labelProvider">
-      </labelProvider>
-   </extension>
-   <extension
          point="org.eclipse.help.toc">
       <toc
             file="help/toc.xml"
@@ -576,6 +569,16 @@
             file="help/contexts.xml"
             plugin="com.archimatetool.modelrepository">
       </contexts>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="com.archimatetool.modelrepository.treemodel.IModelRepositoryTreeEntry"
+            class="com.archimatetool.modelrepository.propertysections.LabelProvider$LabelProviderAdapterFactory">
+         <adapter
+               type="org.eclipse.jface.viewers.ILabelProvider">
+         </adapter>
+      </factory>
    </extension>
 
 </plugin>
