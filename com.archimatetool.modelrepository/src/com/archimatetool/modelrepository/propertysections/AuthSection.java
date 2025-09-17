@@ -15,6 +15,7 @@ import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -108,10 +109,9 @@ public class AuthSection extends AbstractArchiPropertySection {
     
     @Override
     protected void handleSelection(IStructuredSelection selection) {
-        // Update controls in all cases in case the online repo URL has been changed from SSH to HTTPS or vice-verca
-        //if(selection == getSelection()) {
-        //    return;
-        //}
+        if(selection == getSelection()) {
+            return;
+        }
         
         if(selection.getFirstElement() instanceof RepositoryRef ref) {
             repository = ref.getArchiRepository();
@@ -129,6 +129,13 @@ public class AuthSection extends AbstractArchiPropertySection {
         else {
             System.err.println(getClass() + " failed to get element for " + selection.getFirstElement()); //$NON-NLS-1$
         }
+    }
+    
+    @Override
+    public void aboutToBeShown() {
+        // When this tab is selected update controls in case user changed from HTTPs to SSH or vice-verca in RepoInfo tab
+        // Creating a new StructuredSelection and calling handleSelection will do the trick
+        handleSelection(new StructuredSelection(((IStructuredSelection)getSelection()).toArray()));
     }
     
     private void updateControls() {
