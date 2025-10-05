@@ -2,9 +2,9 @@
 <?NLS TYPE="org.eclipse.help.contexts"?> 
 <contexts>
     
-    <context id="modelRepositoryHelp" title="coArchi">
-        <description>coArchi Help</description>
-        <topic label="coArchi Help" href="help/intro.html"/>
+    <context id="modelRepositoryHelp" title="coArchi2">
+        <description>coArchi2 Help</description>
+        <topic label="coArchi2 Help" href="help/intro.html"/>
     </context>
     <context id="addBranch" title="Add Branch">
        <description>Add Branch</description>
