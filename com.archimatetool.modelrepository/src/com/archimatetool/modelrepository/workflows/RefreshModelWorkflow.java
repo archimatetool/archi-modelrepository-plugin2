@@ -63,7 +63,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }
 
         // Get credentials
-        ICredentials credentials = getCredentials();
+        ICredentials credentials = getCredentials().orElse(null);
         if(credentials == null) {
             return;
         }

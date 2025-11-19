@@ -62,7 +62,7 @@ public class DeleteBranchWorkflow extends AbstractPushResultWorkflow {
         if(deleteRemoteBranch) {
             try {
                 // Get credentials
-                ICredentials credentials = getCredentials();
+                ICredentials credentials = getCredentials().orElse(null);
                 if(credentials == null) {
                     return;
                 }

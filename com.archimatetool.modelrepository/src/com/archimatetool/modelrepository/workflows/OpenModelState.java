@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,7 +53,7 @@ public class OpenModelState {
      */
     OpenModelState closeModel(IArchiRepository repo, boolean askSaveModel) {
         // Is it open in the Models tree?
-        IArchimateModel model = repo.getOpenModel();
+        IArchimateModel model = repo.getOpenModel().orElse(null);
         
         // Yes...
         if(model != null) {
@@ -75,7 +76,7 @@ public class OpenModelState {
         return this;
     }
     
-    IArchimateModel restoreModel() {
+    Optional<IArchimateModel> restoreModel() {
         IArchimateModel model = null;
         
         if(modelFile != null && modelClosed) {
@@ -86,7 +87,7 @@ public class OpenModelState {
             }
         }
         
-        return model;
+        return Optional.ofNullable(model);
     }
 
     /**
@@ -133,6 +134,10 @@ public class OpenModelState {
      * Re-open any diagram editors in the re-opened model
      */
     private void restoreOpenEditors(IArchimateModel model) {
+        if(model == null) {
+            return;
+        }
+        
         if(openDiagramModelIDs != null) {
             logger.info(NLS.bind("Restoring open editors for ''{0}''", model.getName()));
             

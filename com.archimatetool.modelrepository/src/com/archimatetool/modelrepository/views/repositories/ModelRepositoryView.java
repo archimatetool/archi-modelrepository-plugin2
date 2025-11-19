@@ -428,7 +428,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 IArchiRepository repository = ref.getArchiRepository();
                 
                 // Close model without asking to save
-                IEditorModelManager.INSTANCE.closeModel(repository.getOpenModel(), false);
+                IEditorModelManager.INSTANCE.closeModel(repository.getOpenModel().orElse(null), false);
 
                 // Delete repository folder and any HTTP credentials
                 if(delete) {

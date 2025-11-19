@@ -6,6 +6,7 @@
 package com.archimatetool.modelrepository.workflows;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -88,8 +89,9 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
      * If the model is open return whether it is dirty
      */
     protected boolean isModelDirty() {
-        IArchimateModel model = archiRepository.getOpenModel();
-        return model != null && IEditorModelManager.INSTANCE.isModelDirty(model);
+        return archiRepository.getOpenModel()
+                              .map(IEditorModelManager.INSTANCE::isModelDirty)
+                              .orElse(false);
     }
     
     /**
@@ -100,7 +102,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
      */
     protected boolean checkModelNeedsSaving() {
         // Model is open and needs saving
-        IArchimateModel model = archiRepository.getOpenModel();
+        IArchimateModel model = archiRepository.getOpenModel().orElse(null);
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             try {
                 if(askToSaveModel(model) == SWT.CANCEL) {
@@ -227,33 +229,32 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     }
     
     /**
-     * If HTTP return UsernamePassword or null if user cancels dialog
+     * If HTTP return UsernamePassword or empty Optional if the user cancels the dialog asking for username/password
      * If SSH return SSHCredentials
-     * On Exception return null so caller needs to return from the workflow
+     * On Exception return empty optional so caller needs to return from the workflow
      */
-    protected ICredentials getCredentials() {
+    protected Optional<ICredentials> getCredentials() {
         try {
             // HTTP
             if(RepoUtils.isHTTP(archiRepository.getRemoteURL())) {
-                return getUsernamePassword();
+                return getUsernamePassword().map(npw -> (ICredentials)npw); // cast UsernamePassword to ICredentials
             }
             // SSH
-            else {
-                return new SSHCredentials();
-            }
+            return Optional.of(new SSHCredentials());
         }
         catch(IOException | StorageException ex) {
             logger.log(Level.SEVERE, "User Credentials", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.AbstractRepositoryWorkflow_7, ex);
+            return Optional.empty();
         }
-        
-        return null;
     }
     
     /**
      * Get user name and password from credentials file if present or from dialog
+     * @return Optional of UsernamePassword.
+     *         This will be empty only if there is no user name set and the user cancels the dialog.
      */
-    protected UsernamePassword getUsernamePassword() throws StorageException {
+    protected Optional<UsernamePassword> getUsernamePassword() throws StorageException {
         // Get credentials from storage
         UsernamePassword npw = CredentialsStorage.getInstance().getCredentials(archiRepository);
         
@@ -262,14 +263,14 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
             logger.info("Asking for user credentials"); //$NON-NLS-1$
             UserNamePasswordDialog dialog = new UserNamePasswordDialog(workbenchWindow.getShell(), archiRepository);
             if(dialog.open() == Window.OK) {
-                npw = new UsernamePassword(dialog.getUsername(), dialog.getPassword());
+                return Optional.of(new UsernamePassword(dialog.getUsername(), dialog.getPassword()));
             }
             else {
-                npw = null;
+                Optional.empty();
             }
         }
         
-        return npw;
+        return Optional.of(npw);
     }
     
     /**
@@ -289,15 +290,16 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     
     /**
      * Re-open this repo's model in the models tree and any previously opened editors
+     * @return The optional model if it was opened in the UI by calling this
      */
-    protected IArchimateModel restoreModel(OpenModelState modelState) {
-        return modelState != null ? modelState.restoreModel() : null;
+    protected Optional<IArchimateModel> restoreModel(OpenModelState modelState) {
+        return modelState != null ? modelState.restoreModel() : Optional.empty();
     }
     
     /**
      * If the model is open in the models tree, close it and re-open it without asking
      */
-    protected IArchimateModel closeAndRestoreModel() {
+    protected Optional<IArchimateModel> closeAndRestoreModel() {
         return closeModel(false).restoreModel();
     }
     

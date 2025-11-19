@@ -185,10 +185,10 @@ public class ArchiRepositoryTests {
         model.setFile(repo.getModelFile());
         
         // Not open
-        assertNull(repo.getOpenModel());
+        assertNull(repo.getOpenModel().orElse(null));
         
         IEditorModelManager.INSTANCE.openModel(model);
-        assertEquals(model, repo.getOpenModel());
+        assertEquals(model, repo.getOpenModel().orElse(null));
     }
     
     @Test

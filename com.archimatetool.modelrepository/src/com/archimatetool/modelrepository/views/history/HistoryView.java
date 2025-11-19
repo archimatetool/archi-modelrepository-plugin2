@@ -581,10 +581,11 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
                 }
             }
             
-            if(modelObject != null && modelObject.getArchimateModel() == fSelectedRepository.getOpenModel()) {
+            // If a model object is selected and the model is open and equal to the selected object's model
+            if(modelObject != null && modelObject.getArchimateModel() == fSelectedRepository.getOpenModel().orElse(null)) {
                 getHistoryViewer().setFilteredModelObject(modelObject.getId(), doUpdate);
             }
-            // No selected object in a repo part
+            // No selected object in a repo part so set object id to null to cancel filtering 
             else {
                 getHistoryViewer().setFilteredModelObject(null, true);
             }

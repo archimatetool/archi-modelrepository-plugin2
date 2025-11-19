@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Optional;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -131,9 +132,9 @@ public interface IArchiRepository {
 
     /**
      * Return the model if it is open in the model manager
-     * @return The model, or null if it's not open in the model manager (UI)
+     * @return The model, or optional empty if it's not open in the model manager (UI)
      */
-    IArchimateModel getOpenModel();
+    Optional<IArchimateModel> getOpenModel();
     
     /**
      * @return User name and email from config. This is either local or global config.

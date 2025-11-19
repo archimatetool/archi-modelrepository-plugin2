@@ -77,7 +77,7 @@ public class DeleteModelWorkflow extends AbstractRepositoryWorkflow {
         
         try {
             // Close model without asking to save
-            IEditorModelManager.INSTANCE.closeModel(archiRepository.getOpenModel(), false);
+            IEditorModelManager.INSTANCE.closeModel(archiRepository.getOpenModel().orElse(null), false);
             
             // Delete repo
             if(deleteRepo) {

@@ -208,7 +208,7 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public String getName() {
         // If the model is open, return its name
-        IArchimateModel model = getOpenModel();
+        IArchimateModel model = getOpenModel().orElse(null);
         if(model != null) {
             return model.getName();
         }
@@ -218,9 +218,9 @@ public class ArchiRepository implements IArchiRepository {
         if(modelFile.exists()) {
             try(Stream<String> stream = Files.lines(modelFile.toPath())
                                              .filter(line -> line.contains("<archimate:model"))) {
-                Optional<String> result = stream.findFirst();
-                if(result.isPresent()) {
-                    Matcher matcher = NAME_PATTERN.matcher(result.get());
+                String result = stream.findFirst().orElse(null);
+                if(result != null) {
+                    Matcher matcher = NAME_PATTERN.matcher(result);
                     if(matcher.find()) {
                         return matcher.group(1)
                                       .replace("&amp;", "&")
@@ -245,16 +245,16 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public IArchimateModel getOpenModel() {
+    public Optional<IArchimateModel> getOpenModel() {
         File modelFile = getModelFile();
         
         for(IArchimateModel model : IEditorModelManager.INSTANCE.getModels()) {
             if(modelFile.equals(model.getFile())) {
-                return model;
+                return Optional.of(model);
             }
         }
         
-        return null;
+        return Optional.empty();
     }
     
     @Override

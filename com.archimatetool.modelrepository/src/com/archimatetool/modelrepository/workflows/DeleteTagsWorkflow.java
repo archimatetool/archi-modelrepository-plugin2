@@ -54,7 +54,7 @@ public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
         }
 
         // Get credentials
-        ICredentials credentials = getCredentials();
+        ICredentials credentials = getCredentials().orElse(null);
         if(credentials == null) {
             return;
         }
