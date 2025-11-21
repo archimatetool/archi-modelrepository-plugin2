@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.Set;
 
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -100,17 +101,17 @@ public class RepoUtils {
      * @return true if a model is in an Archi repo folder
      */
     public static boolean isModelInArchiRepository(IArchimateModel model) {
-        return getWorkingFolderForModel(model) != null;
+        return getWorkingFolderForModel(model).isPresent();
     }
     
     /**
      * Get the enclosing repo folder (working dir) for a model
      * It is assumed that the model file is named "model.archimate", exists, and has a .git folder
-     * @return The folder or null if the model is not in a Archi repo
+     * @return The folder or empty optional if the model is not in a Archi repo
      */
-    public static File getWorkingFolderForModel(IArchimateModel model) {
+    public static Optional<File> getWorkingFolderForModel(IArchimateModel model) {
         File parentFolder = (model != null && model.getFile() != null) ? model.getFile().getParentFile() : null;
-        return isArchiGitRepository(parentFolder) ? parentFolder : null;
+        return isArchiGitRepository(parentFolder) ? Optional.ofNullable(parentFolder) : Optional.empty();
     }
     
     /**

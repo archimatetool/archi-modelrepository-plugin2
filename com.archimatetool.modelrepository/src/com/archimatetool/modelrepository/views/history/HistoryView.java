@@ -495,7 +495,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     
     @Override
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        IArchiRepository selectedRepository = PartUtils.getSelectedArchiRepositoryInWorkbenchPart(part);
+        IArchiRepository selectedRepository = PartUtils.getSelectedArchiRepositoryInWorkbenchPart(part).orElse(null);
         
         // Update if selectedRepository is not the currently selected one 
         if(!Objects.equals(selectedRepository, fSelectedRepository)) {

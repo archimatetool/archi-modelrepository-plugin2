@@ -79,63 +79,50 @@ public class RepoUtilsTests {
     }
 
     @Test
-    public void isArchiGitRepository_File() throws Exception {
-        File tmpFile = File.createTempFile("architest", null);
-        assertFalse(RepoUtils.isArchiGitRepository(tmpFile));
-        tmpFile.delete();
-    }
-
-    @Test
-    public void isArchiGitRepository_NoModelFile() throws IOException {
+    public void isArchiGitRepository() throws IOException {
         File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
+        tmpFolder.mkdirs();
+        assertFalse(RepoUtils.isArchiGitRepository(tmpFolder));
+        
         File gitFolder = new File(tmpFolder, ".git");
         gitFolder.mkdirs();
         assertFalse(RepoUtils.isArchiGitRepository(tmpFolder));
-    }
-
-    @Test
-    public void isArchiGitRepository_True() throws IOException {
-        File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
-        File gitFolder = new File(tmpFolder, ".git");
-        gitFolder.mkdirs();
-        new File(tmpFolder, RepoConstants.MODEL_FILENAME).createNewFile();
         
+        new File(tmpFolder, RepoConstants.MODEL_FILENAME).createNewFile();
         assertTrue(RepoUtils.isArchiGitRepository(tmpFolder));
     }
     
     @Test
-    public void isModelInArchiRepository_True() throws IOException {
+    public void isModelInArchiRepository() throws IOException {
         File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
-        File gitFolder = new File(tmpFolder, ".git");
-        gitFolder.mkdirs();
+        tmpFolder.mkdirs();
         
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
         File modelFile = new File(tmpFolder, RepoConstants.MODEL_FILENAME);
         modelFile.createNewFile();
         model.setFile(modelFile);
+        assertFalse(RepoUtils.isModelInArchiRepository(model));
+
+        File gitFolder = new File(tmpFolder, ".git");
+        gitFolder.mkdirs();
         assertTrue(RepoUtils.isModelInArchiRepository(model));
     }
 
     @Test
-    public void getWorkingFolderForModel_True() throws IOException {
+    public void getWorkingFolderForModel() throws IOException {
         File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
+        tmpFolder.mkdirs();
+        
+        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
+        File modelFile = new File(tmpFolder, RepoConstants.MODEL_FILENAME);
+        model.setFile(modelFile);
+        assertNull(RepoUtils.getWorkingFolderForModel(model).orElse(null));
+        
+        modelFile.createNewFile();
+        assertNull(RepoUtils.getWorkingFolderForModel(model).orElse(null));
+        
         File gitFolder = new File(tmpFolder, ".git");
         gitFolder.mkdirs();
-        
-        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
-        File modelFile = new File(tmpFolder, RepoConstants.MODEL_FILENAME);
-        modelFile.createNewFile();
-        model.setFile(modelFile);
-        assertEquals(tmpFolder, RepoUtils.getWorkingFolderForModel(model));
-    }
-    
-    @Test
-    public void getWorkingFolderForModel_Null() throws IOException {
-        File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
-        
-        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
-        File modelFile = new File(tmpFolder, RepoConstants.MODEL_FILENAME);
-        model.setFile(modelFile);
-        assertNull(RepoUtils.getWorkingFolderForModel(model));
+        assertEquals(tmpFolder, RepoUtils.getWorkingFolderForModel(model).orElse(null));
     }
 }

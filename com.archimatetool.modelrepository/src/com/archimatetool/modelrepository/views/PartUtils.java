@@ -5,7 +5,7 @@
  */
 package com.archimatetool.modelrepository.views;
 
-import java.io.File;
+import java.util.Optional;
 
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
@@ -28,17 +28,17 @@ import com.archimatetool.modelrepository.views.repositories.ModelRepositoryView;
 public class PartUtils {
 
     /**
-     * @return the selected IArchiRepository for a given part, or null
+     * @return the selected IArchiRepository in Optional for a given part, or empty Optional
      */
-    public static IArchiRepository getSelectedArchiRepositoryInWorkbenchPart(IWorkbenchPart part) {
+    public static Optional<IArchiRepository> getSelectedArchiRepositoryInWorkbenchPart(IWorkbenchPart part) {
         if(part == null) {
-            return null;
+            return Optional.empty();
         }
         
         // Repository is selected in part
         IArchiRepository archiRepository = part.getAdapter(IArchiRepository.class);
         if(archiRepository != null) {
-            return archiRepository;
+            return Optional.of(archiRepository);
         }
         
         // Model is selected in part
@@ -50,7 +50,7 @@ public class PartUtils {
         // Repository is selected wrapped in a Repository Ref
         RepositoryRef ref = part.getAdapter(RepositoryRef.class);
         if(ref != null) {
-            return ref.getArchiRepository();
+            return Optional.ofNullable(ref.getArchiRepository());
         }
         
         // Fallbacks in case the selected part doesn't adapt to any of the above
@@ -58,7 +58,7 @@ public class PartUtils {
         // ModelRepositoryView is open so get it from that part
         IViewPart modelRepositoryView = ViewManager.findViewPart(ModelRepositoryView.ID);
         if(modelRepositoryView != null) {
-            return modelRepositoryView.getAdapter(IArchiRepository.class);
+            return Optional.ofNullable(modelRepositoryView.getAdapter(IArchiRepository.class));
         }
         
         // Go through each ViewPart and see if any adapts to IArchimateModel.class
@@ -72,11 +72,11 @@ public class PartUtils {
             }
         }
         
-        return null;
+        return Optional.empty();
     }
     
-    private static IArchiRepository getSelectedArchiRepositoryForModel(IArchimateModel model) {
-        File folder = RepoUtils.getWorkingFolderForModel(model); // But is it in a git repo?
-        return folder != null ? new ArchiRepository(folder) : null;
+    private static Optional<IArchiRepository> getSelectedArchiRepositoryForModel(IArchimateModel model) {
+        // But is it in a git repo?
+        return RepoUtils.getWorkingFolderForModel(model).map(ArchiRepository::new);
     }
 }

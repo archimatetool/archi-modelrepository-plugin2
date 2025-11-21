@@ -8,6 +8,7 @@ package com.archimatetool.modelrepository.treemodel;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.jdom2.Document;
@@ -59,25 +60,25 @@ public class RepositoryTreeModel extends Group {
      * @return True if repoFolder is present as a RepositoryRef in this tree model
      */
     public boolean hasRepositoryRef(File repoFolder) {
-        return findRepositoryRef(repoFolder) != null;
+        return findRepositoryRef(repoFolder).isPresent();
     }
 
     /**
      * @param repoFolder
-     * @return A RepositoryRef matching repoFolder in this tree model
+     * @return A RepositoryRef matching repoFolder in this tree model or empty optional
      */
-    public RepositoryRef findRepositoryRef(File repoFolder) {
+    public Optional<RepositoryRef> findRepositoryRef(File repoFolder) {
         if(repoFolder == null) {
-            return null;
+            return Optional.empty();
         }
         
         for(RepositoryRef ref : getAllChildRepositoryRefs()) {
             if(repoFolder.equals(ref.getArchiRepository().getWorkingFolder())) {
-                return ref;
+                return Optional.of(ref);
             }
         }
         
-        return null;
+        return Optional.empty();
     }
     
     public void loadManifest() throws IOException, JDOMException {

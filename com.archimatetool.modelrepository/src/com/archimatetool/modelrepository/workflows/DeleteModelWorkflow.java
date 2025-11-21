@@ -45,7 +45,7 @@ public class DeleteModelWorkflow extends AbstractRepositoryWorkflow {
         boolean deleteRepo = false;
         
         // Do we have an entry in the RepositoryTreeModel?
-        RepositoryRef repoRef = RepositoryTreeModel.getInstance().findRepositoryRef(archiRepository.getWorkingFolder());
+        RepositoryRef repoRef = RepositoryTreeModel.getInstance().findRepositoryRef(archiRepository.getWorkingFolder()).orElse(null);
         
         // If the repo is present in the RepositoryTreeModel offer to remove or delete
         if(repoRef != null) {

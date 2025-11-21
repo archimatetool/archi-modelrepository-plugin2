@@ -117,7 +117,9 @@ public class AuthSection extends AbstractArchiPropertySection {
             repository = ref.getArchiRepository();
         }
         else if(selection.getFirstElement() instanceof IArchimateModel model) {
-            repository = new ArchiRepository(RepoUtils.getWorkingFolderForModel(model));
+            repository = RepoUtils.getWorkingFolderForModel(model)
+                                  .map(ArchiRepository::new)
+                                  .orElse(null);
         }
         else {
             repository = null;

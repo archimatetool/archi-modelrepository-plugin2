@@ -6,6 +6,7 @@
 package com.archimatetool.modelrepository.treemodel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.File;
 
@@ -33,7 +34,9 @@ public class RepositoryTreeModelTests {
         Group group2 = group1.addNewGroup("");
         RepositoryRef ref2 = group2.addNewRepositoryRef(folder2);
         
-        assertEquals(ref1, RepositoryTreeModel.getInstance().findRepositoryRef(folder1));
-        assertEquals(ref2, RepositoryTreeModel.getInstance().findRepositoryRef(folder2));
+        assertEquals(ref1, RepositoryTreeModel.getInstance().findRepositoryRef(folder1).orElse(null));
+        assertEquals(ref2, RepositoryTreeModel.getInstance().findRepositoryRef(folder2).orElse(null));
+        
+        assertNull(RepositoryTreeModel.getInstance().findRepositoryRef(new File("folder3")).orElse(null));
     }
 }

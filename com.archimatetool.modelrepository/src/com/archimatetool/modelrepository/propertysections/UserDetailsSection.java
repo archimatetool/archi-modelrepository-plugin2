@@ -125,7 +125,9 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
             fRepository = ref.getArchiRepository();
         }
         else if(selection.getFirstElement() instanceof IArchimateModel model) {
-            fRepository = new ArchiRepository(RepoUtils.getWorkingFolderForModel(model));
+            fRepository = RepoUtils.getWorkingFolderForModel(model)
+                                    .map(ArchiRepository::new)
+                                    .orElse(null);
         }
         else {
             fRepository = null;

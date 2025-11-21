@@ -670,9 +670,12 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     public void selectRepositoryForModel(IArchimateModel model) {
         if(model != null) {
             // Get RepositoryRef corresponding to selected model
-            RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(RepoUtils.getWorkingFolderForModel(model));
-            if(ref != null && !Objects.equals(ref, getViewer().getStructuredSelection().getFirstElement())) {
-                getViewer().setSelection(new StructuredSelection(ref));
+            File repoFolder = RepoUtils.getWorkingFolderForModel(model).orElse(null);
+            if(repoFolder != null) {
+                RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(repoFolder).orElse(null);
+                if(ref != null && !Objects.equals(ref, getViewer().getStructuredSelection().getFirstElement())) {
+                    getViewer().setSelection(new StructuredSelection(ref));
+                }
             }
         }
     }
