@@ -120,8 +120,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             // Selected Working Tree so compare with latest commit
             if(selection.size() == 1 && !(selection.get(0) instanceof RevCommit)) {
                 try {
-                    BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(fSelectedRepository.getWorkingFolder());
-                    mc = branchInfo.getLatestCommit() != null ? new ModelComparison(fSelectedRepository, branchInfo.getLatestCommit()) : null;
+                    BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(fSelectedRepository.getWorkingFolder()).orElse(null);
+                    if(branchInfo != null) {
+                        mc = branchInfo.getLatestCommit().map(commit -> new ModelComparison(fSelectedRepository, commit)).orElse(null);
+                    }
                 }
                 catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();

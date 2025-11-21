@@ -135,7 +135,7 @@ public class BranchesTableViewer extends TableViewer {
         final Color redColor = new Color(255, 64, 0);
         
         private String getColumnText(BranchInfo branchInfo, int columnIndex) {
-            RevCommit latestCommit = branchInfo.getLatestCommit();
+            RevCommit latestCommit = branchInfo.getLatestCommit().orElse(null);
             
             return switch(columnIndex) {
                 // Branch Name

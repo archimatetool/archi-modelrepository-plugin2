@@ -139,7 +139,7 @@ public class HistoryTableViewer extends TableViewer {
         
         // Get basic current LocalBranch Info
         try {
-            fSelectedBranch = BranchInfo.currentLocalBranchInfo(archiRepo.getWorkingFolder());
+            fSelectedBranch = BranchInfo.currentLocalBranchInfo(archiRepo.getWorkingFolder()).orElse(null);
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();

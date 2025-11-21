@@ -42,7 +42,7 @@ public class BranchInfoTests {
     @Test
     public void currentLocalBranchInfo_Main() throws Exception {
         RevCommit commit = utils.commitChanges("Commit 1", false);
-        BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.ALL);
+        BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.ALL).orElse(null);
         checkLocalBranchInfo(branchInfo, commit, RepoConstants.MAIN);
         assertTrue(branchInfo.isPrimaryBranch());
     }
@@ -51,7 +51,7 @@ public class BranchInfoTests {
     public void currentLocalBranchInfo_Branch() throws Exception {
         RevCommit commit = utils.commitChanges("Commit 1", false);
         utils.checkout().setName("branch").setCreateBranch(true).call();
-        BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.ALL);
+        BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.ALL).orElse(null);
         checkLocalBranchInfo(branchInfo, commit, "branch");
         assertFalse(branchInfo.isPrimaryBranch());
     }
@@ -62,7 +62,7 @@ public class BranchInfoTests {
         RevCommit commit = utils.commitChanges("Commit 1", false);
         utils.pushToRemote(null, null);
         
-        BranchInfo branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder(), Option.ALL);
+        BranchInfo branchInfo = BranchInfo.currentRemoteBranchInfo(repo.getWorkingFolder(), Option.ALL).orElseThrow();
         checkRemoteBranchInfo(branchInfo, commit, RepoConstants.MAIN);
         assertTrue(branchInfo.isPrimaryBranch());
         
@@ -74,7 +74,7 @@ public class BranchInfoTests {
         // Push it
         utils.pushToRemote(null, null);
         branchInfo.refresh();
-        assertEquals(commit2, branchInfo.getLatestCommit());
+        assertEquals(commit2, branchInfo.getLatestCommit().orElse(null));
         
         // Undo last commit
         utils.resetToRef("HEAD^");
@@ -85,7 +85,7 @@ public class BranchInfoTests {
     private void checkLocalBranchInfo(BranchInfo branchInfo, RevCommit expectedCommit, String expectedBranch) {
         assertFalse(branchInfo.getRef().isSymbolic());
         assertEquals(RepoConstants.R_HEADS + expectedBranch, branchInfo.getFullName());
-        assertEquals(expectedCommit, branchInfo.getLatestCommit());
+        assertEquals(expectedCommit, branchInfo.getLatestCommit().orElse(null));
         assertEquals(RepoConstants.R_HEADS + expectedBranch, branchInfo.getLocalBranchName());
         assertEquals(RepoConstants.R_REMOTES_ORIGIN + expectedBranch, branchInfo.getRemoteBranchName());
         assertEquals(expectedBranch, branchInfo.getShortName());
@@ -105,7 +105,7 @@ public class BranchInfoTests {
     private void checkRemoteBranchInfo(BranchInfo branchInfo, RevCommit expectedCommit, String expectedBranch) {
         assertFalse(branchInfo.getRef().isSymbolic());
         assertEquals(RepoConstants.R_REMOTES_ORIGIN + expectedBranch, branchInfo.getFullName());
-        assertEquals(expectedCommit, branchInfo.getLatestCommit());
+        assertEquals(expectedCommit, branchInfo.getLatestCommit().orElse(null));
         assertEquals(RepoConstants.R_HEADS + expectedBranch, branchInfo.getLocalBranchName());
         assertEquals(RepoConstants.R_REMOTES_ORIGIN + expectedBranch, branchInfo.getRemoteBranchName());
         assertEquals(expectedBranch, branchInfo.getShortName());
@@ -125,16 +125,16 @@ public class BranchInfoTests {
     @Test
     public void testHashCode() throws Exception {
         utils.commitChanges("Commit 1", false);
-        BranchInfo branchInfo1 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder());
-        BranchInfo branchInfo2 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder());
+        BranchInfo branchInfo1 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder()).orElse(null);
+        BranchInfo branchInfo2 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder()).orElse(null);
         assertEquals(branchInfo1.hashCode(), branchInfo2.hashCode());
     }
     
     @Test
     public void testEquals() throws Exception {
         utils.commitChanges("Commit 1", false);
-        BranchInfo branchInfo1 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder());
-        BranchInfo branchInfo2 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder());
+        BranchInfo branchInfo1 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder()).orElse(null);
+        BranchInfo branchInfo2 = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder()).orElse(null);
         assertEquals(branchInfo1, branchInfo2);
     }
 }

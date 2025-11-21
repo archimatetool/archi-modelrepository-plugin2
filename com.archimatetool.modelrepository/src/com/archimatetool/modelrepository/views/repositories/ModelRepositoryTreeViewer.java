@@ -240,7 +240,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
      */
     private void updateStatusCache(IArchiRepository repo) {
         try {
-            BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.COMMIT_STATUS);
+            BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.COMMIT_STATUS).orElse(null);
             if(branchInfo != null) {
                 StatusCache sc = new StatusCache(branchInfo, repo.hasChangesToCommit());
                 statusCache.put(repo, sc);

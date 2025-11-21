@@ -59,8 +59,8 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         // Check if remote is ahead or Fetch needed first
         try {
             // If there are ahead commits or remote updates...
-            BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(archiRepository.getGitFolder(), Option.COMMIT_STATUS);
-            if(branchInfo.hasRemoteCommits() || hasRemoteUpdates(branchInfo.getRemoteBranchName(), credentials.getCredentialsProvider(), dialog)) {
+            BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(archiRepository.getGitFolder(), Option.COMMIT_STATUS).orElse(null);
+            if(branchInfo != null && (branchInfo.hasRemoteCommits() || hasRemoteUpdates(branchInfo.getRemoteBranchName(), credentials.getCredentialsProvider(), dialog))) {
                 int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.PushModelWorkflow_0,
                         Messages.PushModelWorkflow_5);
                 

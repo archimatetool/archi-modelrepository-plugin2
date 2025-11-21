@@ -90,7 +90,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         
         try {
             // Get the remote tracking branch info
-            BranchInfo remoteBranchInfo = BranchInfo.currentRemoteBranchInfo(archiRepository.getWorkingFolder());
+            BranchInfo remoteBranchInfo = BranchInfo.currentRemoteBranchInfo(archiRepository.getWorkingFolder()).orElse(null);
             
             // There wasn't a remote tracked branch to merge or there is but it's at HEAD
             if(remoteBranchInfo == null || remoteBranchInfo.isRefAtHead()) {

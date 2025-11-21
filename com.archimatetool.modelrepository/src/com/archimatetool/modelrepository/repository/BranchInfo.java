@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
@@ -57,10 +58,10 @@ public class BranchInfo {
     /**
      * @return A BranchInfo for the current local branch ("HEAD") or null if ref not found
      */
-    public static BranchInfo currentLocalBranchInfo(File repoDir, Option... options) throws IOException, GitAPIException {
+    public static Optional<BranchInfo> currentLocalBranchInfo(File repoDir, Option... options) throws IOException, GitAPIException {
         try(Repository repository = Git.open(repoDir).getRepository()) {
             Ref ref = repository.exactRef(RepoConstants.HEAD);
-            return ref != null ? new BranchInfo(repository, ref, null, options) : null;
+            return ref != null ? Optional.of(new BranchInfo(repository, ref, null, options)) : Optional.empty();
         }
     }
     
@@ -68,10 +69,10 @@ public class BranchInfo {
      * @return A BranchInfo for the current remote branch ("refs/remotes/origin/branch") or null if ref not found
      *         (the current branch is not tracking a remote branch)
      */
-    public static BranchInfo currentRemoteBranchInfo(File repoDir, Option... options) throws IOException, GitAPIException {
+    public static Optional<BranchInfo> currentRemoteBranchInfo(File repoDir, Option... options) throws IOException, GitAPIException {
         try(Repository repository = Git.open(repoDir).getRepository()) {
             Ref ref = repository.exactRef(RepoConstants.R_REMOTES_ORIGIN + repository.getBranch());
-            return ref != null ? new BranchInfo(repository, ref, null, options) : null;
+            return ref != null ? Optional.of(new BranchInfo(repository, ref, null, options)) : Optional.empty();
         }
     }
 
@@ -181,8 +182,8 @@ public class BranchInfo {
         return RepoConstants.R_HEADS + getShortName();
     }
     
-    public RevCommit getLatestCommit() {
-        return latestCommit;
+    public Optional<RevCommit> getLatestCommit() {
+        return Optional.ofNullable(latestCommit);
     }
 
     public boolean isMerged() {
