@@ -229,7 +229,7 @@ public class BranchInfo {
      */
     private boolean isPrimaryBranch(Repository repository) throws IOException {
         return RepoConstants.MAIN.equals(getShortName()) || 
-               (RepoConstants.MASTER.equals(getShortName()) && RepoConstants.MASTER.equals(GitUtils.wrap(repository).getPrimaryBranch()));
+               (RepoConstants.MASTER.equals(getShortName()) && RepoConstants.MASTER.equals(GitUtils.wrap(repository).getPrimaryBranch().orElse(null)));
     }
 
     /**

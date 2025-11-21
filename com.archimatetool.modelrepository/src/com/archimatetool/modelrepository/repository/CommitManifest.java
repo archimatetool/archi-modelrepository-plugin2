@@ -124,7 +124,7 @@ public class CommitManifest {
      * @return a manifest for a commit (that is not the first commit).
      */
     public static String createManifestForCommit(GitUtils utils, boolean amend) throws IOException {
-        RevCommit latestCommit = utils.getLatestCommit();
+        RevCommit latestCommit = utils.getLatestCommit().orElse(null);
         if(latestCommit == null) {
             return "";
         }

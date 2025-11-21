@@ -80,10 +80,10 @@ public class ArchiRepositoryTests {
         archiRepo.cloneModel(repoURL, null, null);
         
         try(GitUtils utils = GitUtils.open(archiRepo.getGitFolder())) {
-            assertEquals(RepoConstants.MAIN, utils.getPrimaryBranch());
-            assertEquals(RepoConstants.MAIN, utils.getCurrentLocalBranchName());
+            assertEquals(RepoConstants.MAIN, utils.getPrimaryBranch().orElse(null));
+            assertEquals(RepoConstants.MAIN, utils.getCurrentLocalBranchName().orElse(null));
             assertEquals(RepoConstants.ORIGIN_MAIN, utils.getRemoteRefNameForCurrentBranch());
-            assertEquals(repoURL, utils.getRemoteURL());
+            assertEquals(repoURL, utils.getRemoteURL().orElse(null));
             Ref refHead = utils.getRepository().exactRef(RepoConstants.HEAD);
             assertEquals(RepoConstants.R_HEADS_MAIN, refHead.getTarget().getName());
             assertEquals(2, utils.getCommitCount());

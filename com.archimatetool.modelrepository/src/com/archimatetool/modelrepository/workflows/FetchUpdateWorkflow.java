@@ -65,7 +65,7 @@ public class FetchUpdateWorkflow extends AbstractRepositoryWorkflow {
                     IArchiRepository repository = repoRef.getArchiRepository();
                     
                     try(GitUtils utils = GitUtils.open(repository.getGitFolder())) {
-                        String remoteURL = utils.getRemoteURL();
+                        String remoteURL = utils.getRemoteURL().orElse(null);
                         if(remoteURL != null) {
                             ICredentials credentials = RepoUtils.isHTTP(remoteURL) ?
                                                        CredentialsStorage.getInstance().getCredentials(repository) : new SSHCredentials();

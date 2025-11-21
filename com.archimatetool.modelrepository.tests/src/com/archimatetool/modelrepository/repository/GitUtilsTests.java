@@ -291,14 +291,14 @@ public class GitUtilsTests {
     
     @Test
     public void getCurrentLocalBranchName() throws Exception {
-        assertEquals(RepoConstants.MAIN, utils.getCurrentLocalBranchName());
+        assertEquals(RepoConstants.MAIN, utils.getCurrentLocalBranchName().orElse(null));
     }
     
     @Test
     public void getPrimaryBranch() throws Exception {
-        assertNull(utils.getPrimaryBranch());
+        assertNull(utils.getPrimaryBranch().orElse(null));
         utils.commitChanges("Message", false);
-        assertEquals(RepoConstants.MAIN, utils.getPrimaryBranch());
+        assertEquals(RepoConstants.MAIN, utils.getPrimaryBranch().orElse(null));
     }
     
     @Test
@@ -398,7 +398,7 @@ public class GitUtilsTests {
     public void getRemoteURL() throws Exception {
         String url = "https://www.somewherethereish.net/myRepo.git";
         utils.setRemote(url);
-        assertEquals(url, utils.getRemoteURL());
+        assertEquals(url, utils.getRemoteURL().orElse(null));
     }
     
     @Test
@@ -492,10 +492,10 @@ public class GitUtilsTests {
     public void getRemoteRefForCurrentBranch() throws Exception {
         utils.setRemote(GitHelper.createBareRepository().getAbsolutePath());
         utils.commitChanges("Message 1", false);
-        assertNull(utils.getRemoteRefForCurrentBranch());
+        assertNull(utils.getRemoteRefForCurrentBranch().orElse(null));
         
         utils.pushToRemote(null, null);
-        assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, utils.getRemoteRefForCurrentBranch().getName());
+        assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, utils.getRemoteRefForCurrentBranch().get().getName());
     }
     
     @Test
@@ -573,7 +573,7 @@ public class GitUtilsTests {
         utils.commitChanges("Message 1", false);
         utils.commitChanges("Message 2", false);
         
-        RevCommit commit = utils.getLatestCommit();
+        RevCommit commit = utils.getLatestCommit().orElseThrow();
         assertEquals("Message 2", commit.getFullMessage());
     }
     

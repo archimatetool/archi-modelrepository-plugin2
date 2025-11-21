@@ -129,7 +129,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     
     private void setValues() {
         try(GitUtils utils = GitUtils.open(fRepository.getWorkingFolder())) {
-            fRepoLabel.setText(fRepository.getName() + " [" + utils.getCurrentLocalBranchName() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+            fRepoLabel.setText(fRepository.getName() + " [" + utils.getCurrentLocalBranchName().orElse("null") + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
             
             PersonIdent result = utils.getUserDetails();
             fTextUserName.setText(result.getName());
@@ -143,7 +143,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
             // Set commit message to last commit message on checkbox click
             if(isAmendable) {
                 // Get the latest commit message if there is one
-                RevCommit latestCommit = utils.getLatestCommit();
+                RevCommit latestCommit = utils.getLatestCommit().orElse(null);
                 String previousCommitMessage = latestCommit != null ? latestCommit.getFullMessage() : null;
                 
                 if(previousCommitMessage != null) {

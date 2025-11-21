@@ -53,7 +53,7 @@ public class PushModelProvider extends AbstractModelRepositoryProvider {
         
         IArchiRepository repository = new ArchiRepository(folder);
         
-        String url = repository.getRemoteURL();
+        String url = repository.getRemoteURL().orElse(null);
         if(!StringUtils.isSet(url)) {
             logError("No URL set.");
             return;

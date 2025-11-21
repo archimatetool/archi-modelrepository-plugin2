@@ -69,7 +69,7 @@ public class ResetToRemoteCommitWorkflow extends AbstractRepositoryWorkflow {
         // Return true if there is a remote Ref for the current branch && HEAD and the remote Ref are not the same
         try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
             // We have to check there is actually is a remote Ref or the logic doesn't work
-            return utils.getRemoteRefForCurrentBranch() != null && !utils.isRemoteRefForCurrentBranchAtHead();
+            return utils.getRemoteRefForCurrentBranch().isPresent() && !utils.isRemoteRefForCurrentBranchAtHead();
         }
         catch(IOException ex) {
             ex.printStackTrace();

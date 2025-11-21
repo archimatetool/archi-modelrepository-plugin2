@@ -150,7 +150,7 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public String getRemoteURL() throws IOException {
+    public Optional<String> getRemoteURL() throws IOException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.getRemoteURL();
         }
@@ -178,7 +178,7 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
-    public String getCurrentLocalBranchName() throws IOException {
+    public Optional<String> getCurrentLocalBranchName() throws IOException {
         try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
             return utils.getCurrentLocalBranchName();
         }

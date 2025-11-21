@@ -148,7 +148,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         
         // Is there a remote set?
         try {
-            url = repository.getRemoteURL();
+            url = repository.getRemoteURL().orElse(null);
         }
         catch(IOException ex) {
             ex.printStackTrace();

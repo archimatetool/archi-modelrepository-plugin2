@@ -80,7 +80,7 @@ public interface IArchiRepository {
      * Return the remote URL of the Git repo (or null if not found)
      * We assume that there is only one remote per repo, and its name is "origin"
      */
-    String getRemoteURL() throws IOException;
+    Optional<String> getRemoteURL() throws IOException;
 
     /**
      * Remove remote refs (branches) from the repository and the config file
@@ -103,7 +103,7 @@ public interface IArchiRepository {
     /**
      * @return The short name of the current local branch
      */
-    String getCurrentLocalBranchName() throws IOException;
+    Optional<String> getCurrentLocalBranchName() throws IOException;
 
     /**
      * @return The repository's working directory

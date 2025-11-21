@@ -133,7 +133,7 @@ public class CredentialsStorage {
         // Get the repository URL to be used as key for the node
         String url = null;
         try {
-            url = repo.getRemoteURL();
+            url = repo.getRemoteURL().orElse(null);
         }
         catch(IOException ex) {
             ex.printStackTrace();

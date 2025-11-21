@@ -213,7 +213,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     protected boolean checkRemoteSet() {
         // No repository URL set
         try {
-            if(archiRepository.getRemoteURL() == null) {
+            if(archiRepository.getRemoteURL().isEmpty()) {
                 logger.warning("Remote not set for: " + archiRepository.getWorkingFolder()); //$NON-NLS-1$
                 MessageDialog.openError(workbenchWindow.getShell(), Messages.AbstractRepositoryWorkflow_5, Messages.AbstractRepositoryWorkflow_6);
                 return false;
@@ -236,7 +236,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     protected Optional<ICredentials> getCredentials() {
         try {
             // HTTP
-            if(RepoUtils.isHTTP(archiRepository.getRemoteURL())) {
+            if(RepoUtils.isHTTP(archiRepository.getRemoteURL().orElse(null))) {
                 return getUsernamePassword().map(npw -> (ICredentials)npw); // cast UsernamePassword to ICredentials
             }
             // SSH

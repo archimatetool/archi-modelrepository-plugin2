@@ -108,7 +108,7 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         // Do a dry run fetch
         IRunnable.run(dialog, monitor -> {
             try(GitUtils utils = GitUtils.open(archiRepository.getGitFolder())) {
-                logger.info("Fetching with dry run from " + archiRepository.getRemoteURL()); //$NON-NLS-1$
+                logger.info("Fetching with dry run from " + archiRepository.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
                 monitor.beginTask(Messages.PushModelWorkflow_6, IProgressMonitor.UNKNOWN);
                 fetchResult.set(utils.fetchFromRemoteDryRun(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_6)));
             }
@@ -130,7 +130,7 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         AtomicReference<PushResult> pushResult = new AtomicReference<>();
         
         IRunnable.run(dialog, monitor -> {
-            logger.info("Pushing to " + archiRepository.getRemoteURL()); //$NON-NLS-1$
+            logger.info("Pushing to " + archiRepository.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
             monitor.beginTask(Messages.PushModelWorkflow_1, IProgressMonitor.UNKNOWN);
             pushResult.set(archiRepository.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_1)));
         }, true);

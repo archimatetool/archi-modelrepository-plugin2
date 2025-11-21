@@ -206,7 +206,7 @@ public class MergeHandler {
     private void commitChanges(GitUtils utils, String message, BranchInfo branchToMerge) throws IOException, GitAPIException {
         String fullMessage = NLS.bind(message,
                 new Object[] { branchToMerge.isRemote() ? " remote " : " ",
-                        branchToMerge.getShortName(), utils.getCurrentLocalBranchName()} );
+                        branchToMerge.getShortName(), utils.getCurrentLocalBranchName().orElse("null")} );
         
         logger.info("Committing merge " + fullMessage);
         utils.commitChangesWithManifest(fullMessage, false);
@@ -330,7 +330,7 @@ public class MergeHandler {
         // Check out either the current or the other branch
         utils.checkout()
              .setAllPaths(true)
-             .setStartPoint(response == 0 ? utils.getCurrentLocalBranchName() : branchToMerge.getFullName())
+             .setStartPoint(response == 0 ? utils.getCurrentLocalBranchName().orElse(null) : branchToMerge.getFullName())
              .call();
 
         commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge);

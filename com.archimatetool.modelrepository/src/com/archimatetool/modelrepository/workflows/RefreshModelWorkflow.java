@@ -167,7 +167,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
     }
     
     private List<FetchResult> fetch(CredentialsProvider credentialsProvider) throws Exception {
-        logger.info("Fetching from " + archiRepository.getRemoteURL()); //$NON-NLS-1$
+        logger.info("Fetching from " + archiRepository.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
 
         AtomicReference<List<FetchResult>> fetchResults = new AtomicReference<>();
 

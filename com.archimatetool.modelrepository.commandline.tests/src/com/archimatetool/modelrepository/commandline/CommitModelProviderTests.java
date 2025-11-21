@@ -43,7 +43,7 @@ public class CommitModelProviderTests extends AbstractProviderTests {
             
             // First commit should be initial model commit
             assertFalse(utils.hasChangesToCommit());
-            RevCommit commit = utils.getLatestCommit();
+            RevCommit commit = utils.getLatestCommit().orElseThrow();
             assertEquals("Commit 1", commit.getShortMessage());
             assertTrue(commit.getFullMessage().contains("<manifest version=\"1.0.0\">"));
             assertEquals(1, utils.getCommitCount());
@@ -61,7 +61,7 @@ public class CommitModelProviderTests extends AbstractProviderTests {
             commandLine = new DefaultParser().parse(getTestOptions(),
                     getArgs(repository.getWorkingFolder().getAbsolutePath(), "Commit 2"));
             provider.run(commandLine);
-            commit = utils.getLatestCommit();
+            commit = utils.getLatestCommit().orElseThrow();
             assertEquals("Commit 2", commit.getShortMessage());
             assertTrue(commit.getFullMessage().contains("<manifest version=\"1.0.0\">"));
             assertEquals(2, utils.getCommitCount());

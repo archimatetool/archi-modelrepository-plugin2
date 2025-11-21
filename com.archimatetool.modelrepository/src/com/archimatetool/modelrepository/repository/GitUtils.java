@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
@@ -199,7 +200,7 @@ public class GitUtils extends Git {
         }
         
         // Ensure that the current branch is tracking its remote (if there is one) 
-        if(getRemoteRefForCurrentBranch() != null) {
+        if(getRemoteRefForCurrentBranch().isPresent()) {
             setTrackedBranch(getRepository().getBranch());
         }
         
@@ -266,28 +267,28 @@ public class GitUtils extends Git {
     /**
      * Return the current local branch name that HEAD points to
      */
-    public String getCurrentLocalBranchName() throws IOException {
-        return getRepository().getBranch();
+    public Optional<String> getCurrentLocalBranchName() throws IOException {
+        return Optional.ofNullable(getRepository().getBranch());
     }
     
     /**
      * @return The primary branch, either "main" or "master" or null if either of these are not present
      */
-    public String getPrimaryBranch() throws IOException {
+    public Optional<String> getPrimaryBranch() throws IOException {
         // "main" takes priority
         if(getRepository().exactRef(RepoConstants.R_HEADS_MAIN) != null
                 || getRepository().exactRef(RepoConstants.R_REMOTES_ORIGIN_MAIN) != null) {
-            return RepoConstants.MAIN;
+            return Optional.of(RepoConstants.MAIN);
         }
         
         // then "master"
         if(getRepository().exactRef(RepoConstants.R_HEADS_MASTER) != null
                 || getRepository().exactRef(RepoConstants.R_REMOTES_ORIGIN_MASTER) != null) {
-            return RepoConstants.MASTER;
+            return Optional.of(RepoConstants.MASTER);
         }
         
         // no primary branch
-        return null;
+        return Optional.empty();
     }
     
     /**
@@ -339,9 +340,9 @@ public class GitUtils extends Git {
      * Return the remote URL of the Git repo (or null if not found)
      * We assume that there is only one remote per repo, and its name is "origin"
      */
-    public String getRemoteURL() {
-        return getRepository().getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION,
-                                                     RepoConstants.ORIGIN, ConfigConstants.CONFIG_KEY_URL);
+    public Optional<String> getRemoteURL() {
+        return Optional.ofNullable(getRepository().getConfig().getString(ConfigConstants.CONFIG_REMOTE_SECTION,
+                                                     RepoConstants.ORIGIN, ConfigConstants.CONFIG_KEY_URL));
     }
 
     /**
@@ -422,15 +423,15 @@ public class GitUtils extends Git {
      * so callers might need to check {@link #getRemoteRefForCurrentBranch()} as well.
      */
     public boolean isRemoteRefForCurrentBranchAtHead() throws IOException {
-        Ref remoteRef = getRemoteRefForCurrentBranch();
+        Ref remoteRef = getRemoteRefForCurrentBranch().orElse(null);
         return remoteRef != null && isRefAtHead(remoteRef);
     }
     
     /**
      * Return the remote Ref for the current branch that HEAD points to, or null if there is no remote ref
      */
-    public Ref getRemoteRefForCurrentBranch() throws IOException {
-        return getRepository().findRef(getRemoteRefNameForCurrentBranch());
+    public Optional<Ref> getRemoteRefForCurrentBranch() throws IOException {
+        return Optional.ofNullable(getRepository().findRef(getRemoteRefNameForCurrentBranch()));
     }
     
     /**
@@ -499,14 +500,14 @@ public class GitUtils extends Git {
     /**
      * Get the latest (last) commit at HEAD, or null if it can't be located.
      */
-    public RevCommit getLatestCommit() throws IOException {
+    public Optional<RevCommit> getLatestCommit() throws IOException {
         ObjectId headID = getRepository().resolve(RepoConstants.HEAD);
         if(headID != null) {
             try(RevWalk revWalk = new RevWalk(getRepository())) {
-                return revWalk.parseCommit(headID);
+                return Optional.of(revWalk.parseCommit(headID));
             }
         }
-        return null;
+        return Optional.empty();
     }
     
     /**

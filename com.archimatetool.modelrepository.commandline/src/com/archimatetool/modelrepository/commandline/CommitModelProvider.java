@@ -60,7 +60,7 @@ public class CommitModelProvider extends AbstractModelRepositoryProvider {
             }
             
             // If it's the initial commit
-            if(utils.getLatestCommit() == null) {
+            if(utils.getLatestCommit().isEmpty()) {
                 // Load model
                 File modelFile = new File(modelFolder, RepoConstants.MODEL_FILENAME);
                 if(!modelFile.exists()) {
