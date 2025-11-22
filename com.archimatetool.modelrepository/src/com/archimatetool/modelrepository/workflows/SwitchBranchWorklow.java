@@ -51,7 +51,7 @@ public class SwitchBranchWorklow extends AbstractRepositoryWorkflow {
         }
 
         // Close the model if it's open in the tree
-        OpenModelState modelState = closeModel(false);
+        OpenModelState modelState = closeModel(false).orElse(null);
 
         // Switch branch
         switchBranch(currentBranchInfo);

@@ -91,7 +91,7 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
 
                 // If we're not at HEAD we need to reload the model
                 if(!isAtHead) {
-                    modelState = closeModel(false);
+                    modelState = closeModel(false).orElse(null);
                 }
 
                 logger.info("Checking out branch: " + branchName); //$NON-NLS-1$

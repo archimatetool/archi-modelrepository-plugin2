@@ -39,8 +39,8 @@ public class ResetToRemoteCommitWorkflow extends AbstractRepositoryWorkflow {
         logger.info("Resetting to a remote commit..."); //$NON-NLS-1$
         
         // Close the model if it's open in the tree
-        OpenModelState modelState = closeModel(true);
-        if(modelState.cancelled()) {
+        OpenModelState modelState = closeModel(true).orElse(null);
+        if(modelState != null && modelState.cancelled()) {
             return;
         }
         

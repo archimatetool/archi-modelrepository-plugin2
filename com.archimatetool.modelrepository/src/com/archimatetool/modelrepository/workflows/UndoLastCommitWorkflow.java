@@ -39,8 +39,8 @@ public class UndoLastCommitWorkflow extends AbstractRepositoryWorkflow {
         }
         
         // Close the model if it's open in the tree
-        OpenModelState modelState = closeModel(true);
-        if(modelState.cancelled()) {
+        OpenModelState modelState = closeModel(true).orElse(null);
+        if(modelState != null && modelState.cancelled()) {
             return;
         }
 

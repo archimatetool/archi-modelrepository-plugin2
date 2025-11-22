@@ -28,7 +28,6 @@ import com.archimatetool.editor.ui.services.EditorManager;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.util.ArchimateModelUtils;
-import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 /**
  * Saves and restores the state of a model if it's open in the Models tree
@@ -51,26 +50,24 @@ public class OpenModelState {
     /**
      * Close the model if it's open in the Models Tree
      */
-    OpenModelState closeModel(IArchiRepository repo, boolean askSaveModel) {
-        // Is it open in the Models tree?
-        IArchimateModel model = repo.getOpenModel().orElse(null);
+    OpenModelState closeModel(IArchimateModel model, boolean askSaveModel) {
+        if(model == null) {
+            return this;
+        }
         
-        // Yes...
-        if(model != null) {
-            modelFile = model.getFile();
-            
-            // Store any open diagrams
-            saveOpenEditors(model);
-            
-            try {
-                // Close it
-                logger.info("Closing model...");
-                modelClosed = IEditorModelManager.INSTANCE.closeModel(model, askSaveModel);
-                logger.info(modelClosed ? "Closed Model" : "User cancelled");
-            }
-            catch(IOException ex) {
-                logger.log(Level.SEVERE, "Closing model", ex);
-            }
+        modelFile = model.getFile();
+
+        // Store any open diagrams
+        saveOpenEditors(model);
+
+        try {
+            // Close it
+            logger.info("Closing model...");
+            modelClosed = IEditorModelManager.INSTANCE.closeModel(model, askSaveModel);
+            logger.info(modelClosed ? "Closed Model" : "User cancelled");
+        }
+        catch(IOException ex) {
+            logger.log(Level.SEVERE, "Closing model", ex);
         }
         
         return this;

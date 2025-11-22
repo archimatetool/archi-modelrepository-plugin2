@@ -282,15 +282,16 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     
     /**
      * If the model is open in the models tree, close it, asking to save if needed if askSaveModel is true.
-     * OpenModelState is returned in all cases.
+     * @return the optional OpenModelState which can be empty if the model wasn't open
      */
-    protected OpenModelState closeModel(boolean askSaveModel) {
-        return new OpenModelState().closeModel(archiRepository, askSaveModel);
+    protected Optional<OpenModelState> closeModel(boolean askSaveModel) {
+        // Is the model open in the Models tree? If so, close it and return non-empty optional, else empty optional
+        return archiRepository.getOpenModel().map(model -> new OpenModelState().closeModel(model, askSaveModel));
     }
     
     /**
      * Re-open this repo's model in the models tree and any previously opened editors
-     * @return The optional model if it was opened in the UI by calling this
+     * @return the optional model if it was opened in the UI by calling this
      */
     protected Optional<IArchimateModel> restoreModel(OpenModelState modelState) {
         return modelState != null ? modelState.restoreModel() : Optional.empty();
@@ -298,9 +299,10 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     
     /**
      * If the model is open in the models tree, close it and re-open it without asking
+     * @return The optional model if it was opened in the UI by calling this
      */
     protected Optional<IArchimateModel> closeAndRestoreModel() {
-        return closeModel(false).restoreModel();
+        return closeModel(false).flatMap(modelState -> modelState.restoreModel());
     }
     
     /**
