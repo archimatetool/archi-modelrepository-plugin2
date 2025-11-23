@@ -13,6 +13,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 /**
@@ -45,9 +46,9 @@ public class CommitModelWorkflow extends AbstractRepositoryWorkflow {
         // Then Commit
         logger.info("Committing changes..."); //$NON-NLS-1$
         
-        try {
-            if(archiRepository.hasChangesToCommit()) {
-                commitChanges();
+        try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
+            if(utils.hasChangesToCommit()) {
+                commitChanges(utils);
             }
             else {
                 logger.info("Nothing to commit"); //$NON-NLS-1$

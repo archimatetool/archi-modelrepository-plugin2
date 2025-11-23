@@ -19,6 +19,7 @@ import com.archimatetool.modelrepository.merge.MergeHandler;
 import com.archimatetool.modelrepository.merge.MergeHandler.MergeHandlerResult;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 
 /**
@@ -36,7 +37,7 @@ public class MergeBranchWorkflow extends AbstractRepositoryWorkflow {
     }
 
     @Override
-    public void run() {
+    protected void run(GitUtils utils) {
         // TODO - enable local and online merge
         boolean doLocal = true;
         
@@ -44,7 +45,7 @@ public class MergeBranchWorkflow extends AbstractRepositoryWorkflow {
             if(MessageDialog.openConfirm(workbenchWindow.getShell(),
                     Messages.MergeBranchWorkflow_0,
                     NLS.bind(Messages.MergeBranchWorkflow_6, currentBranchInfo.getShortName()))) {
-                doLocalMerge(currentBranchInfo);
+                doLocalMerge(utils, currentBranchInfo);
             }
             
             return;
@@ -62,25 +63,25 @@ public class MergeBranchWorkflow extends AbstractRepositoryWorkflow {
         
         // Local merge
         if(response == 0) {
-            doLocalMerge(currentBranchInfo);
+            doLocalMerge(utils, currentBranchInfo);
         }
         // Online merge
         else if(response == 1) {
-            doOnlineMerge(currentBranchInfo);
+            doOnlineMerge(utils, currentBranchInfo);
         }
     }
     
     /**
      * Local Merge
      */
-    private void doLocalMerge(BranchInfo branchToMerge) {
+    private void doLocalMerge(GitUtils utils, BranchInfo branchToMerge) {
         // Check if the model is open and needs saving
         if(!checkModelNeedsSaving()) {
             return;
         }
 
         // Check if there are uncommitted changes
-        if(!checkIfCommitNeeded()) {
+        if(!checkIfCommitNeeded(utils)) {
             return;
         }
 
@@ -118,7 +119,7 @@ public class MergeBranchWorkflow extends AbstractRepositoryWorkflow {
     /**
      * Online Merge
      */
-    private void doOnlineMerge(BranchInfo branchToMerge) {
+    private void doOnlineMerge(GitUtils utils, BranchInfo branchToMerge) {
         MessageDialog.openInformation(workbenchWindow.getShell(), "Online Merge", "Not implemented yet!"); //$NON-NLS-1$ //$NON-NLS-2$
     }
     

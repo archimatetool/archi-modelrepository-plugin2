@@ -229,8 +229,12 @@ public class HistoryTableViewer extends TableViewer {
     }
     
     private boolean getHasWorkingTree(IArchiRepository repo) {
-        try {
-            return repo != null && fSelectedBranch != null && fSelectedBranch.isCurrentBranch() && repo.hasChangesToCommit();
+        if(repo == null || fSelectedBranch == null || !fSelectedBranch.isCurrentBranch()) {
+            return false;
+        }
+        
+        try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
+            return utils.hasChangesToCommit();
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();

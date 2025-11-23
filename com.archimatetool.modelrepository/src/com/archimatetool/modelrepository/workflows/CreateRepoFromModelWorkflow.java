@@ -6,12 +6,14 @@
 package com.archimatetool.modelrepository.workflows;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -25,6 +27,7 @@ import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.NewRepoDialog;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 
@@ -62,18 +65,26 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
         boolean storeCredentials = dialog.doStoreCredentials();
         archiRepository = new ArchiRepository(folder);
         
+        // Ensure folder exists
+        folder.mkdirs();
+        
+        // Init
         try {
-            // Ensure folder exists
-            folder.mkdirs();
-            
-            // Init
             logger.info("Initialising new repository at: " + folder.getPath()); //$NON-NLS-1$
             archiRepository.init();
-            
+        }
+        catch(GitAPIException | IOException ex) {
+            logger.log(Level.SEVERE, "Initialising new repository", ex); //$NON-NLS-1$
+            deleteRepository();
+            displayErrorDialog(Messages.CreateRepoFromModelWorkflow_0, ex);
+            return;
+        }
+        
+        try(GitUtils utils = GitUtils.open(folder)) {
             // Add the remote if it's set
             if(StringUtils.isSetAfterTrim(repoURL)) {
                 logger.info("Adding remote: " + repoURL); //$NON-NLS-1$
-                archiRepository.setRemote(repoURL);
+                utils.setRemote(repoURL);
             }
             
             // Set new file location
@@ -85,11 +96,11 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
             
             // Commit changes
             logger.info("Doing a first commit"); //$NON-NLS-1$
-            archiRepository.commitModelWithManifest(model, Messages.CreateRepoFromModelWorkflow_1);
+            utils.commitModelWithManifest(model, Messages.CreateRepoFromModelWorkflow_1);
             
             // If we want to publish now then push...
             if(response == NewRepoDialog.ADD_AND_PUBLISH_ID) {
-                push(repoURL, credentials.getCredentialsProvider());
+                push(utils, repoURL, credentials.getCredentialsProvider());
             }
             
             // Add to the Tree Model
@@ -114,7 +125,7 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
     /**
      * Push to remote
      */
-    private void push(final String repoURL, CredentialsProvider credentialsProvider) throws Exception {
+    private void push(GitUtils utils, String repoURL, CredentialsProvider credentialsProvider) throws Exception {
         logger.info("Pushing to remote: " + repoURL); //$NON-NLS-1$
         
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
@@ -122,7 +133,7 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.CreateRepoFromModelWorkflow_2, IProgressMonitor.UNKNOWN);
             
-            PushResult pushResult = archiRepository.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor,
+            PushResult pushResult = utils.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor,
                                                                                           Messages.CreateRepoFromModelWorkflow_2));
             
             // Logging

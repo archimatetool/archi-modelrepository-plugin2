@@ -7,7 +7,6 @@ package com.archimatetool.modelrepository.repository;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -22,17 +21,12 @@ import java.util.stream.Stream;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.FetchResult;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteConfig;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.PlatformUtils;
@@ -108,83 +102,6 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
-    public RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.commitChanges(commitMessage, amend);
-        }
-    }
-
-    @Override
-    public RevCommit commitChangesWithManifest(String commitMessage, boolean amend) throws GitAPIException, IOException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.commitChangesWithManifest(commitMessage, amend);
-        }
-    }
-
-    @Override
-    public RevCommit commitModelWithManifest(IArchimateModel model, String commitMessage) throws GitAPIException, IOException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.commitModelWithManifest(model, commitMessage);
-        }
-    }
-
-    @Override
-    public boolean hasChangesToCommit() throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.hasChangesToCommit();
-        }
-    }
-    
-    @Override
-    public PushResult pushToRemote(CredentialsProvider credentialsProvider, ProgressMonitor monitor) throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.pushToRemote(credentialsProvider, monitor);
-        }
-    }
-    
-    @Override
-    public RemoteConfig setRemote(String url) throws IOException, GitAPIException, URISyntaxException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.setRemote(url);
-        }
-    }
-    
-    @Override
-    public Optional<String> getRemoteURL() throws IOException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.getRemoteURL();
-        }
-    }
-    
-    @Override
-    public void removeRemoteRefs(String url) throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            utils.removeRemoteRefs(url);
-        }
-    }
-    
-    @Override
-    public List<FetchResult> fetchFromRemote(CredentialsProvider credentialsProvider, ProgressMonitor monitor, boolean fetchTags) throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.fetchFromRemote(credentialsProvider, monitor, fetchTags);
-        }
-    }
-
-    @Override
-    public void resetToRef(String ref) throws IOException, GitAPIException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            utils.resetToRef(ref);
-        }
-    }
-
-    @Override
-    public Optional<String> getCurrentLocalBranchName() throws IOException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.getCurrentLocalBranchName();
-        }
-    }
-    
-    @Override
     public File getWorkingFolder() {
         return repoFolder;
     }
@@ -216,9 +133,8 @@ public class ArchiRepository implements IArchiRepository {
         // If model not open, open the "model.archimate" file and read it from there
         File modelFile = getModelFile();
         if(modelFile.exists()) {
-            try(Stream<String> stream = Files.lines(modelFile.toPath())
-                                             .filter(line -> line.contains("<archimate:model"))) {
-                String result = stream.findFirst().orElse(null);
+            try(Stream<String> stream = Files.lines(modelFile.toPath())) {
+                String result = stream.filter(line -> line.contains("<archimate:model")).findFirst().orElse(null);
                 if(result != null) {
                     Matcher matcher = NAME_PATTERN.matcher(result);
                     if(matcher.find()) {
@@ -257,27 +173,6 @@ public class ArchiRepository implements IArchiRepository {
         return Optional.empty();
     }
     
-    @Override
-    public PersonIdent getUserDetails() throws IOException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            return utils.getUserDetails();
-        }
-    }
-
-    @Override
-    public void saveUserDetails(String name, String email) throws IOException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            utils.saveUserDetails(name, email);
-        }
-    }
-
-    @Override
-    public void extractCommit(RevCommit commit, File folder, boolean preserveEol) throws IOException {
-        try(GitUtils utils = GitUtils.open(getWorkingFolder())) {
-            utils.extractCommit(commit, folder, preserveEol);
-        }
-    }
-
     @Override
     public boolean equals(Object obj) {
         // Equality based on repo (working) folder

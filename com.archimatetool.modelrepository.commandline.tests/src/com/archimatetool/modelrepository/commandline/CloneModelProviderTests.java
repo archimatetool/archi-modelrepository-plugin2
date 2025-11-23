@@ -55,11 +55,10 @@ public class CloneModelProviderTests extends AbstractProviderTests {
         remoteRepoFolder = GitHelper.createBareRepository();
         
         IArchiRepository repository = GitHelper.createNewRepository().init();
-        repository.setRemote(remoteRepoFolder.getAbsolutePath());
-        
         GitHelper.createSimpleModelInTestRepo(repository);
         
         try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
+            utils.setRemote(remoteRepoFolder.getAbsolutePath());
             utils.commitChanges("Commit 1", false);
             utils.pushToRemote(null, null);
         }

@@ -202,8 +202,8 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         fAmend = fAmendLastCommitCheckbox.getSelection();
         
         // Store user name and email
-        try {
-            fRepository.saveUserDetails(fTextUserName.getText().trim(), fTextUserEmail.getText().trim());
+        try(GitUtils utils = GitUtils.open(fRepository.getWorkingFolder())) {
+            utils.saveUserDetails(fTextUserName.getText().trim(), fTextUserEmail.getText().trim());
         }
         catch(IOException ex) {
             logger.log(Level.WARNING, "Could not save user details", ex); //$NON-NLS-1$

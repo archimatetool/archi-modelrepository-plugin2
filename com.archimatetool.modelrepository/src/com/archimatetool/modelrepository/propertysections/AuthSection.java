@@ -34,6 +34,7 @@ import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.preferences.ModelRepositoryPreferencePage;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
@@ -147,8 +148,8 @@ public class AuthSection extends AbstractArchiPropertySection {
         String url = null;
         
         // Is there a remote set?
-        try {
-            url = repository.getRemoteURL().orElse(null);
+        try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
+            url = utils.getRemoteURL().orElse(null);
         }
         catch(IOException ex) {
             ex.printStackTrace();

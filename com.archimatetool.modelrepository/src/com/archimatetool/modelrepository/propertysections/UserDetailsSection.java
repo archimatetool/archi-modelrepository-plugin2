@@ -31,6 +31,7 @@ import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoUtils;
 import com.archimatetool.modelrepository.treemodel.RepositoryRef;
@@ -149,8 +150,8 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
             }
             
             // Get local name, email
-            try {
-                PersonIdent local = fRepository.getUserDetails();
+            try(GitUtils utils = GitUtils.open(fRepository.getWorkingFolder())) {
+                PersonIdent local = utils.getUserDetails();
                 localName = local.getName();
                 localEmail = local.getEmailAddress();
             }

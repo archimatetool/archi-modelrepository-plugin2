@@ -40,9 +40,9 @@ public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
     }
 
     @Override
-    public void run() {
+    protected void run(GitUtils utils) {
         // Check that there is a repository URL set
-        if(!checkRemoteSet()) {
+        if(!checkRemoteSet(utils)) {
             return;
         }
 
@@ -54,13 +54,13 @@ public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
         }
 
         // Get credentials
-        ICredentials credentials = getCredentials().orElse(null);
+        ICredentials credentials = getCredentials(utils).orElse(null);
         if(credentials == null) {
             return;
         }
         
         try {
-            deleteTags(credentials.getCredentialsProvider(), tagInfos);
+            deleteTags(utils, credentials.getCredentialsProvider(), tagInfos);
         }
         catch(Exception ex) {
             logger.log(Level.SEVERE, "Delete Branch", ex); //$NON-NLS-1$
@@ -71,7 +71,7 @@ public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
         }
     }
     
-    private void deleteTags(CredentialsProvider credentialsProvider, TagInfo... tagInfos) throws Exception {
+    private void deleteTags(GitUtils utils, CredentialsProvider credentialsProvider, TagInfo... tagInfos) throws Exception {
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
         IRunnable.run(dialog, monitor -> {
@@ -80,21 +80,19 @@ public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
             String[] tagNames = Arrays.stream(tagInfos).map(TagInfo::getFullName).toArray(String[]::new);
             String names = String.join(", ", tagNames); //$NON-NLS-1$
 
-            try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
-                // Delete the remote tags
-                logger.info("Deleting remote tags: " + names); //$NON-NLS-1$
-                PushResult pushResult = utils.deleteRemoteTags(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.DeleteTagsWorkflow_0), tagNames);
-                
-                // Logging
-                logPushResult(pushResult, logger);
-                
-                // Status
-                checkPushResultStatus(pushResult);
+            // Delete the remote tags
+            logger.info("Deleting remote tags: " + names); //$NON-NLS-1$
+            PushResult pushResult = utils.deleteRemoteTags(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.DeleteTagsWorkflow_0), tagNames);
 
-                // If OK, delete local tags
-                logger.info("Deleting local tags: " + names); //$NON-NLS-1$
-                utils.deleteTags(tagNames);
-            }
+            // Logging
+            logPushResult(pushResult, logger);
+
+            // Status
+            checkPushResultStatus(pushResult);
+
+            // If OK, delete local tags
+            logger.info("Deleting local tags: " + names); //$NON-NLS-1$
+            utils.deleteTags(tagNames);
         }, true);
     }
     

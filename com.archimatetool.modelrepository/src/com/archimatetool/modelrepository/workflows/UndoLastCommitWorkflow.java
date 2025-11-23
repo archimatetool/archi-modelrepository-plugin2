@@ -44,9 +44,9 @@ public class UndoLastCommitWorkflow extends AbstractRepositoryWorkflow {
             return;
         }
 
-        try {
+        try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
             logger.info("Resetting to HEAD^"); //$NON-NLS-1$
-            archiRepository.resetToRef("HEAD^"); //$NON-NLS-1$
+            utils.resetToRef("HEAD^"); //$NON-NLS-1$
         }
         catch(Exception ex) {
             ex.printStackTrace();

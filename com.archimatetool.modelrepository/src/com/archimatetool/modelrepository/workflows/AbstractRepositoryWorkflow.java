@@ -29,6 +29,7 @@ import com.archimatetool.modelrepository.dialogs.CommitDialog;
 import com.archimatetool.modelrepository.dialogs.Dialogs;
 import com.archimatetool.modelrepository.dialogs.ErrorMessageDialog;
 import com.archimatetool.modelrepository.dialogs.UserNamePasswordDialog;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoConstants;
@@ -140,9 +141,9 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
      * If No, reset the working dir with a hard reset to clear uncommitted changes
      * Return true
      */
-    protected boolean checkIfCommitNeeded() {
+    protected boolean checkIfCommitNeeded(GitUtils utils) {
         try {
-            if(archiRepository.hasChangesToCommit()) {
+            if(utils.hasChangesToCommit()) {
                 int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.AbstractRepositoryWorkflow_3, Messages.AbstractRepositoryWorkflow_4);
                 // Cancel
                 if(response == SWT.CANCEL) {
@@ -152,12 +153,12 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
                 // Yes
                 else if(response == SWT.YES) {
                     // Commit Dialog
-                    return commitChanges();
+                    return commitChanges(utils);
                 }
                 // No. Discard changes by resetting to HEAD
                 else if(response == SWT.NO) {
                     logger.info("Resetting to HEAD"); //$NON-NLS-1$
-                    archiRepository.resetToRef(RepoConstants.HEAD);
+                    utils.resetToRef(RepoConstants.HEAD);
 
                     // Close and re-open the reset model
                     closeAndRestoreModel();
@@ -167,7 +168,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
                 }
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(GitAPIException ex) {
             logger.log(Level.SEVERE, "Commit Changes", ex); //$NON-NLS-1$
             ex.printStackTrace();
             return false;
@@ -180,7 +181,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
      * Commit changes. Show user dialog.
      * @return true if successful, false otherwise
      */
-    protected boolean commitChanges() {
+    protected boolean commitChanges(GitUtils utils) {
         CommitDialog commitDialog = new CommitDialog(workbenchWindow.getShell(), archiRepository);
         int response = commitDialog.open();
         
@@ -190,7 +191,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
             
             try {
                 logger.info("Commiting changes for: " + archiRepository.getModelFile()); //$NON-NLS-1$
-                archiRepository.commitChangesWithManifest(commitMessage, amend);
+                utils.commitChangesWithManifest(commitMessage, amend);
             }
             catch(Exception ex) {
                 logger.log(Level.SEVERE, "Commit Exception", ex); //$NON-NLS-1$
@@ -209,23 +210,17 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
 
     /**
      * Check that there is a Remote set
+     * @param utils 
      */
-    protected boolean checkRemoteSet() {
-        // No repository URL set
-        try {
-            if(archiRepository.getRemoteURL().isEmpty()) {
-                logger.warning("Remote not set for: " + archiRepository.getWorkingFolder()); //$NON-NLS-1$
-                MessageDialog.openError(workbenchWindow.getShell(), Messages.AbstractRepositoryWorkflow_5, Messages.AbstractRepositoryWorkflow_6);
-                return false;
-            }
-        }
-        catch(IOException ex) {
-            logger.log(Level.SEVERE, "Remote", ex); //$NON-NLS-1$
-            ex.printStackTrace();
-            return false;
+    protected boolean checkRemoteSet(GitUtils utils) {
+        if(utils.getRemoteURL().isPresent()) {
+            return true;
         }
         
-        return true;
+        // No repository URL set
+        logger.warning("Remote not set for: " + archiRepository.getWorkingFolder()); //$NON-NLS-1$
+        MessageDialog.openError(workbenchWindow.getShell(), Messages.AbstractRepositoryWorkflow_5, Messages.AbstractRepositoryWorkflow_6);
+        return false;
     }
     
     /**
@@ -233,16 +228,16 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
      * If SSH return SSHCredentials
      * On Exception return empty optional so caller needs to return from the workflow
      */
-    protected Optional<ICredentials> getCredentials() {
+    protected Optional<ICredentials> getCredentials(GitUtils utils) {
         try {
             // HTTP
-            if(RepoUtils.isHTTP(archiRepository.getRemoteURL().orElse(null))) {
+            if(RepoUtils.isHTTP(utils.getRemoteURL().orElse(null))) {
                 return getUsernamePassword().map(npw -> (ICredentials)npw); // cast UsernamePassword to ICredentials
             }
             // SSH
             return Optional.of(new SSHCredentials());
         }
-        catch(IOException | StorageException ex) {
+        catch(StorageException ex) {
             logger.log(Level.SEVERE, "User Credentials", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.AbstractRepositoryWorkflow_7, ex);
             return Optional.empty();
@@ -329,10 +324,25 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     }
 
     /**
-     * Run the workflow
+     * Run the workflow.
+     * The backing repository in GitUtils will be opened for re-use and closed
+     * after {@link #runWorkflow()} has been called.
      */
     @Override
     public void run() {
+        try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
+            run(utils);
+        }
+        catch(IOException ex) {
+            logger.log(Level.SEVERE, "Error opening GitUtils"); //$NON-NLS-1$
+            ex.printStackTrace();
+        }
+    }
+    
+    /**
+     * Run the workflow with GitUtils. This is called from {@link #run()}
+     */
+    protected void run(GitUtils utils) {
     }
     
     /**

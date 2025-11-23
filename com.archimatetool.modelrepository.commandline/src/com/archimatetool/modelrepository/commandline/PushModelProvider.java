@@ -15,8 +15,7 @@ import org.eclipse.osgi.util.NLS;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
-import com.archimatetool.modelrepository.repository.ArchiRepository;
-import com.archimatetool.modelrepository.repository.IArchiRepository;
+import com.archimatetool.modelrepository.repository.GitUtils;
 
 /**
  * Command Line interface for pushin a repository model to an online Repository
@@ -51,29 +50,30 @@ public class PushModelProvider extends AbstractModelRepositoryProvider {
             return;
         }
         
-        IArchiRepository repository = new ArchiRepository(folder);
-        
-        String url = repository.getRemoteURL().orElse(null);
-        if(!StringUtils.isSet(url)) {
-            logError("No URL set.");
-            return;
-        }
-        
-        if(!checkCredentials(commandLine, url)) {
-            return;
-        }
-        
-        ICredentials credentials = getCredentials(commandLine, url);
-        
-        try {
-            logMessage(NLS.bind("Pushing from {0} to {1}", folder, url));
-            repository.pushToRemote(credentials.getCredentialsProvider(), new CLIProgressMonitor());
-        }
-        finally {
-            if(credentials instanceof UsernamePassword npw) {
-                npw.clear(); // Clear this
+        try(GitUtils utils = GitUtils.open(folder)) {
+            String url = utils.getRemoteURL().orElse(null);
+            if(!StringUtils.isSet(url)) {
+                logError("No URL set.");
+                return;
+            }
+
+            if(!checkCredentials(commandLine, url)) {
+                return;
+            }
+            
+            ICredentials credentials = getCredentials(commandLine, url);
+            
+            try {
+                logMessage(NLS.bind("Pushing from {0} to {1}", folder, url));
+                utils.pushToRemote(credentials.getCredentialsProvider(), new CLIProgressMonitor());
+            }
+            finally {
+                if(credentials instanceof UsernamePassword npw) {
+                    npw.clear(); // Clear this
+                }
             }
         }
+        
         
         logMessage("Model pushed!");
     }

@@ -39,6 +39,7 @@ import com.archimatetool.editor.ui.components.TreeTextCellEditor;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.BranchInfo.Option;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -239,10 +240,10 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
      * Update the status cache for one repository
      */
     private void updateStatusCache(IArchiRepository repo) {
-        try {
+        try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
             BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.COMMIT_STATUS).orElse(null);
             if(branchInfo != null) {
-                StatusCache sc = new StatusCache(branchInfo, repo.hasChangesToCommit());
+                StatusCache sc = new StatusCache(branchInfo, utils.hasChangesToCommit());
                 statusCache.put(repo, sc);
             }
         }

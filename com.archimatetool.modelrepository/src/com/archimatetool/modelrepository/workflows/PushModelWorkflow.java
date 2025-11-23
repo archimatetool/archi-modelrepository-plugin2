@@ -43,13 +43,13 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
     }
 
     @Override
-    public void run() {
-        if(!checkRemoteSet()) {
+    protected void run(GitUtils utils) {
+        if(!checkRemoteSet(utils)) {
             return;
         }
         
         // Get credentials
-        ICredentials credentials = getCredentials().orElse(null);
+        ICredentials credentials = getCredentials(utils).orElse(null);
         if(credentials == null) {
             return;
         }
@@ -60,13 +60,13 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         try {
             // If there are ahead commits or remote updates...
             BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(archiRepository.getGitFolder(), Option.COMMIT_STATUS).orElse(null);
-            if(branchInfo != null && (branchInfo.hasRemoteCommits() || hasRemoteUpdates(branchInfo.getRemoteBranchName(), credentials.getCredentialsProvider(), dialog))) {
+            if(branchInfo != null && (branchInfo.hasRemoteCommits() || hasRemoteUpdates(utils, branchInfo.getRemoteBranchName(), credentials.getCredentialsProvider(), dialog))) {
                 int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.PushModelWorkflow_0,
                         Messages.PushModelWorkflow_5);
                 
                 if(response == SWT.YES) {
                     RefreshModelWorkflow workflow = new RefreshModelWorkflow(workbenchWindow, archiRepository);
-                    workflow.run();
+                    workflow.run(utils);
                     return;
                 }
                 else if(response == SWT.CANCEL) {
@@ -83,7 +83,7 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         PushResult pushResult = null;
         
         try {
-            pushResult = push(credentials.getCredentialsProvider(), dialog);
+            pushResult = push(utils, credentials.getCredentialsProvider(), dialog);
         }
         catch(Exception ex) {
             logger.log(Level.SEVERE, "Push", ex); //$NON-NLS-1$
@@ -102,16 +102,14 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         }
     }
     
-    private boolean hasRemoteUpdates(String remoteRef, CredentialsProvider credentialsProvider, ProgressMonitorDialog dialog) throws Exception {
+    private boolean hasRemoteUpdates(GitUtils utils, String remoteRef, CredentialsProvider credentialsProvider, ProgressMonitorDialog dialog) throws Exception {
         AtomicReference<FetchResult> fetchResult = new AtomicReference<>();
         
         // Do a dry run fetch
         IRunnable.run(dialog, monitor -> {
-            try(GitUtils utils = GitUtils.open(archiRepository.getGitFolder())) {
-                logger.info("Fetching with dry run from " + archiRepository.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
-                monitor.beginTask(Messages.PushModelWorkflow_6, IProgressMonitor.UNKNOWN);
-                fetchResult.set(utils.fetchFromRemoteDryRun(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_6)));
-            }
+            logger.info("Fetching with dry run from " + utils.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
+            monitor.beginTask(Messages.PushModelWorkflow_6, IProgressMonitor.UNKNOWN);
+            fetchResult.set(utils.fetchFromRemoteDryRun(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_6)));
         }, true);
         
         for(TrackingRefUpdate refUpdate : fetchResult.get().getTrackingRefUpdates()) {
@@ -126,13 +124,13 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
     /**
      * Push to Remote
      */
-    private PushResult push(CredentialsProvider credentialsProvider, ProgressMonitorDialog dialog) throws Exception {
+    private PushResult push(GitUtils utils, CredentialsProvider credentialsProvider, ProgressMonitorDialog dialog) throws Exception {
         AtomicReference<PushResult> pushResult = new AtomicReference<>();
         
         IRunnable.run(dialog, monitor -> {
-            logger.info("Pushing to " + archiRepository.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
+            logger.info("Pushing to " + utils.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
             monitor.beginTask(Messages.PushModelWorkflow_1, IProgressMonitor.UNKNOWN);
-            pushResult.set(archiRepository.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_1)));
+            pushResult.set(utils.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_1)));
         }, true);
         
         return pushResult.get();

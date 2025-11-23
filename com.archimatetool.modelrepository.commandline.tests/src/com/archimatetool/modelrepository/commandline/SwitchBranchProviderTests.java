@@ -32,12 +32,12 @@ public class SwitchBranchProviderTests extends AbstractProviderTests {
         setup();
         
         try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
-            assertEquals("main", repository.getCurrentLocalBranchName().orElse(null));
+            assertEquals("main", utils.getCurrentLocalBranchName().orElse(null));
 
             CommandLine commandLine = new DefaultParser().parse(getTestOptions(), getArgs());
             provider.run(commandLine);
             
-            assertEquals("branch", repository.getCurrentLocalBranchName().orElse(null));
+            assertEquals("branch", utils.getCurrentLocalBranchName().orElse(null));
         }
     }
     

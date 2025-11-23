@@ -96,11 +96,11 @@ public class RepoInfoSection extends AbstractArchiPropertySection implements IRe
                     }
                 }
                 
-                try {
+                try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
                     // If changing url delete all (local) remote branch refs *before* setting the remote
                     if(!previousText.isBlank()) {
                         logger.info("Deleting remote branch refs"); //$NON-NLS-1$
-                        repository.removeRemoteRefs(newText);
+                        utils.removeRemoteRefs(newText);
                         
                         // And delete HTTP credentials
                         if(RepoUtils.isHTTP(newText)) {
@@ -114,7 +114,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection implements IRe
                     
                     // Set remote
                     logger.info("Setting remote URL to: " + newText); //$NON-NLS-1$
-                    repository.setRemote(newText);
+                    utils.setRemote(newText);
                 }
                 catch(Exception ex) {
                     logger.log(Level.SEVERE, "Set Remote", ex); //$NON-NLS-1$

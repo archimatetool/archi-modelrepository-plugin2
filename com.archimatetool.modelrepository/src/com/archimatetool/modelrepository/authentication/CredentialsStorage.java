@@ -16,6 +16,7 @@ import org.eclipse.equinox.security.storage.StorageException;
 
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 
 /**
@@ -132,8 +133,8 @@ public class CredentialsStorage {
     private ISecurePreferences getRepositoryNode(IArchiRepository repo) {
         // Get the repository URL to be used as key for the node
         String url = null;
-        try {
-            url = repo.getRemoteURL().orElse(null);
+        try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
+            url = utils.getRemoteURL().orElse(null);
         }
         catch(IOException ex) {
             ex.printStackTrace();

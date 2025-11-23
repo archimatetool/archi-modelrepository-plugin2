@@ -42,12 +42,12 @@ public class DeleteBranchWorkflow extends AbstractPushResultWorkflow {
     }
 
     @Override
-    public void run() {
+    protected void run(GitUtils utils) {
         // If the branch has a remote ref of the same name (tracked or untracked) or is a remote branch
         boolean deleteRemoteBranch = currentBranchInfo.hasRemoteRef() || currentBranchInfo.isRemote();
         
         // Check that there is a repository URL set
-        if(deleteRemoteBranch && !checkRemoteSet()) {
+        if(deleteRemoteBranch && !checkRemoteSet(utils)) {
             return;
         }
 
@@ -62,12 +62,12 @@ public class DeleteBranchWorkflow extends AbstractPushResultWorkflow {
         if(deleteRemoteBranch) {
             try {
                 // Get credentials
-                ICredentials credentials = getCredentials().orElse(null);
+                ICredentials credentials = getCredentials(utils).orElse(null);
                 if(credentials == null) {
                     return;
                 }
                 
-                deleteLocalAndRemoteBranch(currentBranchInfo, credentials.getCredentialsProvider());
+                deleteLocalAndRemoteBranch(utils, currentBranchInfo, credentials.getCredentialsProvider());
             }
             catch(Exception ex) {
                 logger.log(Level.SEVERE, "Delete Branch", ex); //$NON-NLS-1$
@@ -92,31 +92,29 @@ public class DeleteBranchWorkflow extends AbstractPushResultWorkflow {
     /**
      * Delete the local and remote refs and push to the remote deleting the remote branch
      */
-    private void deleteLocalAndRemoteBranch(BranchInfo branchInfo, CredentialsProvider credentialsProvider) throws Exception {
+    private void deleteLocalAndRemoteBranch(GitUtils utils, BranchInfo branchInfo, CredentialsProvider credentialsProvider) throws Exception {
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.DeleteBranchWorkflow_0, IProgressMonitor.UNKNOWN);
             
-            try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
-                // Delete the remote branch first in case of error
-                logger.info("Deleting remote branch: " + branchInfo.getLocalBranchName()); //$NON-NLS-1$
-                PushResult pushResult = utils.deleteRemoteBranch(branchInfo.getLocalBranchName(), credentialsProvider, new ProgressMonitorWrapper(monitor,
-                                                                                        Messages.DeleteBranchWorkflow_0));
-                
-                // Logging
-                logPushResult(pushResult, logger);
-                
-                // Status
-                checkPushResultStatus(pushResult);
+            // Delete the remote branch first in case of error
+            logger.info("Deleting remote branch: " + branchInfo.getLocalBranchName()); //$NON-NLS-1$
+            PushResult pushResult = utils.deleteRemoteBranch(branchInfo.getLocalBranchName(), credentialsProvider, new ProgressMonitorWrapper(monitor,
+                                                                                    Messages.DeleteBranchWorkflow_0));
+            
+            // Logging
+            logPushResult(pushResult, logger);
+            
+            // Status
+            checkPushResultStatus(pushResult);
 
-                // If OK, delete local and tracked branch
-                logger.info("Deleting local branch: " + branchInfo.getShortName()); //$NON-NLS-1$
-                utils.deleteBranches(true, // force the delete even if the branch hasn't been merged
-                                   branchInfo.getLocalBranchName(),
-                                   branchInfo.getRemoteBranchName());
+            // If OK, delete local and tracked branch
+            logger.info("Deleting local branch: " + branchInfo.getShortName()); //$NON-NLS-1$
+            utils.deleteBranches(true, // force the delete even if the branch hasn't been merged
+                               branchInfo.getLocalBranchName(),
+                               branchInfo.getRemoteBranchName());
                 
-            }
         }, true);
     }
     

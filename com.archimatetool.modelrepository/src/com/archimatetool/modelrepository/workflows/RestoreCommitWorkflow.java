@@ -34,9 +34,7 @@ public class RestoreCommitWorkflow extends AbstractRepositoryWorkflow {
     }
 
     @Override
-    public void run() {
-        logger.info("Restoring to a commit..."); //$NON-NLS-1$
-        
+    protected void run(GitUtils utils) {
         if(!MessageDialog.openConfirm(workbenchWindow.getShell(),
                 Messages.RestoreCommitWorkflow_0,
                 Messages.RestoreCommitWorkflow_1)) {
@@ -44,13 +42,15 @@ public class RestoreCommitWorkflow extends AbstractRepositoryWorkflow {
         }
         
         try {
+            logger.info("Restoring to a commit..."); //$NON-NLS-1$
+
             // Delete the contents of the working directory
             logger.info("Deleting contents of working directory"); //$NON-NLS-1$
             archiRepository.deleteWorkingFolderContents();
             
             // Extract the contents of the commit
             logger.info("Extracting the commit"); //$NON-NLS-1$
-            archiRepository.extractCommit(revCommit, archiRepository.getWorkingFolder(), false);
+            utils.extractCommit(revCommit, archiRepository.getWorkingFolder(), false);
             
             // Check that we actually restored the model in case there is no model file in this commit
             if(!archiRepository.getModelFile().exists()) {
@@ -59,14 +59,14 @@ public class RestoreCommitWorkflow extends AbstractRepositoryWorkflow {
             
             // Commit changes
             logger.info("Committing changes..."); //$NON-NLS-1$
-            archiRepository.commitChangesWithManifest(Messages.RestoreCommitWorkflow_3 + " '" + revCommit.getShortMessage() + "'", false); //$NON-NLS-1$ //$NON-NLS-2$
+            utils.commitChangesWithManifest(Messages.RestoreCommitWorkflow_3 + " '" + revCommit.getShortMessage() + "'", false); //$NON-NLS-1$ //$NON-NLS-2$
         }
         catch(IOException | GitAPIException ex) {
             logger.log(Level.SEVERE, "Restore to Commit", ex); //$NON-NLS-1$
             try {
-                archiRepository.resetToRef(RepoConstants.HEAD);
+                utils.resetToRef(RepoConstants.HEAD);
             }
-            catch(IOException | GitAPIException ex1) {
+            catch(GitAPIException ex1) {
                 logger.log(Level.SEVERE, "Reset to HEAD", ex1); //$NON-NLS-1$
             }
             displayErrorDialog(Messages.RestoreCommitWorkflow_0, ex);

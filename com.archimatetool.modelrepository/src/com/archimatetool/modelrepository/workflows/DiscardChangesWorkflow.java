@@ -5,7 +5,6 @@
  */
 package com.archimatetool.modelrepository.workflows;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,6 +12,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepoConstants;
@@ -31,11 +31,11 @@ public class DiscardChangesWorkflow extends AbstractRepositoryWorkflow {
     }
 
     @Override
-    public void run() {
+    protected void run(GitUtils utils) {
         logger.info("Discarding uncommitted changes..."); //$NON-NLS-1$
         
         try {
-            if(!archiRepository.hasChangesToCommit()) {
+            if(!utils.hasChangesToCommit()) {
                 MessageDialog.openInformation(workbenchWindow.getShell(),
                         Messages.DiscardChangesWorkflow_0,
                         Messages.DiscardChangesWorkflow_1);
@@ -43,7 +43,7 @@ public class DiscardChangesWorkflow extends AbstractRepositoryWorkflow {
                 return;
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(GitAPIException ex) {
             ex.printStackTrace();
             logger.log(Level.SEVERE, "Commit Changes", ex); //$NON-NLS-1$
             return;
@@ -64,9 +64,9 @@ public class DiscardChangesWorkflow extends AbstractRepositoryWorkflow {
         // Reset to HEAD
         try {
             logger.info("Resetting to HEAD"); //$NON-NLS-1$
-            archiRepository.resetToRef(RepoConstants.HEAD);
+            utils.resetToRef(RepoConstants.HEAD);
         }
-        catch(IOException | GitAPIException ex) {
+        catch(GitAPIException ex) {
             ex.printStackTrace();
             logger.log(Level.SEVERE, "Reset to HEAD", ex); //$NON-NLS-1$
         }

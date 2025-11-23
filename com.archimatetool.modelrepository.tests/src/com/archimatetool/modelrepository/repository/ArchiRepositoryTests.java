@@ -60,9 +60,10 @@ public class ArchiRepositoryTests {
         // Create a new local repo and remote repo
         IArchiRepository archiRepo = GitHelper.createNewRepository().init();
         String repoURL = GitHelper.createBareRepository().getAbsolutePath();
-        archiRepo.setRemote(repoURL);
         
         try(GitUtils utils = GitUtils.open(archiRepo.getGitFolder())) {
+            utils.setRemote(repoURL);
+            
             // Add some commits
             GitHelper.writeFileToTestRepo(archiRepo, "file1.txt", "123");
             utils.commitChanges("Message 1", false);

@@ -5,16 +5,15 @@
  */
 package com.archimatetool.modelrepository.workflows;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.BranchInfo;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 
 /**
@@ -32,10 +31,10 @@ public class SwitchBranchWorklow extends AbstractRepositoryWorkflow {
     }
 
     @Override
-    public void run() {
+    protected void run(GitUtils utils) {
         // If switched branch Ref == current HEAD Ref (i.e current branch and switched branch are same Ref) just switch branch
         if(currentBranchInfo.isRefAtHead()) {
-            switchBranch(currentBranchInfo);
+            switchBranch(utils, currentBranchInfo);
             notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
             return;
         }
@@ -46,7 +45,7 @@ public class SwitchBranchWorklow extends AbstractRepositoryWorkflow {
         }
         
         // Check if there are uncommitted changes
-        if(!checkIfCommitNeeded()) {
+        if(!checkIfCommitNeeded(utils)) {
             return;
         }
 
@@ -54,7 +53,7 @@ public class SwitchBranchWorklow extends AbstractRepositoryWorkflow {
         OpenModelState modelState = closeModel(false).orElse(null);
 
         // Switch branch
-        switchBranch(currentBranchInfo);
+        switchBranch(utils, currentBranchInfo);
         
         // Open the model if it was open before and any open editors
         restoreModel(modelState);
@@ -63,26 +62,26 @@ public class SwitchBranchWorklow extends AbstractRepositoryWorkflow {
         notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
     }
     
-    private void switchBranch(BranchInfo branchInfo) {
+    private void switchBranch(GitUtils utils, BranchInfo branchInfo) {
         logger.info("Switching branch to: " + branchInfo.getShortName()); //$NON-NLS-1$
         
-        try(Git git = Git.open(archiRepository.getWorkingFolder())) {
+        try {
             // If the branch is local just checkout
             if(branchInfo.isLocal()) {
-                git.checkout()
-                   .setName(branchInfo.getFullName())
-                   .call();
+                utils.checkout()
+                     .setName(branchInfo.getFullName())
+                     .call();
             }
             // If the branch is remote and has no local ref we need to create the local branch and checkout that
             else if(branchInfo.isRemote() && !branchInfo.hasLocalRef()) {
-                git.checkout()
-                   .setName(branchInfo.getShortName())
-                   .setCreateBranch(true)
-                   .setStartPoint(branchInfo.getFullName())
-                   .call();
+                utils.checkout()
+                     .setName(branchInfo.getShortName())
+                     .setCreateBranch(true)
+                     .setStartPoint(branchInfo.getFullName())
+                     .call();
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(GitAPIException ex) {
             logger.log(Level.SEVERE, "Switch Branch", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.SwitchBranchWorklow_0, ex);
         }

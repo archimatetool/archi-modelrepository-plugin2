@@ -46,9 +46,9 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
     }
 
     @Override
-    public void run() {
+    protected void run(GitUtils utils) {
         // Check that there is a repository URL set
-        if(!checkRemoteSet()) {
+        if(!checkRemoteSet(utils)) {
             return;
         }
         
@@ -58,12 +58,12 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }
 
         // Check if there are uncommitted changes
-        if(!checkIfCommitNeeded()) {
+        if(!checkIfCommitNeeded(utils)) {
             return;
         }
 
         // Get credentials
-        ICredentials credentials = getCredentials().orElse(null);
+        ICredentials credentials = getCredentials(utils).orElse(null);
         if(credentials == null) {
             return;
         }
@@ -72,7 +72,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         // The first FetchResult will be for branches and the second for tags.
         List<FetchResult> fetchResults = null;
         try {
-            fetchResults = fetch(credentials.getCredentialsProvider());
+            fetchResults = fetch(utils, credentials.getCredentialsProvider());
         }
         catch(Exception ex) {
             logger.log(Level.SEVERE, "Fetch", ex); //$NON-NLS-1$
@@ -105,14 +105,12 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
             // Check whether HEAD and the remote branch share a base commit
             // If they don't it means that HEAD is on an orphaned branch probably because
             // user set a remote URL containing a different model
-            try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
-                RevCommit mergeBase = utils.getBaseCommit(RepoConstants.HEAD, remoteBranchInfo.getRemoteBranchName());
-                if(mergeBase == null) {
-                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-                    displayErrorDialog(Messages.RefreshModelWorkflow_0, Messages.RefreshModelWorkflow_6 + ' '
-                                        + Messages.RefreshModelWorkflow_7 + "\n\n" + Messages.RefreshModelWorkflow_8); //$NON-NLS-1$
-                    return;
-                }
+            RevCommit mergeBase = utils.getBaseCommit(RepoConstants.HEAD, remoteBranchInfo.getRemoteBranchName());
+            if(mergeBase == null) {
+                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                displayErrorDialog(Messages.RefreshModelWorkflow_0, Messages.RefreshModelWorkflow_6 + ' '
+                        + Messages.RefreshModelWorkflow_7 + "\n\n" + Messages.RefreshModelWorkflow_8); //$NON-NLS-1$
+                return;
             }
             
             // Try to merge
@@ -122,11 +120,11 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
             logger.log(Level.SEVERE, "Merge", ex); //$NON-NLS-1$
             
             // Reset to HEAD in case of repo being in temporary merge state or other bad state
-            try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
+            try {
                 logger.info("Resetting to HEAD."); //$NON-NLS-1$
                 utils.resetToRef(RepoConstants.HEAD);
             }
-            catch(IOException | GitAPIException ex1) {
+            catch(GitAPIException ex1) {
                 ex1.printStackTrace();
                 logger.log(Level.SEVERE, "Merge", ex1); //$NON-NLS-1$
             }
@@ -166,8 +164,8 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }
     }
     
-    private List<FetchResult> fetch(CredentialsProvider credentialsProvider) throws Exception {
-        logger.info("Fetching from " + archiRepository.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
+    private List<FetchResult> fetch(GitUtils utils, CredentialsProvider credentialsProvider) throws Exception {
+        logger.info("Fetching from " + utils.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
 
         AtomicReference<List<FetchResult>> fetchResults = new AtomicReference<>();
 
@@ -175,7 +173,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         
         IRunnable.run(dialog, monitor -> {
             monitor.beginTask(Messages.RefreshModelWorkflow_4, IProgressMonitor.UNKNOWN);
-            fetchResults.set(archiRepository.fetchFromRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), true));
+            fetchResults.set(utils.fetchFromRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.RefreshModelWorkflow_4), true));
         }, true);
 
         return fetchResults.get();

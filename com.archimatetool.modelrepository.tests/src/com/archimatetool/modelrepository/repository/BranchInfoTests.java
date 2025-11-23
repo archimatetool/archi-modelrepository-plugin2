@@ -58,7 +58,7 @@ public class BranchInfoTests {
     
     @Test
     public void currentRemoteFullBranchInfo() throws Exception {
-        repo.setRemote(GitHelper.createBareRepository().getAbsolutePath());
+        utils.setRemote(GitHelper.createBareRepository().getAbsolutePath());
         RevCommit commit = utils.commitChanges("Commit 1", false);
         utils.pushToRemote(null, null);
         

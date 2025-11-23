@@ -32,7 +32,7 @@ public class BranchStatusTests {
     public void runOnceBeforeEachTest() throws Exception {
         repo = GitHelper.createNewRepository().init();
         utils = GitUtils.open(repo.getGitFolder());
-        repo.setRemote(GitHelper.createBareRepository().getAbsolutePath());
+        utils.setRemote(GitHelper.createBareRepository().getAbsolutePath());
         
         utils.commitChanges("Commit 1", false);
         utils.pushToRemote(null, null);

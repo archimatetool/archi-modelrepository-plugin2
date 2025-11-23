@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.osgi.util.NLS;
@@ -42,17 +41,18 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
     }
 
     @Override
-    public void run() {
+    protected void run(GitUtils utils) {
         boolean isAtHead = false;
         boolean hasChangesToCommit = false;
         
-        try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
+        try {
             isAtHead = utils.isObjectIdAtHead(objectId);
-            hasChangesToCommit = archiRepository.hasChangesToCommit();
+            hasChangesToCommit = utils.hasChangesToCommit();
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
             logger.log(Level.WARNING, "Add Branch", ex); //$NON-NLS-1$
+            return;
         }
         
         // Add checkout button if objectId is at HEAD or the model is not dirty and no commits needed
@@ -66,11 +66,11 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
         
         logger.info("Adding branch..."); //$NON-NLS-1$
         
-        try(Git git = Git.open(archiRepository.getWorkingFolder())) {
+        try {
             String fullName = RepoConstants.R_HEADS + branchName;
             
             // If the branch exists show error
-            if(git.getRepository().exactRef(fullName) != null) {
+            if(utils.getRepository().exactRef(fullName) != null) {
                 logger.info("Branch already exists"); //$NON-NLS-1$
                 MessageDialog.openError(workbenchWindow.getShell(),
                         Messages.AddBranchWorkflow_0,
@@ -80,10 +80,10 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
             
             // Create the branch
             logger.info("Creating branch: " + branchName); //$NON-NLS-1$
-            git.branchCreate()
-               .setStartPoint(objectId.getName()) // Use ObjectID for start point
-               .setName(branchName)
-               .call();
+            utils.branchCreate()
+                 .setStartPoint(objectId.getName()) // Use ObjectID for start point
+                 .setName(branchName)
+                 .call();
 
             // Checkout if option set
             if(retVal == AddBranchDialog.ADD_BRANCH_CHECKOUT) {
@@ -95,9 +95,9 @@ public class AddBranchWorkflow extends AbstractRepositoryWorkflow {
                 }
 
                 logger.info("Checking out branch: " + branchName); //$NON-NLS-1$
-                git.checkout()
-                   .setName(fullName)
-                   .call();
+                utils.checkout()
+                     .setName(fullName)
+                     .call();
 
                 // Open the model if it was open before and any open editors
                 restoreModel(modelState);
