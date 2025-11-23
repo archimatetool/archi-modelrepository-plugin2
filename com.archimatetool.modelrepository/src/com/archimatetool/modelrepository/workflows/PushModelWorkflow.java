@@ -48,6 +48,16 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
             return;
         }
         
+        // Check if the model is open and needs saving
+        if(!checkModelNeedsSaving()) {
+            return;
+        }
+        
+        // Check if there are uncommitted changes - allow to choose "No" and proceed anyway
+        if(!checkIfCommitNeeded(utils, false)) {
+            return;
+        }
+        
         // Get credentials
         ICredentials credentials = getCredentials(utils).orElse(null);
         if(credentials == null) {
