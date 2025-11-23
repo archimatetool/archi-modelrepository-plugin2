@@ -10,10 +10,13 @@ public class Messages extends NLS {
     public static String AbstractRepositoryWorkflow_1;
     public static String AbstractRepositoryWorkflow_2;
     public static String AbstractRepositoryWorkflow_3;
+
     public static String AbstractRepositoryWorkflow_4;
     public static String AbstractRepositoryWorkflow_5;
     public static String AbstractRepositoryWorkflow_6;
     public static String AbstractRepositoryWorkflow_7;
+
+    public static String AbstractRepositoryWorkflow_8;
 
     public static String AddBranchWorkflow_0;
     public static String AddBranchWorkflow_1;

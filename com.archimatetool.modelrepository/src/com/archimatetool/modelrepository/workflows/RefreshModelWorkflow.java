@@ -58,7 +58,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }
 
         // Check if there are uncommitted changes
-        if(!checkIfCommitNeeded(utils)) {
+        if(!checkIfCommitNeeded(utils, true)) {
             return;
         }
 

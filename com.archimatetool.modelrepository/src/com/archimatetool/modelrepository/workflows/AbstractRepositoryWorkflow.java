@@ -97,9 +97,9 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     
     /**
      * If the model is open check whether it is dirty and needs saving.
-     * If it is, the user is asked to save the model.
-     * Return false if the user cancels or an exception occcurs.
-     * Return true if the model doesn't need saving or user saved the model.
+     * If it is dirty, the user is asked to save the model.
+     * @return true if the model doesn't need saving or user saved the model
+     *         or false if the user cancels or an exception occcurs.
      */
     protected boolean checkModelNeedsSaving() {
         // Model is open and needs saving
@@ -133,38 +133,45 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     }
     
     /**
-     * Check if there are changes that need to be committed before proceeding.
-     * Ask the user to commit with a Yes/No/Cancel dialog.
-     * If user cancels, return false.
-     * If Yes, open the Commit dialog.
-     * If user cancels, return false.
-     * If No, reset the working dir with a hard reset to clear uncommitted changes
-     * Return true
+     * Check if there are changes that need to be committed before proceeding.<p>
+     * If a commit is not needed return true.<>
+     * Else ask to commit with a Yes/No/Cancel dialog:<pre>
+     *      Yes - open the commit dialog and return true if committed or false if cancelled
+     *      No - if discardChanges is true reset the working dir with a hard reset to clear uncommitted changes and return true
+     *           if discardChanges is false just return true
+     *      Cancel - return false</pre>
+     * @param utils GitUtils to use
+     * @param discardChanges if true will reset to HEAD and discard uncommitted changes when user chooses "No"
      */
-    protected boolean checkIfCommitNeeded(GitUtils utils) {
+    protected boolean checkIfCommitNeeded(GitUtils utils, boolean discardChanges) {
         try {
             if(utils.hasChangesToCommit()) {
-                int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.AbstractRepositoryWorkflow_3, Messages.AbstractRepositoryWorkflow_4);
-                // Cancel
-                if(response == SWT.CANCEL) {
-                    // Cancel
-                    return false;
-                }
-                // Yes
-                else if(response == SWT.YES) {
-                    // Commit Dialog
-                    return commitChanges(utils);
-                }
-                // No. Discard changes by resetting to HEAD
-                else if(response == SWT.NO) {
-                    logger.info("Resetting to HEAD"); //$NON-NLS-1$
-                    utils.resetToRef(RepoConstants.HEAD);
-
-                    // Close and re-open the reset model
-                    closeAndRestoreModel();
+                String message = Messages.AbstractRepositoryWorkflow_4 +
+                                 (discardChanges ? "\n" + Messages.AbstractRepositoryWorkflow_8 : ""); //$NON-NLS-1$ //$NON-NLS-2$
+                
+                int response = Dialogs.openYesNoCancelDialog(workbenchWindow.getShell(), Messages.AbstractRepositoryWorkflow_3, message);
+                switch(response) {
+                    case SWT.YES -> {
+                        return commitChanges(utils);
+                    }
                     
-                    // Notify in case history was showing working tree
-                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                    case SWT.NO -> {
+                        if(discardChanges) {
+                            logger.info("Resetting to HEAD"); //$NON-NLS-1$
+                            utils.resetToRef(RepoConstants.HEAD);
+                            
+                            // Close and re-open the reset model
+                            closeAndRestoreModel();
+                            
+                            // Notify in case history was showing working tree
+                            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                        }
+                        return true;
+                    }
+
+                    case SWT.CANCEL -> {
+                        return false;
+                    }
                 }
             }
         }
@@ -174,6 +181,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
             return false;
         }
         
+        // No changes to commit
         return true;
     }
 
