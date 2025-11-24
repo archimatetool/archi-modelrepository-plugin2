@@ -160,7 +160,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
                     HistoryView historyView = (HistoryView)ViewManager.showViewPart(HistoryView.ID, false);
                     if(historyView != null) {
                         TagInfo tagInfo = (TagInfo)fTagsTableViewer.getStructuredSelection().getFirstElement();
-                        historyView.selectCommit(tagInfo.getCommit());
+                        historyView.selectCommit(tagInfo.getCommit().orElse(null));
                     }
                 }
             }
@@ -207,7 +207,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         fActionDeleteTags.setTags(fSelectedRepository, tagInfos);
         
         fActionRevealCommit.setEnabled(tagInfo != null ? !tagInfo.isOrphaned() : false);
-        fMessageViewer.setRevObject(tagInfo != null ? tagInfo.getTag() : null);
+        fMessageViewer.setRevObject(tagInfo != null ? tagInfo.getTag().orElse(null) : null);
     }
     
     private void fillContextMenu(IMenuManager manager) {

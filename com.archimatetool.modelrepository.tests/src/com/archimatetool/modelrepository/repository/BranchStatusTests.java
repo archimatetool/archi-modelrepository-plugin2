@@ -7,7 +7,7 @@ package com.archimatetool.modelrepository.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -98,19 +98,19 @@ public class BranchStatusTests {
 
     @Test
     public void getCurrentLocalBranchInfo() throws Exception {
-        BranchInfo branchInfo = status.getCurrentLocalBranchInfo();
+        BranchInfo branchInfo = status.getCurrentLocalBranchInfo().orElseThrow();
         assertEquals(RepoConstants.R_HEADS_MAIN, branchInfo.getFullName());
     }
 
     @Test
     public void getCurrentRemoteBranchInfo() throws Exception {
-        BranchInfo branchInfo = status.getCurrentRemoteBranchInfo();
+        BranchInfo branchInfo = status.getCurrentRemoteBranchInfo().orElseThrow();
         assertEquals(RepoConstants.R_REMOTES_ORIGIN_MAIN, branchInfo.getFullName());
     }
 
     @Test
     public void find() {
-        assertNull(status.find(RepoConstants.R_HEADS + "bogus"));
+        assertTrue(status.find(RepoConstants.R_HEADS + "bogus").isEmpty());
         
         assertNotNull(status.find(RepoConstants.R_HEADS_MAIN));
         assertNotNull(status.find(RepoConstants.R_REMOTES_ORIGIN_MAIN));
@@ -119,6 +119,6 @@ public class BranchStatusTests {
         assertNotNull(status.find(RepoConstants.R_REMOTES_ORIGIN + "branch"));
         
         assertNotNull(status.find(RepoConstants.R_HEADS + "local"));
-        assertNull(status.find(RepoConstants.R_REMOTES_ORIGIN + "local"));
+        assertTrue(status.find(RepoConstants.R_REMOTES_ORIGIN + "local").isEmpty());
     }
 }

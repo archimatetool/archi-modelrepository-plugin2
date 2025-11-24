@@ -129,9 +129,9 @@ public class TagsTableViewer extends TableViewer {
         final Color redColor = new Color(255, 64, 0);
         
         private String getColumnText(TagInfo tagInfo, int columnIndex) {
-            RevTag revtag = tagInfo.getTag();
-            RevCommit revCommit = tagInfo.getCommit();
-            PersonIdent personIdent = revtag != null ? revtag.getTaggerIdent() : revCommit.getAuthorIdent();
+            RevTag revtag = tagInfo.getTag().orElse(null);
+            RevCommit revCommit = tagInfo.getCommit().orElse(null);
+            PersonIdent personIdent = revtag != null ? revtag.getTaggerIdent() : revCommit != null ? revCommit.getAuthorIdent() : null;
             
             return switch(columnIndex) {
                 // Tag Name
@@ -145,7 +145,7 @@ public class TagsTableViewer extends TableViewer {
                 
                 // Commit message
                 case 1 -> {
-                    yield revCommit.getShortMessage();
+                    yield revCommit != null ? revCommit.getShortMessage() : null;
                 }
                 
                 // Author of annotated tag or commit
@@ -155,7 +155,8 @@ public class TagsTableViewer extends TableViewer {
 
                 // Date of annotated tag or commit
                 case 3 -> {
-                    Date date = (revtag != null && personIdent != null) ? Date.from(personIdent.getWhenAsInstant()) : new Date(revCommit.getCommitTime() * 1000L);
+                    Date date = (revtag != null && personIdent != null) ?  Date.from(personIdent.getWhenAsInstant())
+                                                        : revCommit != null ? new Date(revCommit.getCommitTime() * 1000L) : null;
                     yield dateFormat.format(date);
                 }
                 

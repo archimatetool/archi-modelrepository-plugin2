@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.eclipse.jgit.api.Git;
@@ -100,15 +101,15 @@ public class BranchStatus {
                 .collect(Collectors.toList());
     }
     
-    public BranchInfo getCurrentLocalBranchInfo() {
-        return currentLocalBranchInfo;
+    public Optional<BranchInfo> getCurrentLocalBranchInfo() {
+        return Optional.ofNullable(currentLocalBranchInfo);
     }
     
-    public BranchInfo getCurrentRemoteBranchInfo() {
-        return currentRemoteBranchInfo;
+    public Optional<BranchInfo> getCurrentRemoteBranchInfo() {
+        return Optional.ofNullable(currentRemoteBranchInfo);
     }
     
-    public BranchInfo find(String refName) {
-        return infos.get(refName);
+    public Optional<BranchInfo> find(String refName) {
+        return Optional.ofNullable(infos.get(refName));
     }
 }

@@ -7,8 +7,6 @@ package com.archimatetool.modelrepository.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -61,13 +59,12 @@ public class TagInfoTests {
         assertEquals(RepoConstants.R_TAGS + "tag1", tagInfo1.getFullName());
         assertEquals("tag1", tagInfo1.getShortName());
         assertEquals(repo.getWorkingFolder(), tagInfo1.getWorkingFolder());
-        assertEquals(commit1, tagInfo1.getCommit());
+        assertEquals(commit1, tagInfo1.getCommit().orElse(null));
         assertEquals(ref1.getObjectId(), tagInfo1.getRef().getObjectId());
         assertFalse(tagInfo1.isOrphaned());
         assertTrue(tagInfo1.isAnnotated());
         
-        RevTag revTag = tagInfo1.getTag();
-        assertNotNull(revTag);
+        RevTag revTag = tagInfo1.getTag().orElseThrow();
         assertEquals("Hello World", revTag.getShortMessage());
         assertEquals("Montgomery Flange", revTag.getTaggerIdent().getName());
         assertEquals("m.flange@drama.org", revTag.getTaggerIdent().getEmailAddress());
@@ -77,7 +74,7 @@ public class TagInfoTests {
         assertEquals(RepoConstants.R_TAGS + "tag2", tagInfo2.getFullName());
         assertEquals("tag2", tagInfo2.getShortName());
         assertEquals(repo.getWorkingFolder(), tagInfo2.getWorkingFolder());
-        assertEquals(commit2, tagInfo2.getCommit());
+        assertEquals(commit2, tagInfo2.getCommit().orElse(null));
         assertEquals(ref2.getObjectId(), tagInfo2.getRef().getObjectId());
         assertFalse(tagInfo2.isOrphaned());
         assertTrue(tagInfo2.isAnnotated());
@@ -110,7 +107,7 @@ public class TagInfoTests {
         TagInfo tagInfo = tagInfos.get(0);
         assertFalse(tagInfo.getRef().isSymbolic());
         assertFalse(tagInfo.isAnnotated());
-        assertNull(tagInfo.getTag());
+        assertTrue(tagInfo.getTag().isEmpty());
     }
 
     private Ref addLightweightTag(RevCommit commit, String name) throws GitAPIException {

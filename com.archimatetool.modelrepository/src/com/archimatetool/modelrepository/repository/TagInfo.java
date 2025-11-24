@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
@@ -79,8 +80,11 @@ public class TagInfo {
         return ref;
     }
     
-    public RevTag getTag() {
-        return tag;
+    /**
+     * If this is a lightweight tag (not annotated) this will be null
+     */
+    public Optional<RevTag> getTag() {
+        return Optional.ofNullable(tag);
     }
     
     public boolean isAnnotated() {
@@ -95,8 +99,8 @@ public class TagInfo {
         return getFullName().substring(RepoConstants.R_TAGS.length());
     }
     
-    public RevCommit getCommit() {
-        return commit;
+    public Optional<RevCommit> getCommit() {
+        return Optional.ofNullable(commit);
     }
     
     public boolean isOrphaned() {
