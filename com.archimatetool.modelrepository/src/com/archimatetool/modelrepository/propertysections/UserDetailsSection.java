@@ -5,21 +5,25 @@
  */
 package com.archimatetool.modelrepository.propertysections;
 
+import static org.eclipse.swt.events.SelectionListener.widgetSelectedAdapter;
+
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.GpgConfig;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
@@ -57,6 +61,9 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
     private IArchiRepository fRepository;
     private UserText fTextName;
     private UserText fTextEmail;
+    
+    private Button fSignCommitsButton;
+    private Button fSignTagsButton;
  
     private class UserText {
         Text text;
@@ -81,7 +88,7 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
             text.addListener(SWT.DefaultSelection, listener);
             text.addListener(SWT.FocusOut, listener);
             
-            text.addDisposeListener((event) -> {
+            text.addDisposeListener(e -> {
                 text.removeListener(SWT.DefaultSelection, listener);
                 text.removeListener(SWT.FocusOut, listener);
             });
@@ -102,15 +109,43 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
 
     @Override
     protected void createControls(Composite parent) {
-        Group group = getWidgetFactory().createGroup(parent, Messages.UserDetailsSection_0);
-        group.setLayout(new GridLayout(2, false));
-        GridDataFactory.create(GridData.FILL_BOTH).span(2, 1).applyTo(group);
+        Group userDetailsGroup = getWidgetFactory().createGroup(parent, Messages.UserDetailsSection_0);
+        GridLayoutFactory.fillDefaults().numColumns(2).applyTo(userDetailsGroup);
+        GridDataFactory.create(GridData.FILL_BOTH).span(2, 1).applyTo(userDetailsGroup);
         
-        createLabel(group, Messages.UserDetailsSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        fTextName = new UserText(group, ConfigConstants.CONFIG_KEY_NAME);
+        createLabel(userDetailsGroup, Messages.UserDetailsSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        fTextName = new UserText(userDetailsGroup, ConfigConstants.CONFIG_KEY_NAME);
         
-        createLabel(group, Messages.UserDetailsSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        fTextEmail = new UserText(group, ConfigConstants.CONFIG_KEY_EMAIL);
+        createLabel(userDetailsGroup, Messages.UserDetailsSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        fTextEmail = new UserText(userDetailsGroup, ConfigConstants.CONFIG_KEY_EMAIL);
+        
+        Group signingGroup = getWidgetFactory().createGroup(parent, "Signing");
+        GridLayoutFactory.fillDefaults().applyTo(signingGroup);
+        GridDataFactory.create(GridData.FILL_BOTH).span(2, 1).applyTo(signingGroup);
+        
+        fSignCommitsButton = new Button(signingGroup, SWT.CHECK);
+        fSignCommitsButton.setText("Sign Commits");
+        fSignCommitsButton.addSelectionListener(widgetSelectedAdapter(event -> {
+            try(GitUtils utils = GitUtils.open(fRepository.getWorkingFolder())) {
+                utils.setSignedCommits(fSignCommitsButton.getSelection());
+            }
+            catch(IOException ex) {
+                logger.log(Level.SEVERE, "Save Config", ex); //$NON-NLS-1$
+                ex.printStackTrace();
+            }
+        }));
+        
+        fSignTagsButton = new Button(signingGroup, SWT.CHECK);
+        fSignTagsButton.setText("Sign Tags");
+        fSignTagsButton.addSelectionListener(widgetSelectedAdapter(event -> {
+            try(GitUtils utils = GitUtils.open(fRepository.getWorkingFolder())) {
+                utils.setSignedTags(fSignTagsButton.getSelection());
+            }
+            catch(IOException ex) {
+                logger.log(Level.SEVERE, "Save Config", ex); //$NON-NLS-1$
+                ex.printStackTrace();
+            }
+        }));
         
         // Help ID
         PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, ModelRepositoryPlugin.HELP_ID);
@@ -162,6 +197,17 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
             
             fTextName.setText(globalName, localName);
             fTextEmail.setText(globalEmail, localEmail);
+            
+            // Get signing details
+            try(GitUtils utils = GitUtils.open(fRepository.getWorkingFolder())) {
+                GpgConfig config = utils.getGpgConfig();
+                fSignCommitsButton.setSelection(config.isSignCommits());
+                fSignTagsButton.setSelection(config.isSignAllTags());
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+                logger.log(Level.SEVERE, "Signing Details", ex); //$NON-NLS-1$
+            }
         }
     }
     
