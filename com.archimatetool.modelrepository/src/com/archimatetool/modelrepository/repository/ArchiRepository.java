@@ -47,12 +47,24 @@ public class ArchiRepository implements IArchiRepository {
     private static final Pattern NAME_PATTERN = Pattern.compile("name=\"([^\"]+)\"");
     
     /**
-     * The working directory of the local git repository
+     * The working directory of the git repository
      */
     private File repoFolder;
-
+    
+    /**
+     * The .git directory under the working directory
+     */
+    private File gitFolder;
+    
+    /**
+     * The model.archimate file in the working directory
+     */
+    private File modelFile;
+    
     public ArchiRepository(File repoFolder) {
         this.repoFolder = repoFolder;
+        gitFolder = new File(repoFolder, ".git");
+        modelFile = new File(repoFolder, RepoConstants.MODEL_FILENAME);
     }
     
     @Override
@@ -119,7 +131,7 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public File getGitFolder() {
-        return new File(getWorkingFolder(), ".git");
+        return gitFolder;
     }
 
     @Override
@@ -157,15 +169,13 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public File getModelFile() {
-        return new File(getWorkingFolder(), RepoConstants.MODEL_FILENAME);
+        return modelFile;
     }
     
     @Override
     public Optional<IArchimateModel> getOpenModel() {
-        File modelFile = getModelFile();
-        
         for(IArchimateModel model : IEditorModelManager.INSTANCE.getModels()) {
-            if(modelFile.equals(model.getFile())) {
+            if(getModelFile().equals(model.getFile())) {
                 return Optional.of(model);
             }
         }
