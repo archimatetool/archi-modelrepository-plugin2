@@ -190,9 +190,10 @@ public class HistoryTableViewer extends TableViewer {
             }
         });
         
+        // This has to be asynced...
         Display.getCurrent().asyncExec(() -> {
             if(!getTable().isDisposed()) {
-                // Avoid bogus horizontal scrollbar cheese
+                // Layout horizontal scroll bar again
                 getTable().getParent().layout();
                 
                 // Select first row

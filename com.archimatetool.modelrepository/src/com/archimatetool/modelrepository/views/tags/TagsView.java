@@ -116,7 +116,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         tableSash.setLayoutData(new GridData(GridData.FILL_BOTH));
         
         Composite tableComp = new Composite(tableSash, SWT.NONE);
-        tableComp.setLayout(new TableColumnLayout());
+        tableComp.setLayout(new TableColumnLayout(true));
         
         // This ensures a minumum and equal size and no horizontal size creep for the table
         GridData gd = new GridData(GridData.FILL_BOTH);
@@ -240,7 +240,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             fRepoLabel.setText(selectedRepository != null ? Messages.TagsView_0 + " " + selectedRepository.getName() : Messages.TagsView_0); //$NON-NLS-1$
             
             // Set Tags
-            getTagsViewer().doSetInput(selectedRepository);
+            getTagsViewer().setInput(selectedRepository);
         }
     }
     
@@ -253,7 +253,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         
         switch(eventName) {
             case IRepositoryListener.HISTORY_CHANGED -> {
-                getTagsViewer().doSetInput(repository);
+                getTagsViewer().setInput(repository);
             }
 
             case IRepositoryListener.REPOSITORY_DELETED -> {
@@ -267,7 +267,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             }
 
             case IRepositoryListener.TAGS_CHANGED -> {
-                getTagsViewer().doSetInput(repository);
+                getTagsViewer().setInput(repository);
             }
         }
     }

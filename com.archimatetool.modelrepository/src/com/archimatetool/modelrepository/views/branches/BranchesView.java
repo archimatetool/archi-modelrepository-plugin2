@@ -110,7 +110,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
 
     private void createTableSection(Composite parent) {
         Composite tableComp = new Composite(parent, SWT.NONE);
-        tableComp.setLayout(new TableColumnLayout());
+        tableComp.setLayout(new TableColumnLayout(true));
         
         // This ensures a minumum and equal size and no horizontal size creep for the table
         GridData gd = new GridData(GridData.FILL_BOTH);
@@ -232,7 +232,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             fRepoLabel.setText(selectedRepository != null ? Messages.BranchesView_0 + " " + selectedRepository.getName() : Messages.BranchesView_0); //$NON-NLS-1$
             
             // Set Branches
-            getBranchesViewer().doSetInput(selectedRepository);
+            getBranchesViewer().setInput(selectedRepository);
         }
     }
     
@@ -245,7 +245,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         
         switch(eventName) {
             case IRepositoryListener.HISTORY_CHANGED -> {
-                getBranchesViewer().doSetInput(repository);
+                getBranchesViewer().setInput(repository);
             }
 
             case IRepositoryListener.REPOSITORY_DELETED -> {
@@ -259,7 +259,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             }
 
             case IRepositoryListener.BRANCHES_CHANGED -> {
-                getBranchesViewer().doSetInput(repository);
+                getBranchesViewer().setInput(repository);
                 updateActions(); // These need to be updated (switching branch doesn't generate a new selection event)
             }
         }

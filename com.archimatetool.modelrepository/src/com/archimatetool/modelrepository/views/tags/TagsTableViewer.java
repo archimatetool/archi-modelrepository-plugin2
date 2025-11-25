@@ -28,7 +28,6 @@ import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -83,17 +82,6 @@ public class TagsTableViewer extends TableViewer {
         });
     }
 
-    void doSetInput(IArchiRepository archiRepo) {
-        setInput(archiRepo);
-        
-        // Avoid bogus horizontal scrollbar cheese
-        Display.getCurrent().asyncExec(() -> {
-            if(!getTable().isDisposed()) {
-                getTable().getParent().layout();
-            }
-        });
-    }
-    
     // ===============================================================================================
 	// =================================== Content Provider ==========================================
 	// ===============================================================================================

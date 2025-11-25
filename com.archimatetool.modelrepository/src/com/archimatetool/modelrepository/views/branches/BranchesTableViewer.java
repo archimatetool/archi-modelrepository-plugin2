@@ -26,7 +26,6 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
@@ -88,17 +87,6 @@ public class BranchesTableViewer extends TableViewer {
         });
     }
 
-    void doSetInput(IArchiRepository archiRepo) {
-        setInput(archiRepo);
-        
-        // Avoid bogus horizontal scrollbar cheese
-        Display.getCurrent().asyncExec(() -> {
-            if(!getTable().isDisposed()) {
-                getTable().getParent().layout();
-            }
-        });
-    }
-    
     // ===============================================================================================
 	// ================================== Content Provider ===========================================
 	// ===============================================================================================
