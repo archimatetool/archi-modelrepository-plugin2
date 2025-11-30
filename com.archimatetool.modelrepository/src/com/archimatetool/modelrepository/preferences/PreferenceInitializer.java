@@ -31,7 +31,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer impleme
         store.setDefault(PREFS_COMMIT_USER_NAME, System.getProperty("user.name"));
 		store.setDefault(PREFS_COMMIT_USER_EMAIL, "");
 		
-		store.setDefault(PREFS_REPOSITORY_FOLDER, new File(ArchiPlugin.INSTANCE.getUserDataFolder(), "repositories").getAbsolutePath());
+		store.setDefault(PREFS_REPOSITORY_FOLDER, new File(ArchiPlugin.getInstance().getUserDataFolder(), "repositories").getAbsolutePath());
 		store.setDefault(PREFS_STORE_REPO_CREDENTIALS, true);
 		
 		store.setDefault(PREFS_SSH_IDENTITY_FILE, new File(System.getProperty("user.home"), ".ssh/id_ed25519").getAbsolutePath());
