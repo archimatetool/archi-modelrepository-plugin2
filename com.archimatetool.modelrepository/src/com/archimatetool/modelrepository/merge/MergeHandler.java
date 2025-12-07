@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.common.util.BasicMonitor;
+import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.ConflictKind;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceSource;
@@ -61,6 +62,14 @@ public class MergeHandler {
     
     // Allow Fast-Forward merges if possible
     private static boolean ALLOW_FF_MERGE = true;
+    
+    // Methods of Merging
+    private static enum MergeMethod {
+        APPLY_ALL,                   // The old method
+        APPLY_NONCONFLICTING         // Method suggested by Copilot
+    }
+    
+    private static MergeMethod MERGE_METHOD = MergeMethod.APPLY_ALL;
     
     public static MergeHandler getInstance() {
         return instance;
@@ -147,25 +156,45 @@ public class MergeHandler {
         IArchimateModel ourModelCopy = copyModel(ourModel);
         IArchimateModel theirModelCopy = copyModel(theirModel);
         
-        // Create Comparison and get Diffs
-        List<Diff> differences = MergeFactory.createComparison(ourModel, theirModel, baseModel).getDifferences();
-        
         // Create a Merger Registry
         IMerger.Registry mergerRegistry = RegistryImpl.createStandaloneInstance();
         
-        // Merge non conflicting changes coming from LEFT
-        new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), not(hasConflict(ConflictKind.REAL)))).copyAllLeftToRight(differences, new BasicMonitor());
+        if(MERGE_METHOD == MergeMethod.APPLY_ALL) {
+            List<Diff> differences = MergeFactory.createComparison(ourModel, theirModel, baseModel).getDifferences();
+            
+            // Merge non conflicting changes coming from LEFT
+            new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), not(hasConflict(ConflictKind.REAL)))).copyAllLeftToRight(differences, new BasicMonitor());
+            
+            // Merge non conflicting changes coming from RIGHT
+            new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), not(hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
+            
+            // Merge conflicts
+            //new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), hasConflict(ConflictKind.REAL))).copyAllRightToLeft(differences, new BasicMonitor());
+            new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), hasConflict(ConflictKind.REAL))).copyAllLeftToRight(differences, new BasicMonitor());
+            
+            // Fix any missing images
+            fixMissingImages(ourModel, theirModelCopy);
+            fixMissingImages(theirModel, ourModelCopy);
+        }
         
-        // Merge non conflicting changes coming from RIGHT
-        new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), not(hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
-		
-        // Merge conflicts
-        //new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), hasConflict(ConflictKind.REAL))).copyAllRightToLeft(differences, new BasicMonitor());
-        new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), hasConflict(ConflictKind.REAL))).copyAllLeftToRight(differences, new BasicMonitor());
-        
-        // Fix any missing images
-        fixMissingImages(ourModel, theirModelCopy);
-        fixMissingImages(theirModel, ourModelCopy);
+        if(MERGE_METHOD == MergeMethod.APPLY_NONCONFLICTING) {
+            // Notice that left and right are swapped here
+            Comparison comparison = MergeFactory.createComparison(theirModel, ourModel, baseModel);
+            List<Diff> differences = comparison.getDifferences();
+            
+            // Apply non-conflicting incoming changes (theirs -> ours)
+            new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), not(hasConflict(ConflictKind.REAL)))).copyAllLeftToRight(differences, new BasicMonitor());
+
+            // Fix any missing images
+            fixMissingImages(ourModel, theirModelCopy);
+            fixMissingImages(theirModel, ourModelCopy);
+            
+            // Do not auto-apply real conflicts. Let the conflict handler run if any conflicts exist.
+            if(!comparison.getConflicts().isEmpty()) {
+                logger.warning("Found " + comparison.getConflicts().size() + " conflicts");
+                return handleConflictingMerge(utils, branchToMerge);
+            }
+        }
         
         /*
          * If the result is a non-integral model then ask the user to use ours or theirs
