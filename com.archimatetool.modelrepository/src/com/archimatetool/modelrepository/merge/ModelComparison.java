@@ -15,7 +15,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.compare.AttributeChange;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
@@ -52,6 +54,8 @@ import com.archimatetool.modelrepository.repository.RepoConstants;
  */
 @SuppressWarnings("nls")
 public class ModelComparison {
+    
+    private static Logger logger = Logger.getLogger(ModelComparison.class.getName());
     
 /*
 
@@ -201,6 +205,14 @@ public class ModelComparison {
             
             // Create Comparison
             comparison = MergeFactory.createComparison(model2, model1, null);  // Left/Right are swapped!
+            
+            // Print and log any diagnostic errors and warnings
+            for(Diagnostic diagnostic : comparison.getDiagnostic().getChildren()) {
+                if(diagnostic.getSeverity() == Diagnostic.WARNING || diagnostic.getSeverity() == Diagnostic.ERROR) {
+                    System.out.println(diagnostic.getMessage());
+                    logger.severe(diagnostic.getMessage());
+                }
+            }
         }
         
         return this;
