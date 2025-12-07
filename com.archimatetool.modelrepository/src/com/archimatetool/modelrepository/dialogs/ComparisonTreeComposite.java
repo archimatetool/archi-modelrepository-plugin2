@@ -103,16 +103,16 @@ public class ComparisonTreeComposite extends Composite {
         // Columns
         TreeViewerColumn column1 = new TreeViewerColumn(fTreeViewer, SWT.NONE);
         column1.getColumn().setText("Change");
-        treeLayout.setColumnData(column1.getColumn(), new ColumnWeightData(20, true));
+        treeLayout.setColumnData(column1.getColumn(), new ColumnWeightData(33, true));
 
         TreeViewerColumn column2 = new TreeViewerColumn(fTreeViewer, SWT.NONE);
         column2.getColumn().setText(modelComparison.getFirstRevCommit().getShortMessage());
-        treeLayout.setColumnData(column2.getColumn(), new ColumnWeightData(40, true));
+        treeLayout.setColumnData(column2.getColumn(), new ColumnWeightData(33, true));
 
         TreeViewerColumn column3 = new TreeViewerColumn(fTreeViewer, SWT.NONE);
         String message = modelComparison.isWorkingTreeComparison() ? "Working Changes" : modelComparison.getSecondRevCommit().getShortMessage();
         column3.getColumn().setText(message);
-        treeLayout.setColumnData(column3.getColumn(), new ColumnWeightData(40, true));
+        treeLayout.setColumnData(column3.getColumn(), new ColumnWeightData(33, true));
 
         // Content Provider
         fTreeViewer.setContentProvider(new ContentProvider());
