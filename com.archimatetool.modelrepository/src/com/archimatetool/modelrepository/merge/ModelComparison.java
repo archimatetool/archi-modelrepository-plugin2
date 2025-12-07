@@ -33,8 +33,10 @@ import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
+import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProfile;
+import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.ArchimateModelUtils;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -228,8 +230,9 @@ public class ModelComparison {
                 
                 // Reference of object (object added/deleted/moved)
                 if(diff instanceof ReferenceChange referenceChange) {
-                    // If the changed object is a folder, get the referenceChange (child) object
-                    if(changedObject instanceof IFolder) {
+                    // If the changed object is a folder, get the referenceChange (child) object if not Property or feature
+                    if(changedObject instanceof IFolder && !(referenceChange.getValue() instanceof IProperty)
+                                                        && !(referenceChange.getValue() instanceof IFeature)) {
                         rootObject = referenceChange.getValue();
                     }
                     // If the changed object is a diagram object container and referenceChange is a child dmo, get the dmo
