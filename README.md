@@ -5,6 +5,9 @@
 ## What is this?
 This is an extension to Archi that allows collaborative work on Archi through sharing and versioning of models in a Git repository. Please refer to the [Wiki](https://github.com/archimatetool/archi-modelrepository-plugin2/wiki) for more information.
 
+> [!Caution]
+> coArchi2 is a work in progress and there are some features that are not working or buggy. Do not use it in production!
+
 ## Contributing code to Archi and Plug-ins
 
 Please see [How can I contribute code to Archi?](https://github.com/archimatetool/archi/wiki/How-can-I-contribute-code-to-Archi%3F) for general guidance on how to contribute code to Archi and its plug-ins.
