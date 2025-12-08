@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -21,6 +22,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -49,6 +51,7 @@ import org.eclipse.ui.SelectionListenerFactory.Predicates;
 import org.eclipse.ui.part.IContributedContentsView;
 import org.eclipse.ui.part.ViewPart;
 
+import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelComponent;
@@ -148,7 +151,19 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             
             if(mc != null) {
                 try {
-                    mc.init();
+                    ProgressMonitorDialog dialog = new ProgressMonitorDialog(getSite().getShell());
+                    
+                    try {
+                        final ModelComparison mcRef = mc;
+                        IRunnable.run(dialog, monitor -> {
+                            monitor.beginTask(Messages.HistoryView_15, IProgressMonitor.UNKNOWN);
+                            mcRef.init();
+                        }, true);
+                    }
+                    catch(Exception ex) {
+                        throw new IOException(ex);
+                    }
+                    
                     new CompareDialog(getSite().getShell(), mc).open();
                 }
                 catch(IOException ex) {

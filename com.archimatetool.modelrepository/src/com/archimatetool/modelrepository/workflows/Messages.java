@@ -18,6 +18,8 @@ public class Messages extends NLS {
 
     public static String AbstractRepositoryWorkflow_8;
 
+    public static String AbstractRepositoryWorkflow_9;
+
     public static String AddBranchWorkflow_0;
     public static String AddBranchWorkflow_1;
 

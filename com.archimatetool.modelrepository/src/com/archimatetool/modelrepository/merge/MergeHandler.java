@@ -16,8 +16,10 @@ import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.ConflictKind;
@@ -28,6 +30,7 @@ import org.eclipse.emf.compare.merge.IMerger;
 import org.eclipse.emf.compare.merge.IMerger.RegistryImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
@@ -36,10 +39,12 @@ import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.model.ModelChecker;
+import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.repository.BranchInfo;
@@ -143,64 +148,102 @@ public class MergeHandler {
     @SuppressWarnings("deprecation")
     private MergeHandlerResult handle3WayMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
         logger.info("Handling 3Way merge...");
+        
+        ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+        
+        AtomicReference<IArchimateModel> ourModelRef = new AtomicReference<>();
+        AtomicReference<IArchimateModel> theirModelRef = new AtomicReference<>();
+        AtomicReference<IArchimateModel> baseModelRef = new AtomicReference<>();
 
         // Load the three models...
-        IArchimateModel ourModel = loadModel(utils, RepoConstants.HEAD);
-        if(ourModel == null) {
-            throw new IOException("Our model was null.");
+        try {
+            IRunnable.run(progressDialog, monitor -> {
+                monitor.beginTask("Extracting models...", IProgressMonitor.UNKNOWN);
+                
+                ourModelRef.set(loadModel(utils, RepoConstants.HEAD));
+                if(ourModelRef.get() == null) {
+                    throw new IOException("Our model was null.");
+                }
+                
+                theirModelRef.set(loadModel(utils,branchToMerge.getFullName()));
+                if(theirModelRef.get() == null) {
+                    throw new IOException("Their model was null.");
+                }
+                
+                baseModelRef.set(loadBaseModel(utils, branchToMerge.getFullName()));
+                if(baseModelRef.get() == null) {
+                    throw new IOException("Base model was null.");
+                }
+            }, true);
+        }
+        catch(Exception ex) {
+            throw new IOException(ex);
         }
 
-        IArchimateModel theirModel = loadModel(utils, branchToMerge.getFullName());
-        if(theirModel == null) {
-            throw new IOException("Their model was null.");
-        }
-        
-        IArchimateModel baseModel = loadBaseModel(utils, branchToMerge.getFullName());
-        if(baseModel == null) {
-            throw new IOException("Base model was null.");
-        }
+        IArchimateModel ourModel = ourModelRef.get();
+        IArchimateModel theirModel = theirModelRef.get();
+        IArchimateModel baseModel = baseModelRef.get();
         
         // Make copies of our models so we can retrieve objects from the originals before they are merged
         IArchimateModel ourModelCopy = copyModel(ourModel);
         IArchimateModel theirModelCopy = copyModel(theirModel);
-        
+
         // Create a Merger Registry
         IMerger.Registry mergerRegistry = RegistryImpl.createStandaloneInstance();
         
         if(MERGE_METHOD == MergeMethod.APPLY_ALL) {
-            List<Diff> differences = MergeFactory.createComparison(ourModel, theirModel, baseModel).getDifferences();
-            
-            // Merge non conflicting changes coming from LEFT
-            new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), not(hasConflict(ConflictKind.REAL)))).copyAllLeftToRight(differences, new BasicMonitor());
-            
-            // Merge non conflicting changes coming from RIGHT
-            new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), not(hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
-            
-            // Merge conflicts
-            //new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), hasConflict(ConflictKind.REAL))).copyAllRightToLeft(differences, new BasicMonitor());
-            new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), hasConflict(ConflictKind.REAL))).copyAllLeftToRight(differences, new BasicMonitor());
-            
-            // Fix any missing images
-            fixMissingImages(ourModel, theirModelCopy);
-            fixMissingImages(theirModel, ourModelCopy);
+            try {
+                IRunnable.run(progressDialog, monitor -> {
+                    monitor.beginTask("Merging...", IProgressMonitor.UNKNOWN);
+                    List<Diff> differences = MergeFactory.createComparison(ourModel, theirModel, baseModel).getDifferences();
+                    
+                    // Merge non conflicting changes coming from LEFT
+                    new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), not(hasConflict(ConflictKind.REAL)))).copyAllLeftToRight(differences, new BasicMonitor());
+                    
+                    // Merge non conflicting changes coming from RIGHT
+                    new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), not(hasConflict(ConflictKind.REAL)))).copyAllRightToLeft(differences, new BasicMonitor());
+                    
+                    // Merge conflicts
+                    //new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.RIGHT), hasConflict(ConflictKind.REAL))).copyAllRightToLeft(differences, new BasicMonitor());
+                    new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), hasConflict(ConflictKind.REAL))).copyAllLeftToRight(differences, new BasicMonitor());
+                    
+                    // Fix any missing images
+                    fixMissingImages(ourModel, theirModelCopy);
+                    fixMissingImages(theirModel, ourModelCopy);
+                }, true);
+            }
+            catch(Exception ex) {
+                throw new IOException(ex);
+            }
         }
         
         if(MERGE_METHOD == MergeMethod.APPLY_NONCONFLICTING) {
-            // Notice that left and right are swapped here
-            Comparison comparison = MergeFactory.createComparison(theirModel, ourModel, baseModel);
-            List<Diff> differences = comparison.getDifferences();
+            AtomicReference<Comparison> comparison = new AtomicReference<>();
             
-            // Apply non-conflicting incoming changes (theirs -> ours)
-            new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), not(hasConflict(ConflictKind.REAL)))).copyAllLeftToRight(differences, new BasicMonitor());
+            try {
+                IRunnable.run(progressDialog, monitor -> {
+                    monitor.beginTask("Merging...", IProgressMonitor.UNKNOWN);
+                    
+                    // Notice that left and right are swapped here
+                    comparison.set(MergeFactory.createComparison(theirModel, ourModel, baseModel));
+                    List<Diff> differences = comparison.get().getDifferences();
+                    
+                    // Apply non-conflicting incoming changes (theirs -> ours)
+                    new BatchMerger(mergerRegistry, and(fromSide(DifferenceSource.LEFT), not(hasConflict(ConflictKind.REAL)))).copyAllLeftToRight(differences, new BasicMonitor());
 
-            // Fix any missing images
-            fixMissingImages(ourModel, theirModelCopy);
-            fixMissingImages(theirModel, ourModelCopy);
+                    // Fix any missing images
+                    fixMissingImages(ourModel, theirModelCopy);
+                    fixMissingImages(theirModel, ourModelCopy);
+                }, true);
+            }
+            catch(Exception ex) {
+                throw new IOException(ex);
+            }
             
             // Do not auto-apply real conflicts. Let the conflict handler run if any conflicts exist.
-            if(!comparison.getConflicts().isEmpty()) {
-                logger.warning("Found " + comparison.getConflicts().size() + " conflicts");
-                return handleConflictingMerge(utils, branchToMerge);
+            if(!comparison.get().getConflicts().isEmpty()) {
+                logger.warning("Found " + comparison.get().getConflicts().size() + " conflicts");
+                return handleConflictingMerge(progressDialog, utils, branchToMerge);
             }
         }
         
@@ -211,7 +254,7 @@ public class MergeHandler {
         if(!isModelIntegral(ourModel)) {
             // Reset and clear for now
             logger.warning("Model was not integral");
-            return handleConflictingMerge(utils, branchToMerge);
+            return handleConflictingMerge(progressDialog, utils, branchToMerge);
         }
         
         // If OK, save the model
@@ -219,7 +262,7 @@ public class MergeHandler {
         saveModel(ourModel);
         
         // Commit the merge
-        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}''", branchToMerge);
+        commitChanges(progressDialog, utils, "Merge{0}branch ''{1}'' into ''{2}''", branchToMerge);
         
         logger.info("Merge succesful!");
         
@@ -240,13 +283,21 @@ public class MergeHandler {
     /**
      * Commit any changes from a merge
      */
-    private void commitChanges(GitUtils utils, String message, BranchInfo branchToMerge) throws IOException, GitAPIException {
+    private void commitChanges(ProgressMonitorDialog progressDialog, GitUtils utils, String message, BranchInfo branchToMerge) throws IOException {
         String fullMessage = NLS.bind(message,
                 new Object[] { branchToMerge.isRemote() ? " remote " : " ",
                         branchToMerge.getShortName(), utils.getCurrentLocalBranchName().orElse("null")} );
         
-        logger.info("Committing merge " + fullMessage);
-        utils.commitChangesWithManifest(fullMessage, false);
+        try {
+            IRunnable.run(progressDialog, monitor -> {
+                monitor.beginTask("Committing...", IProgressMonitor.UNKNOWN);
+                logger.info("Committing merge " + fullMessage);
+                utils.commitChangesWithManifest(fullMessage, false);
+            }, true);
+        }
+        catch(Exception ex) {
+            throw new IOException(ex);
+        }
     }
     
     /**
@@ -346,7 +397,7 @@ public class MergeHandler {
      * It means we can at least work with the code until we manage conflicts,
      * We offer to cancel the merge or take ours or theirs branch
      */
-    private MergeHandlerResult handleConflictingMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
+    private MergeHandlerResult handleConflictingMerge(ProgressMonitorDialog progressDialog, GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
         int response = MessageDialog.open(MessageDialog.QUESTION,
                 null,
                 "Merge Branch",
@@ -370,7 +421,7 @@ public class MergeHandler {
              .setStartPoint(response == 0 ? utils.getCurrentLocalBranchName().orElse(null) : branchToMerge.getFullName())
              .call();
 
-        commitChanges(utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge);
+        commitChanges(progressDialog, utils, "Merge{0}branch ''{1}'' into ''{2}'' with conflicts resolved", branchToMerge);
         
         return MergeHandlerResult.MERGED_WITH_CONFLICTS_RESOLVED;
     }

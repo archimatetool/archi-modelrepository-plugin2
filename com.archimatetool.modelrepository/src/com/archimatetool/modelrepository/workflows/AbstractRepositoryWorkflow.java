@@ -10,8 +10,10 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.OperationResult;
@@ -19,6 +21,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
@@ -197,9 +200,14 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
             String commitMessage = commitDialog.getCommitMessage();
             boolean amend = commitDialog.getAmend();
             
+            ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
+
             try {
-                logger.info("Commiting changes for: " + archiRepository.getModelFile()); //$NON-NLS-1$
-                utils.commitChangesWithManifest(commitMessage, amend);
+                IRunnable.run(dialog, monitor -> {
+                    logger.info("Commiting changes for: " + archiRepository.getModelFile()); //$NON-NLS-1$
+                    monitor.beginTask(Messages.AbstractRepositoryWorkflow_9, IProgressMonitor.UNKNOWN);
+                    utils.commitChangesWithManifest(commitMessage, amend);
+                }, true);
             }
             catch(Exception ex) {
                 logger.log(Level.SEVERE, "Commit Exception", ex); //$NON-NLS-1$
