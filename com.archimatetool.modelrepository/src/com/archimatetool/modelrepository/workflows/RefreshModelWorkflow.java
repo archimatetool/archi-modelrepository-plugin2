@@ -118,17 +118,6 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
         }
         catch(IOException | GitAPIException ex) {
             logger.log(Level.SEVERE, "Merge", ex); //$NON-NLS-1$
-            
-            // Reset to HEAD in case of repo being in temporary merge state or other bad state
-            try {
-                logger.info("Resetting to HEAD."); //$NON-NLS-1$
-                utils.resetToRef(RepoConstants.HEAD);
-            }
-            catch(GitAPIException ex1) {
-                ex1.printStackTrace();
-                logger.log(Level.SEVERE, "Merge", ex1); //$NON-NLS-1$
-            }
-            
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
             displayErrorDialog(Messages.RefreshModelWorkflow_0, ex);
             return;

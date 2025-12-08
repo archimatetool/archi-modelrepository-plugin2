@@ -126,6 +126,14 @@ public class MergeHandler {
             // 3 way merge
             return handle3WayMerge(utils, branchToMerge);
         }
+        catch(IOException | GitAPIException ex) {
+            // If any exception occurs while the repo is in a merging state we need to reset to HEAD to clear the merge state
+            try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
+                logger.info("Resetting to HEAD due to exception."); //$NON-NLS-1$
+                utils.resetToRef(RepoConstants.HEAD);
+            }
+            throw ex;
+        }
     }
     
     /**
