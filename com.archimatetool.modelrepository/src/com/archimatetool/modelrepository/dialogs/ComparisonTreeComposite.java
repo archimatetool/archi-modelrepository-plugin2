@@ -5,6 +5,11 @@
  */
 package com.archimatetool.modelrepository.dialogs;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.eclipse.emf.compare.AttributeChange;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
@@ -21,13 +26,11 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.layout.TreeColumnLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ILazyTreeContentProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -94,11 +97,13 @@ public class ComparisonTreeComposite extends Composite {
         setLayout(treeLayout);
         setLayoutData(new GridData(GridData.FILL_BOTH));
         
-        fTreeViewer = new TreeViewer(this, SWT.MULTI | SWT.FULL_SELECTION);
+        fTreeViewer = new TreeViewer(this, SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
         fTreeViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
 
         fTreeViewer.getTree().setHeaderVisible(true);
         fTreeViewer.getTree().setLinesVisible(false);
+        
+        fTreeViewer.setUseHashlookup(true);  // This is important!
 
         // Columns
         TreeViewerColumn column1 = new TreeViewerColumn(fTreeViewer, SWT.NONE);
@@ -119,76 +124,10 @@ public class ComparisonTreeComposite extends Composite {
 
         // Label Provider
         fTreeViewer.setLabelProvider(new LabelCellProvider());
-        
-        fTreeViewer.setComparator(new ViewerComparator() {
-            @Override
-            public int compare(Viewer viewer, Object o1, Object o2) {
-                int cat1 = category(o1);
-                int cat2 = category(o2);
-                if(cat1 != cat2) {
-                    return cat1 - cat2;
-                }
                 
-                if(o1 instanceof Diff d1 && o2 instanceof Diff d2) {
-                    // ADD before CHANGE
-                    if(d1.getKind() == DifferenceKind.ADD && d2.getKind() == DifferenceKind.CHANGE) {
-                        return -1;
-                    }
-                    // DELETE before ADD
-                    if(d1.getKind() == DifferenceKind.DELETE && d2.getKind() == DifferenceKind.ADD) {
-                        return -1;
-                    }
-                }
-
-                if(o1 instanceof EObject && o2 instanceof EObject) {
-                    String s1 = ArchiLabelProvider.INSTANCE.getLabel(o1);
-                    String s2 = ArchiLabelProvider.INSTANCE.getLabel(o2);
-                    return s1.compareToIgnoreCase(s2);
-                }
-                
-                if(o1 instanceof Change c1 && o2 instanceof Change c2) {
-                    if(c1.getChangedObject() instanceof INameable nameable1 && c2.getChangedObject() instanceof INameable nameable2) {
-                        return nameable1.getName().compareToIgnoreCase(nameable2.getName());
-                    }
-                }
-                
-                return 0;
-            }
-            
-            @Override
-            public int category(Object element) {
-                if(element instanceof Change change) {
-                    element = change.getChangedObject();
-                }
-                
-                if(element instanceof IDiagramModelArchimateComponent dmc) {
-                    element = dmc.getArchimateConcept();
-                }
-                
-                if(element instanceof IArchimateModel) {
-                    return 0;
-                }
-                if(element instanceof IFolder) {
-                    return 1;
-                }
-                if(element instanceof IArchimateElement) {
-                    return 2;
-                }
-                if(element instanceof IArchimateRelationship) {
-                    return 3;
-                }
-                if(element instanceof IDiagramModel) {
-                    return 4;
-                }
-                
-                return 0;
-            }
-        });
-        
         hookContextMenu();
 
         fTreeViewer.setInput(modelComparison);
-        //fTreeViewer.expandAll();
     }
     
     /**
@@ -215,37 +154,23 @@ public class ComparisonTreeComposite extends Composite {
         return fTreeViewer;
     }
 
-    private class ContentProvider implements ITreeContentProvider {
-        private Object[] changes;
+    private class ContentProvider implements ILazyTreeContentProvider {
+        private List<?> changes;
+        private Map<Change, List<?>> map = new HashMap<>();
         
-        @Override
-        public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-        }
-
-        @Override
-        public void dispose() {
-            changes = null;
-        }
-
-        @Override
-        public Object[] getElements(Object inputElement) {
-            return getChildren(inputElement);
-        }
-
-        @Override
-        public Object[] getChildren(Object parentElement) {
+        List<?> getChildren(Object parentElement) {
             if(parentElement instanceof ModelComparison modelComparison) {
                 if(changes == null) {
-                    changes = modelComparison.getChangedObjects().toArray();
+                    changes = sort(modelComparison.getChangedObjects());
                 }
                 return changes;
             }
             
             if(parentElement instanceof Change change) {
-                return change.getChanges().toArray();
+                return map.computeIfAbsent(change, c -> sort(change.getChanges()));
             }
             
-            return new Object[0];
+            return Collections.EMPTY_LIST;
         }
 
         @Override
@@ -254,8 +179,89 @@ public class ComparisonTreeComposite extends Composite {
         }
 
         @Override
-        public boolean hasChildren(Object element) {
-            return getChildren(element).length > 0;
+        public void updateElement(Object parent, int index) {
+            List<?> children = getChildren(parent);
+            if(!children.isEmpty()) {
+                Object element = children.get(index);
+                getTreeViewer().replace(parent, index, element);
+                getTreeViewer().setChildCount(element, getChildren(element).size());
+            }
+        }
+
+        @Override
+        public void updateChildCount(Object element, int currentChildCount) {
+            getTreeViewer().setChildCount(element, getChildren(element).size());
+        }
+        
+        List<?> sort(List<?> children) {
+            children.sort((Object o1, Object o2) -> {
+                int cat1 = sortCategory(o1);
+                int cat2 = sortCategory(o2);
+                if(cat1 != cat2) {
+                    return cat1 - cat2;
+                }
+
+                if(o1 instanceof Diff d1 && o2 instanceof Diff d2) {
+                    // ADD before CHANGE
+                    if(d1.getKind() == DifferenceKind.ADD && d2.getKind() == DifferenceKind.CHANGE) {
+                        return -1;
+                    }
+                    // DELETE before ADD
+                    if(d1.getKind() == DifferenceKind.DELETE && d2.getKind() == DifferenceKind.ADD) {
+                        return -1;
+                    }
+                }
+
+                if(o1 instanceof EObject && o2 instanceof EObject) {
+                    String s1 = ArchiLabelProvider.INSTANCE.getLabel(o1);
+                    String s2 = ArchiLabelProvider.INSTANCE.getLabel(o2);
+                    return s1.compareToIgnoreCase(s2);
+                }
+
+                if(o1 instanceof Change c1 && o2 instanceof Change c2) {
+                    if(c1.getChangedObject() instanceof INameable nameable1 && c2.getChangedObject() instanceof INameable nameable2) {
+                        return nameable1.getName().compareToIgnoreCase(nameable2.getName());
+                    }
+                }
+
+                return 0;
+            });
+            
+            return children;
+        }
+
+        int sortCategory(Object element) {
+            if(element instanceof Change change) {
+                element = change.getChangedObject();
+            }
+
+            if(element instanceof IDiagramModelArchimateComponent dmc) {
+                element = dmc.getArchimateConcept();
+            }
+
+            if(element instanceof IArchimateModel) {
+                return 0;
+            }
+            if(element instanceof IFolder) {
+                return 1;
+            }
+            if(element instanceof IArchimateElement) {
+                return 2;
+            }
+            if(element instanceof IArchimateRelationship) {
+                return 3;
+            }
+            if(element instanceof IDiagramModel) {
+                return 4;
+            }
+
+            return 0;
+        }
+
+        @Override
+        public void dispose() {
+            changes = null;
+            map = null;
         }
     }
     

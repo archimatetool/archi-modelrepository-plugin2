@@ -228,7 +228,7 @@ public class ModelComparison {
     /**
      * @return The Objects that show interesting changes
      */
-    public Collection<Change> getChangedObjects() {
+    public List<Change> getChangedObjects() {
         Map<EObject, Change> changes = new HashMap<>();
 
         for(Diff diff : comparison.getDifferences()) {
@@ -274,7 +274,7 @@ public class ModelComparison {
         // Debug
         // printChanges(changes.values());
         
-        return changes.values();
+        return new ArrayList<>(changes.values());
     }
     
     /**
