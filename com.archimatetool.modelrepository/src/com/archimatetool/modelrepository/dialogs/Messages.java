@@ -56,6 +56,30 @@ public class Messages extends NLS {
 
     public static String CommitDialog_7;
 
+    public static String ComparisonTreeComposite_0;
+
+    public static String ComparisonTreeComposite_1;
+
+    public static String ComparisonTreeComposite_10;
+
+    public static String ComparisonTreeComposite_11;
+
+    public static String ComparisonTreeComposite_2;
+
+    public static String ComparisonTreeComposite_3;
+
+    public static String ComparisonTreeComposite_4;
+
+    public static String ComparisonTreeComposite_5;
+
+    public static String ComparisonTreeComposite_6;
+
+    public static String ComparisonTreeComposite_7;
+
+    public static String ComparisonTreeComposite_8;
+
+    public static String ComparisonTreeComposite_9;
+
     public static String ErrorMessageDialog_0;
 
     public static String NewRepoDialog_0;
