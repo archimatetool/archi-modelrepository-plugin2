@@ -22,6 +22,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.components.IRunnable;
+import com.archimatetool.editor.ui.dialog.ErrorMessageDialog;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
@@ -30,7 +31,6 @@ import com.archimatetool.modelrepository.authentication.SSHCredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
 import com.archimatetool.modelrepository.dialogs.CommitDialog;
 import com.archimatetool.modelrepository.dialogs.Dialogs;
-import com.archimatetool.modelrepository.dialogs.ErrorMessageDialog;
 import com.archimatetool.modelrepository.dialogs.UserNamePasswordDialog;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -203,11 +203,11 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
             ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
 
             try {
-                IRunnable.run(dialog, monitor -> {
+                IRunnable.run(dialog, true, false, monitor -> {
                     logger.info("Commiting changes for: " + archiRepository.getModelFile()); //$NON-NLS-1$
                     monitor.beginTask(Messages.AbstractRepositoryWorkflow_9, IProgressMonitor.UNKNOWN);
                     utils.commitChangesWithManifest(commitMessage, amend);
-                }, true);
+                });
             }
             catch(Exception ex) {
                 logger.log(Level.SEVERE, "Commit Exception", ex); //$NON-NLS-1$

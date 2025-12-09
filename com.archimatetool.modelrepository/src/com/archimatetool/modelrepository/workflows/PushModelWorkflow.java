@@ -116,11 +116,11 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         AtomicReference<FetchResult> fetchResult = new AtomicReference<>();
         
         // Do a dry run fetch
-        IRunnable.run(dialog, monitor -> {
+        IRunnable.run(dialog, true, true, monitor -> {
             logger.info("Fetching with dry run from " + utils.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
             monitor.beginTask(Messages.PushModelWorkflow_6, IProgressMonitor.UNKNOWN);
             fetchResult.set(utils.fetchFromRemoteDryRun(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_6)));
-        }, true);
+        });
         
         for(TrackingRefUpdate refUpdate : fetchResult.get().getTrackingRefUpdates()) {
             if(Objects.equals(remoteRef, refUpdate.getLocalName())) {
@@ -137,11 +137,11 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
     private PushResult push(GitUtils utils, CredentialsProvider credentialsProvider, ProgressMonitorDialog dialog) throws Exception {
         AtomicReference<PushResult> pushResult = new AtomicReference<>();
         
-        IRunnable.run(dialog, monitor -> {
+        IRunnable.run(dialog, true, true, monitor -> {
             logger.info("Pushing to " + utils.getRemoteURL().orElse("unknown")); //$NON-NLS-1$ //$NON-NLS-2$
             monitor.beginTask(Messages.PushModelWorkflow_1, IProgressMonitor.UNKNOWN);
             pushResult.set(utils.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor, Messages.PushModelWorkflow_1)));
-        }, true);
+        });
         
         return pushResult.get();
     }

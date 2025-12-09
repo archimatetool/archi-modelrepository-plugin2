@@ -130,7 +130,7 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
         
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
-        IRunnable.run(dialog, monitor -> {
+        IRunnable.run(dialog, true, true, monitor -> {
             monitor.beginTask(Messages.CreateRepoFromModelWorkflow_2, IProgressMonitor.UNKNOWN);
             
             PushResult pushResult = utils.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor,
@@ -142,7 +142,7 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
             // Status
             checkPushResultStatus(pushResult);
             
-        }, true);
+        });
     }
     
     @Override
