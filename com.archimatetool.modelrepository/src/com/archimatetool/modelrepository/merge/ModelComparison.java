@@ -25,6 +25,8 @@ import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.ArchiLabelProvider;
@@ -147,14 +149,27 @@ public class ModelComparison {
         this.revCommit1 = revCommit1;
         this.revCommit2 = revCommit2;
         
-        // Ensure commits are in correct time order
-        if(revCommit1.getCommitTime() < revCommit2.getCommitTime()) {
-            this.revCommit1 = revCommit1;
-            this.revCommit2 = revCommit2;
+        // Ensure commits are in correct order
+        try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
+            try(RevWalk revWalk = new RevWalk(utils.getRepository())) {
+                RevCommit base = revWalk.parseCommit(revCommit1);
+                RevCommit tip = revWalk.parseCommit(revCommit2);
+                revWalk.setRevFilter(RevFilter.MERGE_BASE);
+
+                boolean isAncestor = revWalk.isMergedInto(base, tip);
+                
+                System.out.println(revCommit1.getCommitTime());
+                System.out.println(revCommit2.getCommitTime());
+                
+                // revCommit1 is older than revCommit2 so swap
+                if(!isAncestor) {
+                    this.revCommit1 = revCommit2;
+                    this.revCommit2 = revCommit1;
+                }
+            }
         }
-        else {
-            this.revCommit1 = revCommit2;
-            this.revCommit2 = revCommit1;
+        catch(IOException ex) {
+            ex.printStackTrace();
         }
     }
     
