@@ -91,7 +91,7 @@ public class MergeBranchWorkflow extends AbstractRepositoryWorkflow {
         
         // Do the merge
         try {
-            mergeHandlerResult = MergeHandler.getInstance().merge(archiRepository, branchToMerge);
+            mergeHandlerResult = new MergeHandler(workbenchWindow).merge(archiRepository, branchToMerge);
         }
         catch(IOException | GitAPIException ex) {
             logger.log(Level.SEVERE, "Merge", ex); //$NON-NLS-1$

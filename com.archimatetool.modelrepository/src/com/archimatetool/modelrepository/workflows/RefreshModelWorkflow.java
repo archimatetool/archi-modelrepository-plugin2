@@ -114,7 +114,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
             }
             
             // Try to merge
-            mergeHandlerResult = MergeHandler.getInstance().merge(archiRepository, remoteBranchInfo);
+            mergeHandlerResult = new MergeHandler(workbenchWindow).merge(archiRepository, remoteBranchInfo);
         }
         catch(IOException | GitAPIException ex) {
             logger.log(Level.SEVERE, "Merge", ex); //$NON-NLS-1$

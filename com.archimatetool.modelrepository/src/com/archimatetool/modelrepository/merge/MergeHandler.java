@@ -39,7 +39,7 @@ import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -63,8 +63,6 @@ public class MergeHandler {
 
     private static Logger logger = Logger.getLogger(MergeHandler.class.getName());
     
-    private static MergeHandler instance = new MergeHandler();
-    
     // Allow Fast-Forward merges if possible
     private static boolean ALLOW_FF_MERGE = true;
     
@@ -76,18 +74,17 @@ public class MergeHandler {
     
     private static MergeMethod MERGE_METHOD = MergeMethod.APPLY_ALL;
     
-    public static MergeHandler getInstance() {
-        return instance;
-    }
-    
     public enum MergeHandlerResult {
         MERGED_OK,
         ALREADY_UP_TO_DATE,
         MERGED_WITH_CONFLICTS_RESOLVED,
         CANCELLED
     }
+
+    private IWorkbenchWindow workbenchWindow;
     
-    private MergeHandler() {
+    public MergeHandler(IWorkbenchWindow workbenchWindow) {
+        this.workbenchWindow = workbenchWindow;
     }
     
     /**
@@ -149,7 +146,7 @@ public class MergeHandler {
     private MergeHandlerResult handle3WayMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
         logger.info("Handling 3Way merge...");
         
-        ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+        ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
         AtomicReference<IArchimateModel> ourModelRef = new AtomicReference<>();
         AtomicReference<IArchimateModel> theirModelRef = new AtomicReference<>();
@@ -399,7 +396,7 @@ public class MergeHandler {
      */
     private MergeHandlerResult handleConflictingMerge(ProgressMonitorDialog progressDialog, GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
         int response = MessageDialog.open(MessageDialog.QUESTION,
-                null,
+                workbenchWindow.getShell(),
                 "Merge Branch",
                 "There's a conflict. What do you want to do?",
                 SWT.NONE,
