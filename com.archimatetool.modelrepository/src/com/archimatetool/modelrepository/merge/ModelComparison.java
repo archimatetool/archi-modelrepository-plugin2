@@ -21,6 +21,7 @@ import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.compare.AttributeChange;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
+import org.eclipse.emf.compare.DifferenceKind;
 import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EObject;
@@ -31,6 +32,7 @@ import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
+import com.archimatetool.model.IBounds;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelContainer;
@@ -267,7 +269,9 @@ public class ModelComparison {
                 }
 
                 // Add the diff
-                change.addDiff(diff);
+                if(isInteresting(diff)) {
+                    change.addDiff(diff);
+                }
             }
         }
         
@@ -275,6 +279,17 @@ public class ModelComparison {
         // printChanges(changes.values());
         
         return new ArrayList<>(changes.values());
+    }
+    
+    /**
+     * @return true if the Diff is something we want to display
+     */
+    public boolean isInteresting(Diff diff) {
+        if(diff instanceof ReferenceChange referenceChange && referenceChange.getValue() instanceof IBounds && referenceChange.getKind() == DifferenceKind.ADD) {
+            return false;
+        }
+        
+        return true;
     }
     
     /**
