@@ -147,7 +147,6 @@ public class MergeHandler {
      * We load 3 models - ours, theirs and the common ancestor.
      * Then we will show any conflicts and resolve them before merging and committing
      */
-    @SuppressWarnings("deprecation")
     private MergeHandlerResult handle3WayMerge(GitUtils utils, BranchInfo branchToMerge) throws IOException, GitAPIException {
         logger.info("Handling 3Way merge...");
         
