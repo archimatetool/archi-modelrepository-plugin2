@@ -212,7 +212,7 @@ public class ModelComparison {
             for(Diagnostic diagnostic : comparison.getDiagnostic().getChildren()) {
                 if(diagnostic.getSeverity() == Diagnostic.WARNING || diagnostic.getSeverity() == Diagnostic.ERROR) {
                     System.out.println(diagnostic.getMessage());
-                    logger.severe(diagnostic.getMessage());
+                    logger.warning(diagnostic.getMessage());
                 }
             }
         }
