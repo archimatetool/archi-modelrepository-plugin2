@@ -38,6 +38,10 @@ public class Messages extends NLS {
     public static String CreateRepoFromModelWorkflow_1;
     public static String CreateRepoFromModelWorkflow_2;
 
+    public static String CreateRepoFromModelWorkflow_3;
+
+    public static String CreateRepoFromModelWorkflow_4;
+
     public static String DeleteBranchWorkflow_0;
     public static String DeleteBranchWorkflow_1;
 

@@ -7,13 +7,17 @@ package com.archimatetool.modelrepository.workflows;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -57,11 +61,29 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
             return;
         }
         
+        String repoURL = dialog.getURL();
+        ICredentials credentials = dialog.getCredentials();
+        CredentialsProvider credentialsProvider = credentials.getCredentialsProvider();
+
+        // If Publish was selected check if the online repo is empty
+        if(response == NewRepoDialog.ADD_AND_PUBLISH_ID) {
+            try {
+                if(!isRemoteEmpty(repoURL, credentialsProvider)) {
+                    logger.info("Remote is not empty: " + repoURL); //$NON-NLS-1$
+                    displayErrorDialog(Messages.CreateRepoFromModelWorkflow_0, Messages.CreateRepoFromModelWorkflow_3);
+                    return;
+                }
+            }
+            catch(Exception ex) {
+                logger.log(Level.SEVERE, "Checking if remote is empty", ex); //$NON-NLS-1$
+                displayErrorDialog(Messages.CreateRepoFromModelWorkflow_0, ex);
+                return;
+            }
+        }
+        
         logger.info("Adding model to workspace..."); //$NON-NLS-1$
         
         File folder = RepoUtils.generateNewRepoFolder();
-        String repoURL = dialog.getURL();
-        ICredentials credentials = dialog.getCredentials();
         boolean storeCredentials = dialog.doStoreCredentials();
         archiRepository = new ArchiRepository(folder);
         
@@ -100,7 +122,7 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
             
             // If we want to publish now then push...
             if(response == NewRepoDialog.ADD_AND_PUBLISH_ID) {
-                push(utils, repoURL, credentials.getCredentialsProvider());
+                push(utils, repoURL, credentialsProvider);
             }
             
             // Add to the Tree Model
@@ -122,6 +144,31 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
         }
     }
     
+    /**
+     * Check if the online remote is empty
+     */
+    private boolean isRemoteEmpty(String repoURL, CredentialsProvider credentialsProvider) throws Exception {
+        logger.info("Checking if remote is empty: " + repoURL); //$NON-NLS-1$
+        
+        ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
+        
+        AtomicReference<Collection<Ref>> refsResult = new AtomicReference<>();
+        
+        IRunnable.run(dialog, monitor -> {
+            monitor.beginTask(Messages.CreateRepoFromModelWorkflow_4, IProgressMonitor.UNKNOWN);
+            
+            Collection<Ref> refs = Git.lsRemoteRepository()
+                    .setCredentialsProvider(credentialsProvider)
+                    .setRemote(repoURL)
+                    .setHeads(true)       // Only list branch heads (refs/heads/*)
+                    .call();
+            
+            refsResult.set(refs);
+        }, true);
+        
+        return refsResult.get().isEmpty();
+    }
+        
     /**
      * Push to remote
      */
