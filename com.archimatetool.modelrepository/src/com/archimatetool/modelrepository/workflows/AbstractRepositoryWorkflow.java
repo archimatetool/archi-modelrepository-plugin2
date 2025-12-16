@@ -269,19 +269,22 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
         // Get credentials from storage
         UsernamePassword npw = CredentialsStorage.getInstance().getCredentials(archiRepository);
         
-        // Ask the user if no username set
-        if(!npw.isUsernameSet()) {
-            logger.info("Asking for user credentials"); //$NON-NLS-1$
-            UserNamePasswordDialog dialog = new UserNamePasswordDialog(workbenchWindow.getShell(), archiRepository);
-            if(dialog.open() == Window.OK) {
-                return Optional.of(new UsernamePassword(dialog.getUsername(), dialog.getPassword()));
-            }
-            else {
-                Optional.empty();
-            }
+        // User name is set so return UsernamePassword
+        if(npw.isUsernameSet()) {
+            return Optional.of(npw);
         }
         
-        return Optional.of(npw);
+        // Ask the user for user credentials
+        logger.info("Asking for user credentials"); //$NON-NLS-1$
+        UserNamePasswordDialog dialog = new UserNamePasswordDialog(workbenchWindow.getShell(), archiRepository);
+        
+        // OK on dialog
+        if(dialog.open() == Window.OK) {
+            return Optional.of(new UsernamePassword(dialog.getUsername(), dialog.getPassword()));
+        }
+        
+        // Dialog was cancelled so return null
+        return Optional.empty();
     }
     
     /**
