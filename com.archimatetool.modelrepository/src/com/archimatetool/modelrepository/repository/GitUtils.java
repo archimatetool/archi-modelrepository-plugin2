@@ -14,9 +14,11 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
@@ -584,6 +586,42 @@ public class GitUtils extends Git {
             
             return revWalk.isMergedInto(baseCommit, tipCommit);
         }
+    }
+    
+    /**
+     * Checks whether the repository has multiple root commits (commits with no parents)
+     * that are reachable from any refs (branches, tags, etc.).
+     * 
+     * @return true if the repo contains multiple roots
+     */
+    public boolean hasMultipleRoots() throws IOException {
+        try(RevWalk revWalk = new RevWalk(getRepository())) {
+            revWalk.setRetainBody(false);
+            
+            // Mark all branch/tag tips as starting points
+            for(Ref ref : getRepository().getRefDatabase().getRefs()) {
+                ObjectId id = ref.getObjectId();
+                if(id != null) {
+                    revWalk.markStart(revWalk.parseCommit(id));
+                }
+            }
+
+            // Collect root commits
+            Set<RevCommit> roots = new HashSet<>();
+
+            for(RevCommit commit : revWalk) {
+                if(commit.getParentCount() == 0) { // This is a root commit
+                    roots.add(commit);
+                }
+            }
+            
+            // Should only be one
+            if(roots.size() > 1) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**

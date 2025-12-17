@@ -54,7 +54,6 @@ import com.archimatetool.modelrepository.treemodel.RepositoryTreeModel;
 /**
  * Repository Tree Viewer
  */
-@SuppressWarnings("nls")
 public class ModelRepositoryTreeViewer extends TreeViewer implements IRepositoryListener, IRepositoryTreeModelListener {
     
     private static Logger logger = Logger.getLogger(ModelRepositoryTreeViewer.class.getName());
@@ -63,10 +62,12 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
     private class StatusCache {
         BranchInfo branchInfo;
         boolean hasChangesToCommit;
+        boolean hasMultipleRoots; // Multiple roots is not good!
         
-        public StatusCache(BranchInfo branchInfo, boolean hasChangesToCommit) {
+        public StatusCache(BranchInfo branchInfo, boolean hasChangesToCommit, boolean hasMultipleRoots) {
             this.branchInfo = branchInfo;
             this.hasChangesToCommit = hasChangesToCommit;
+            this.hasMultipleRoots = hasMultipleRoots;
         }
     }
     
@@ -128,7 +129,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         // Cell Editor
         TreeTextCellEditor cellEditor = new TreeTextCellEditor(getTree());
-        setColumnProperties(new String[]{ "col1" });
+        setColumnProperties(new String[]{ "col1" }); //$NON-NLS-1$
         setCellEditors(new CellEditor[]{ cellEditor });
 
         // Edit cell programmatically, not on mouse click
@@ -170,7 +171,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         }
         catch(IOException | JDOMException ex) {
             ex.printStackTrace();
-            logger.log(Level.SEVERE, "Loading Manifest", ex);
+            logger.log(Level.SEVERE, "Loading Manifest", ex); //$NON-NLS-1$
         }
         
         RepositoryTreeModel.getInstance().addListener(this);
@@ -243,13 +244,18 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         try(GitUtils utils = GitUtils.open(repo.getWorkingFolder())) {
             BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.COMMIT_STATUS).orElse(null);
             if(branchInfo != null) {
-                StatusCache sc = new StatusCache(branchInfo, utils.hasChangesToCommit());
+                boolean hasChanges = utils.hasChangesToCommit();
+                boolean hasMultipleRoots = utils.hasMultipleRoots();
+                if(hasMultipleRoots) {
+                    logger.warning("Repository has multiple roots: " + repo.getWorkingFolder()); //$NON-NLS-1$
+                }
+                StatusCache sc = new StatusCache(branchInfo, hasChanges,hasMultipleRoots);
                 statusCache.put(repo, sc);
             }
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
-            logger.log(Level.SEVERE, "Status Cache", ex);
+            logger.log(Level.SEVERE, "Status Cache", ex); //$NON-NLS-1$
         }
     }
     
@@ -331,31 +337,45 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         }
         
         String getStatusText(IArchiRepository repo) {
-            String s = "";
+            StringBuilder sb = new StringBuilder();
             
             StatusCache sc = statusCache.get(repo);
+            
             if(sc != null) {
+                // Changes to commit
                 if(sc.hasChangesToCommit) {
-                    s += Messages.ModelRepositoryTreeViewer_0;
+                    sb.append(Messages.ModelRepositoryTreeViewer_0);
                 }
+                // Unpushed commits
                 if(sc.branchInfo.hasUnpushedCommits()) {
-                    if(StringUtils.isSet(s)) {
-                        s += " | ";
+                    if(!sb.isEmpty()) {
+                        sb.append(" | "); //$NON-NLS-1$
                     }
-                    s += Messages.ModelRepositoryTreeViewer_1;
+                    sb.append(Messages.ModelRepositoryTreeViewer_1);
                 }
+                // Has remote commits
                 if(sc.branchInfo.hasRemoteCommits()) {
-                    if(StringUtils.isSet(s)) {
-                        s += " | ";
+                    if(!sb.isEmpty()) {
+                        sb.append(" | "); //$NON-NLS-1$
                     }
-                    s += Messages.ModelRepositoryTreeViewer_2;
+                    sb.append(Messages.ModelRepositoryTreeViewer_2);
                 }
-                if(!StringUtils.isSet(s)) {
-                    s = Messages.ModelRepositoryTreeViewer_3;
+                // Up to date
+                if(sb.isEmpty()) {
+                    sb.append(Messages.ModelRepositoryTreeViewer_3);
                 }
+                
+                // Multiple roots
+                if(sc.hasMultipleRoots) {
+                    if(!sb.isEmpty()) {
+                        sb.append(" | "); //$NON-NLS-1$
+                    }
+                    sb.append(Messages.ModelRepositoryTreeViewer_5);
+                }
+                
             }
             
-            return s;
+            return sb.toString();
         }
         
         @Override
@@ -376,7 +396,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 StatusCache sc = statusCache.get(repo);
                 if(sc != null) {
                     // Repository name and current branch
-                    cell.setText(repo.getName() + " [" + sc.branchInfo.getShortName() + "]");
+                    cell.setText(repo.getName() + " [" + sc.branchInfo.getShortName() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
                     
                     // Red text
                     if(sc.branchInfo.hasUnpushedCommits() || sc.branchInfo.hasRemoteCommits() || sc.hasChangesToCommit) {
@@ -405,7 +425,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 
                 String status = getStatusText(repo);
                 if(StringUtils.isSet(status)) {
-                    s += "\n" + status.replaceAll(" \\| ", "\n");
+                    s += "\n" + status.replaceAll(" \\| ", "\n");  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
                 }
                 
                 return s;

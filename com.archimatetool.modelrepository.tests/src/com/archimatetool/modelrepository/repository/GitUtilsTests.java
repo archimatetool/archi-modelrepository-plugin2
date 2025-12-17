@@ -668,6 +668,34 @@ public class GitUtilsTests {
         assertTrue(utils.isMergedInto(baseCommit.getName(), "HEAD"));
         assertFalse(utils.isMergedInto(branchCommit.getName(), "HEAD"));
     }
+    
+    @Test
+    public void hasMultipleRootsFalse() throws Exception {
+        // main branch
+        utils.commit().setMessage("Initial commit on main").call();
+        utils.commit().setMessage("Second commit on main").call();
+        
+        // Create a branch and add more commits
+        utils.branchCreate().setName("branch").call();
+        utils.checkout().setName("branch").call();
+        utils.commit().setMessage("branch commit").call();
+        
+        assertFalse(utils.hasMultipleRoots());
+    }
+
+    @Test
+    public void hasMultipleRootsTrue() throws Exception {
+        // main branch
+        utils.commit().setMessage("Initial commit on main").call();
+        utils.commit().setMessage("Second commit on main").call();
+
+        // Create orphan branch and add two commits
+        utils.checkout().setOrphan(true).setName("branch").call();
+        utils.commit().setMessage("Initial commit on orphan branch").call();     
+        utils.commit().setMessage("Another commit in this branch").call();
+        
+        assertTrue(utils.hasMultipleRoots());
+    }
 
     @Test
     public void extractCommitRevStr() throws Exception {

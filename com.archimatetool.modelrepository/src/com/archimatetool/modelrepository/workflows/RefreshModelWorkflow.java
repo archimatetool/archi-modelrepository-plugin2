@@ -108,7 +108,7 @@ public class RefreshModelWorkflow extends AbstractRepositoryWorkflow {
             RevCommit mergeBase = utils.getBaseCommit(RepoConstants.HEAD, remoteBranchInfo.getRemoteBranchName());
             if(mergeBase == null) {
                 notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-                displayErrorDialog(Messages.RefreshModelWorkflow_0, Messages.RefreshModelWorkflow_6 + ' '
+                displayErrorDialog(Messages.RefreshModelWorkflow_0, Messages.AbstractRepositoryWorkflow_0, Messages.RefreshModelWorkflow_6 + ' '
                         + Messages.RefreshModelWorkflow_7 + "\n\n" + Messages.RefreshModelWorkflow_8); //$NON-NLS-1$
                 return;
             }

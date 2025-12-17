@@ -153,6 +153,8 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
         if(pushResult == null) {
             return;
         }
+        
+        String errorMessage = null;
 
         // Show primary Status result to user
         switch(getPrimaryPushResultStatus(pushResult)) {
@@ -164,12 +166,20 @@ public class PushModelWorkflow extends AbstractPushResultWorkflow {
                 MessageDialog.openInformation(workbenchWindow.getShell(), Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_3);
             }
             
-            default -> {
-                String errorMessage = getPushResultFullErrorMessage(pushResult);
+            case REJECTED_NONFASTFORWARD -> {
+                errorMessage = getPushResultFullErrorMessage(pushResult);
                 if(errorMessage != null) {
-                    displayErrorDialog(Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_4, errorMessage);
+                    errorMessage += "\n\n" + Messages.PushModelWorkflow_7; //$NON-NLS-1$
                 }
             }
+            
+            default -> {
+                errorMessage = getPushResultFullErrorMessage(pushResult);
+            }
+        }
+        
+        if(errorMessage != null) {
+            displayErrorDialog(Messages.PushModelWorkflow_0, Messages.PushModelWorkflow_4, errorMessage);
         }
     }
 }

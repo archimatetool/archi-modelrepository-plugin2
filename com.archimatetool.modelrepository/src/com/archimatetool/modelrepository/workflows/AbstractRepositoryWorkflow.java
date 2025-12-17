@@ -85,7 +85,7 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
         MessageDialog.openError(workbenchWindow.getShell(),
                 title,
                 Messages.AbstractRepositoryWorkflow_0 +
-                    "\n" + //$NON-NLS-1$
+                    "\n\n" + //$NON-NLS-1$
                     message);
     }
 
