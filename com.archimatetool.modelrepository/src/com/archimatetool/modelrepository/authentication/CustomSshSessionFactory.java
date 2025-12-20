@@ -67,13 +67,16 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
                 && Platform.getPreferencesService() != null  // Check Preference Service is running in case background fetch is running and we quit the app
                 && ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_SCAN_DIR)) {
             
-            List<Path> paths = Arrays.asList(sshDir.listFiles()).stream()
+            File[] files = sshDir.listFiles();
+            if(files != null) {
+                List<Path> paths = Arrays.asList(files).stream()
                         .filter(file -> !file.getName().endsWith(".pub") && !file.getName().startsWith("known_hosts"))
                         .map(File::toPath)
                         .collect(Collectors.toList());
             
-            if(!paths.isEmpty()) {
-                return paths;
+                if(!paths.isEmpty()) {
+                    return paths;
+                }
             }
         }
         
