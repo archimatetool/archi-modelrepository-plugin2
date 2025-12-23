@@ -29,5 +29,6 @@ Export-Package: com.archimatetool.modelrepository,
 Bundle-ClassPath: com.archimatetool.modelrepository.jar
 Automatic-Module-Name: com.archimatetool.modelrepository
 Import-Package: com.google.common.base,
+ org.bouncycastle.jce.provider,
  org.eclipse.equinox.security.storage
 Eclipse-ExtensibleAPI: true

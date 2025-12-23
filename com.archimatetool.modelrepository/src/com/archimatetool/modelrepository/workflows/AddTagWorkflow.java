@@ -15,6 +15,7 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.modelrepository.authentication.GPGCredentialsProvider;
 import com.archimatetool.modelrepository.dialogs.AddTagDialog;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -65,12 +66,14 @@ public class AddTagWorkflow extends AbstractRepositoryWorkflow {
             
             // Create the tag
             logger.info("Creating tag: " + tagName); //$NON-NLS-1$
+            
             utils.tag()
-                 .setObjectId(revCommit)
-                 .setName(tagName)
-                 .setMessage(tagMessage)
-                 .setSigned(false) // No GPG signing
-                 .call();
+               .setObjectId(revCommit)
+               .setName(tagName)
+               .setMessage(tagMessage)
+               .setCredentialsProvider(GPGCredentialsProvider.getDefault())
+               .setSigningKey(GPGCredentialsProvider.getDefault().getSigningKey())
+               .call();
 
             // Notify listeners
             notifyChangeListeners(IRepositoryListener.TAGS_CHANGED);
