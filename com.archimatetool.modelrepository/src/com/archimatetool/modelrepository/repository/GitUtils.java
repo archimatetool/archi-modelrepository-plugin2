@@ -39,6 +39,7 @@ import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
+import org.eclipse.jgit.signing.ssh.SshSignerFactory;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
@@ -55,6 +56,7 @@ import org.eclipse.jgit.util.io.EolStreamTypeUtil;
 
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.authentication.SSHCredentialsProvider;
 
 /**
  * Extends JGit's Git class to offer some convenience methods.
@@ -106,7 +108,10 @@ public class GitUtils extends Git {
                 .setAuthor(getUserDetails())
                 .setMessage(commitMessage)
                 .setAmend(amend)
-                .setSign(false) // No GPG signing
+                .setCredentialsProvider(SSHCredentialsProvider.getDefault())
+                .setSign(true)
+                .setSigner(new SshSignerFactory().create())
+                .setSigningKey("~/.ssh/id_ed25519_github.pub")
                 .call();
     }
 
