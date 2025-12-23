@@ -20,7 +20,6 @@ import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ILazyContentProvider;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -184,24 +183,15 @@ public class HistoryTableViewer extends TableViewer {
     }
     
     private void setInputAndSelect(IArchiRepository archiRepo) {
-        Display.getCurrent().asyncExec(() -> {
-            if(!getTable().isDisposed()) {
-                setInput(archiRepo);
-            }
-        });
+        setInput(archiRepo);
         
-        // This has to be asynced...
+        // Select first row - this will ensure we don't select the current row index from the previously selected repo
         Display.getCurrent().asyncExec(() -> {
             if(!getTable().isDisposed()) {
-                // Layout horizontal scroll bar again
+                // Avoid bogus horizontal scrollbar cheese
                 getTable().getParent().layout();
                 
-                // Select first row
-                // This will ensure we don't select the current row index from the previously selected repo
-                Object element = getElementAt(0);
-                if(element != null) {
-                    setSelection(new StructuredSelection(element), true);
-                }
+                getTable().setSelection(0);
             }
         });
     }
