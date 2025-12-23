@@ -74,7 +74,7 @@ public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
     private void deleteTags(GitUtils utils, CredentialsProvider credentialsProvider, TagInfo... tagInfos) throws Exception {
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
-        IRunnable.run(dialog, monitor -> {
+        IRunnable.run(dialog, true, true, monitor -> {
             monitor.beginTask(Messages.DeleteTagsWorkflow_0, IProgressMonitor.UNKNOWN);
             
             String[] tagNames = Arrays.stream(tagInfos).map(TagInfo::getFullName).toArray(String[]::new);
@@ -93,7 +93,7 @@ public class DeleteTagsWorkflow extends AbstractPushResultWorkflow {
             // If OK, delete local tags
             logger.info("Deleting local tags: " + names); //$NON-NLS-1$
             utils.deleteTags(tagNames);
-        }, true);
+        });
     }
     
     @Override

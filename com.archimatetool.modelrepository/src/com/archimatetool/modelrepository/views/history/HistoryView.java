@@ -52,6 +52,7 @@ import org.eclipse.ui.part.IContributedContentsView;
 import org.eclipse.ui.part.ViewPart;
 
 import com.archimatetool.editor.ui.components.IRunnable;
+import com.archimatetool.editor.ui.dialog.ErrorMessageDialog;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelComponent;
@@ -65,7 +66,6 @@ import com.archimatetool.modelrepository.actions.ResetToRemoteCommitAction;
 import com.archimatetool.modelrepository.actions.RestoreCommitAction;
 import com.archimatetool.modelrepository.actions.UndoLastCommitAction;
 import com.archimatetool.modelrepository.dialogs.CompareDialog;
-import com.archimatetool.modelrepository.dialogs.ErrorMessageDialog;
 import com.archimatetool.modelrepository.merge.ModelComparison;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.modelrepository.repository.BranchInfo;
@@ -155,10 +155,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
                     
                     try {
                         final ModelComparison mcRef = mc;
-                        IRunnable.run(dialog, monitor -> {
+                        IRunnable.run(dialog, true, false, monitor -> {
                             monitor.beginTask(Messages.HistoryView_15, IProgressMonitor.UNKNOWN);
                             mcRef.init();
-                        }, true);
+                        });
                     }
                     catch(Exception ex) {
                         throw new IOException(ex);

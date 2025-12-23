@@ -158,7 +158,7 @@ public class MergeHandler {
 
         // Load the three models...
         try {
-            IRunnable.run(progressDialog, monitor -> {
+            IRunnable.run(progressDialog, true, false, monitor -> {
                 monitor.beginTask("Extracting models...", IProgressMonitor.UNKNOWN);
                 
                 ourModelRef.set(loadModel(utils, RepoConstants.HEAD));
@@ -175,7 +175,7 @@ public class MergeHandler {
                 if(baseModelRef.get() == null) {
                     throw new IOException("Base model was null.");
                 }
-            }, true);
+            });
         }
         catch(Exception ex) {
             throw new IOException(ex);
@@ -194,7 +194,7 @@ public class MergeHandler {
         
         if(MERGE_METHOD == MergeMethod.APPLY_ALL) {
             try {
-                IRunnable.run(progressDialog, monitor -> {
+                IRunnable.run(progressDialog, true, false, monitor -> {
                     monitor.beginTask("Merging...", IProgressMonitor.UNKNOWN);
                     List<Diff> differences = MergeFactory.createComparison(ourModel, theirModel, baseModel).getDifferences();
                     
@@ -211,7 +211,7 @@ public class MergeHandler {
                     // Fix any missing images
                     fixMissingImages(ourModel, theirModelCopy);
                     fixMissingImages(theirModel, ourModelCopy);
-                }, true);
+                });
             }
             catch(Exception ex) {
                 throw new IOException(ex);
@@ -222,7 +222,7 @@ public class MergeHandler {
             AtomicReference<Comparison> comparison = new AtomicReference<>();
             
             try {
-                IRunnable.run(progressDialog, monitor -> {
+                IRunnable.run(progressDialog, true, false, monitor -> {
                     monitor.beginTask("Merging...", IProgressMonitor.UNKNOWN);
                     
                     // Notice that left and right are swapped here
@@ -235,7 +235,7 @@ public class MergeHandler {
                     // Fix any missing images
                     fixMissingImages(ourModel, theirModelCopy);
                     fixMissingImages(theirModel, ourModelCopy);
-                }, true);
+                });
             }
             catch(Exception ex) {
                 throw new IOException(ex);
@@ -290,11 +290,11 @@ public class MergeHandler {
                         branchToMerge.getShortName(), utils.getCurrentLocalBranchName().orElse("null")} );
         
         try {
-            IRunnable.run(progressDialog, monitor -> {
+            IRunnable.run(progressDialog, true, false, monitor -> {
                 monitor.beginTask("Committing...", IProgressMonitor.UNKNOWN);
                 logger.info("Committing merge " + fullMessage);
                 utils.commitChangesWithManifest(fullMessage, false);
-            }, true);
+            });
         }
         catch(Exception ex) {
             throw new IOException(ex);
