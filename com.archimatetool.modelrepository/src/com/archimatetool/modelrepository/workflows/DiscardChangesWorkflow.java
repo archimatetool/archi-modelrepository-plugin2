@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.repository.GitUtils;
@@ -61,18 +62,21 @@ public class DiscardChangesWorkflow extends AbstractRepositoryWorkflow {
             return;
         }
         
-        // Reset to HEAD
-        try {
-            logger.info("Resetting to HEAD"); //$NON-NLS-1$
-            utils.resetToRef(RepoConstants.HEAD);
-        }
-        catch(GitAPIException ex) {
-            ex.printStackTrace();
-            logger.log(Level.SEVERE, "Reset to HEAD", ex); //$NON-NLS-1$
-        }
-        
-        // Open the model if it was open before and any open editors
-        restoreModel(modelState);
+        // Use a BusyIndicator rather than a ProgressMonitor so we don't see the model closing and re-opening.
+        BusyIndicator.showWhile(workbenchWindow.getShell().getDisplay(), () -> {
+            try {
+                // Reset to HEAD
+                logger.info("Resetting to HEAD"); //$NON-NLS-1$
+                utils.resetToRef(RepoConstants.HEAD);
+            }
+            catch(Exception ex) {
+                logger.log(Level.SEVERE, "Reset to HEAD", ex); //$NON-NLS-1$
+                displayErrorDialog(Messages.SwitchBranchWorklow_0, ex);
+            }
+            
+            // Open the model if it was open before and any open editors
+            restoreModel(modelState);
+        });
         
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }

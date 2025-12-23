@@ -9,11 +9,14 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
@@ -42,26 +45,32 @@ public class RestoreCommitWorkflow extends AbstractRepositoryWorkflow {
         }
         
         try {
-            logger.info("Restoring to a commit..."); //$NON-NLS-1$
+            ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
+            
+            IRunnable.run(dialog, monitor -> {
+                monitor.beginTask(Messages.RestoreCommitWorkflow_4, IProgressMonitor.UNKNOWN);
 
-            // Delete the contents of the working directory
-            logger.info("Deleting contents of working directory"); //$NON-NLS-1$
-            archiRepository.deleteWorkingFolderContents();
-            
-            // Extract the contents of the commit
-            logger.info("Extracting the commit"); //$NON-NLS-1$
-            utils.extractCommit(revCommit, archiRepository.getWorkingFolder(), false);
-            
-            // Check that we actually restored the model in case there is no model file in this commit
-            if(!archiRepository.getModelFile().exists()) {
-                throw new IOException(Messages.RestoreCommitWorkflow_2);
-            }
-            
-            // Commit changes
-            logger.info("Committing changes..."); //$NON-NLS-1$
-            utils.commitChangesWithManifest(Messages.RestoreCommitWorkflow_3 + " '" + revCommit.getShortMessage() + "'", false); //$NON-NLS-1$ //$NON-NLS-2$
+                logger.info("Restoring to a commit..."); //$NON-NLS-1$
+
+                // Delete the contents of the working directory
+                logger.info("Deleting contents of working directory"); //$NON-NLS-1$
+                archiRepository.deleteWorkingFolderContents();
+                
+                // Extract the contents of the commit
+                logger.info("Extracting the commit"); //$NON-NLS-1$
+                utils.extractCommit(revCommit, archiRepository.getWorkingFolder(), false);
+                
+                // Check that we actually restored the model in case there is no model file in this commit
+                if(!archiRepository.getModelFile().exists()) {
+                    throw new IOException(Messages.RestoreCommitWorkflow_2);
+                }
+                
+                // Commit changes
+                logger.info("Committing changes..."); //$NON-NLS-1$
+                utils.commitChangesWithManifest(Messages.RestoreCommitWorkflow_3 + " '" + revCommit.getShortMessage() + "'", false); //$NON-NLS-1$ //$NON-NLS-2$
+            }, true);
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             logger.log(Level.SEVERE, "Restore to Commit", ex); //$NON-NLS-1$
             try {
                 utils.resetToRef(RepoConstants.HEAD);

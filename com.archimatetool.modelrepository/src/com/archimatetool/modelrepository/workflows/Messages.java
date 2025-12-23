@@ -63,6 +63,8 @@ public class Messages extends NLS {
     public static String ExtractModelFromCommitWorkflow_1;
     public static String ExtractModelFromCommitWorkflow_2;
 
+    public static String ExtractModelFromCommitWorkflow_3;
+
     public static String FetchUpdateWorkflow_0;
     public static String FetchUpdateWorkflow_1;
     public static String FetchUpdateWorkflow_2;
@@ -101,6 +103,8 @@ public class Messages extends NLS {
     public static String RestoreCommitWorkflow_1;
     public static String RestoreCommitWorkflow_2;
     public static String RestoreCommitWorkflow_3;
+
+    public static String RestoreCommitWorkflow_4;
 
     public static String SwitchBranchWorklow_0;
 

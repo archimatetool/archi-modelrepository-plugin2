@@ -8,14 +8,18 @@ package com.archimatetool.modelrepository.workflows;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.repository.GitUtils;
@@ -46,16 +50,25 @@ public class ExtractModelFromCommitWorkflow extends AbstractRepositoryWorkflow {
             return;
         }
         
-        try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
+        ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
+        AtomicReference<File> tempFolder = new AtomicReference<>();
+        
+        try {
             // Create a temporary folder to extract to
-            File tempFolder = Files.createTempDirectory("archi-").toFile(); //$NON-NLS-1$
+            tempFolder.set(Files.createTempDirectory("archi-").toFile()); //$NON-NLS-1$
             
-            // Extract the commit
-            logger.info("Extracting the commit"); //$NON-NLS-1$
-            utils.extractCommit(revCommit, tempFolder, false);
-            
+            IRunnable.run(dialog, monitor -> {
+                monitor.beginTask(Messages.ExtractModelFromCommitWorkflow_3, IProgressMonitor.UNKNOWN);
+                
+                try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
+                    // Extract the commit
+                    logger.info("Extracting the commit"); //$NON-NLS-1$
+                    utils.extractCommit(revCommit, tempFolder.get(), false);
+                }
+            }, true);
+
             // If the model file exists, open it
-            File modelFile = new File(tempFolder, RepoConstants.MODEL_FILENAME);
+            File modelFile = new File(tempFolder.get(), RepoConstants.MODEL_FILENAME);
             if(modelFile.exists()) {
                 IArchimateModel model = IEditorModelManager.INSTANCE.openModel(modelFile);
                 if(model != null) {
@@ -69,12 +82,17 @@ public class ExtractModelFromCommitWorkflow extends AbstractRepositoryWorkflow {
                 logger.warning("Model does not exist!"); //$NON-NLS-1$
                 displayErrorDialog(Messages.ExtractModelFromCommitWorkflow_0, Messages.ExtractModelFromCommitWorkflow_2);
             }
-            
-            FileUtils.deleteFolder(tempFolder);
         }
-        catch(IOException ex) {
+        catch(Exception ex) {
             logger.log(Level.SEVERE, "Extract Model", ex); //$NON-NLS-1$
             displayErrorDialog(Messages.ExtractModelFromCommitWorkflow_0, ex);
+        }
+        
+        try {
+            FileUtils.deleteFolder(tempFolder.get());
+        }
+        catch(IOException ex) {
+            logger.log(Level.WARNING, "Extract Model", ex); //$NON-NLS-1$
         }
     }
     

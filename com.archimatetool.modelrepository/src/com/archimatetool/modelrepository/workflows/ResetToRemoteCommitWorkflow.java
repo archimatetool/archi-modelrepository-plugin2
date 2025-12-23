@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.modelrepository.repository.GitUtils;
@@ -36,26 +36,29 @@ public class ResetToRemoteCommitWorkflow extends AbstractRepositoryWorkflow {
             return;
         }
         
-        logger.info("Resetting to a remote commit..."); //$NON-NLS-1$
-        
         // Close the model if it's open in the tree
         OpenModelState modelState = closeModel(true).orElse(null);
         if(modelState != null && modelState.cancelled()) {
             return;
         }
         
-        try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
-            String remoteRefName = utils.getRemoteRefNameForCurrentBranch();
-            logger.info("Resetting to: " + remoteRefName); //$NON-NLS-1$
-            utils.resetToRef(remoteRefName);
-        }
-        catch(IOException | GitAPIException ex) {
-            ex.printStackTrace();
-            logger.log(Level.SEVERE, "Reset to Ref", ex); //$NON-NLS-1$
-        }
-        
-        // Reload the model
-        restoreModel(modelState);
+        // Use a BusyIndicator rather than a ProgressMonitor so we don't see the model closing and re-opening.
+        BusyIndicator.showWhile(workbenchWindow.getShell().getDisplay(), () -> {
+            try {
+                try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
+                    String remoteRefName = utils.getRemoteRefNameForCurrentBranch();
+                    logger.info("Resetting to: " + remoteRefName); //$NON-NLS-1$
+                    utils.resetToRef(remoteRefName);
+                }
+            }
+            catch(Exception ex) {
+                logger.log(Level.SEVERE, "Reset to Ref", ex); //$NON-NLS-1$
+                displayErrorDialog(Messages.ResetToRemoteCommitWorkflow_0, ex);
+            }
+
+            // Reload the model
+            restoreModel(modelState);
+        });
         
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }
