@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -319,7 +320,7 @@ public class MergeHandler {
      * If our model contains missing images, get them from the other model
      * They might have deleted an image but we are still using it, or we might have deleted it but they were using it
      */
-    private void fixMissingImages(IArchimateModel model, IArchimateModel otherModel) throws IOException {
+    private void fixMissingImages(IArchimateModel model, IArchimateModel otherModel) {
         Set<String> missingPaths = getMissingImagePaths(model);
         if(missingPaths.isEmpty()) {
             return;
@@ -331,11 +332,18 @@ public class MergeHandler {
         for(String imagePath : missingPaths) {
             byte[] bytes = otherArchiveManager.getBytesFromEntry(imagePath);
             if(bytes != null) {
-                logger.info("Restoring missing image: " + imagePath);
-                archiveManager.addByteContentEntry(imagePath, bytes);
+                try {
+                    logger.info("Restoring missing image: " + imagePath);
+                    archiveManager.addByteContentEntry(imagePath, bytes);
+                }
+                catch(IOException ex) {
+                    // Don't fail beacause of an image that might be in a format unsupported by this version of Archi
+                    ex.printStackTrace();
+                    logger.log(Level.SEVERE, "Could not load image: " + imagePath, ex); //$NON-NLS-1$
+                }
             }
             else {
-                logger.warning("Could not get image: " + imagePath);
+                logger.warning("Could not load image, bytes were null: " + imagePath);
             }
         }
     }
