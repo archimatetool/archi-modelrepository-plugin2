@@ -10,11 +10,11 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.ILog;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.archimatetool.editor.FileLogger;
-import com.archimatetool.editor.Logger;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.preferences.IPreferenceConstants;
 
@@ -62,8 +62,7 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin {
                               new File(getUserModelRepositoryFolder(), "log-%g.txt"));
         }
         catch(IOException ex) {
-            ex.printStackTrace();
-            Logger.logError("Could not start logger!", ex);
+            ILog.of(getBundle()).error("Could not start logger!", ex);
         }
     }
     
