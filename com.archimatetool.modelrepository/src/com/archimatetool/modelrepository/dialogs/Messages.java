@@ -80,8 +80,6 @@ public class Messages extends NLS {
 
     public static String ComparisonTreeComposite_9;
 
-    public static String ErrorMessageDialog_0;
-
     public static String NewRepoDialog_0;
 
     public static String NewRepoDialog_1;
