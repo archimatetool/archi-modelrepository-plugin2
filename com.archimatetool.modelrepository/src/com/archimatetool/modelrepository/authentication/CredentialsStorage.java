@@ -34,6 +34,7 @@ public class CredentialsStorage {
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
     public static final String SSH_PASSWORD = "sshPassword";
+    public static final String GPG_PASSWORD = "gpgPassword";
     
     public static CredentialsStorage getInstance() {
         return instance;

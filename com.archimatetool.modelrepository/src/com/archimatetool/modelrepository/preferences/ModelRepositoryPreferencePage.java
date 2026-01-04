@@ -61,7 +61,11 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private Text sshIdentityPasswordTextField;
     private Button sshScanDirButton;
     
+    private Text gpgSecretTextField;
+    private Text gpgSigningKeyTextField;
+    
     private boolean sshPasswordChanged;
+    private boolean gpgPasswordChanged;
     
 	public ModelRepositoryPreferencePage() {
 		setPreferenceStore(ModelRepositoryPlugin.getInstance().getPreferenceStore());
@@ -152,6 +156,20 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         sshIdentityPasswordTextField = UIUtils.createSingleTextControl(sshGroup, SWT.BORDER | SWT.PASSWORD, false);
         GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(sshIdentityPasswordTextField);
         
+        // GPG Group
+        Group gpgGroup = new Group(authGroup, SWT.NULL);
+        gpgGroup.setText("GPG");
+        GridLayoutFactory.swtDefaults().numColumns(2).applyTo(gpgGroup);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(gpgGroup);
+        
+        new Label(gpgGroup, SWT.NULL).setText("Passphrase:");
+        gpgSecretTextField = UIUtils.createSingleTextControl(gpgGroup, SWT.BORDER | SWT.PASSWORD, false);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(gpgSecretTextField);
+        
+        new Label(gpgGroup, SWT.NULL).setText("Signing Key:");
+        gpgSigningKeyTextField = UIUtils.createSingleTextControl(gpgGroup, SWT.BORDER, false);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(gpgSigningKeyTextField);
+        
         setValues();
         
         return client;
@@ -196,14 +214,21 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
             if(CredentialsStorage.getInstance().hasEntry(CredentialsStorage.SSH_PASSWORD)) {
                 sshIdentityPasswordTextField.setText("********"); //$NON-NLS-1$
             }
+            if(CredentialsStorage.getInstance().hasEntry(CredentialsStorage.GPG_PASSWORD)) {
+                gpgSecretTextField.setText("********"); //$NON-NLS-1$
+            }
         }
         catch(StorageException ex) {
-            logger.log(Level.WARNING, "Could not get user password.", ex); //$NON-NLS-1$
+            logger.log(Level.WARNING, "Could not get secure entry.", ex); //$NON-NLS-1$
             ex.printStackTrace();
         }
 
         sshIdentityPasswordTextField.addModifyListener(event -> {
             sshPasswordChanged = true;
+        });
+        
+        gpgSecretTextField.addModifyListener(event -> {
+            gpgPasswordChanged = true;
         });
     }
     
@@ -223,15 +248,19 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         getPreferenceStore().setValue(PREFS_SSH_SCAN_DIR, sshScanDirButton.getSelection());
         getPreferenceStore().setValue(PREFS_SSH_IDENTITY_FILE, sshIdentityFileTextField.getText());
 
-        // If SSH password changed
-        if(sshPasswordChanged) {
-            try {
+        try {
+            // If SSH password changed
+            if(sshPasswordChanged) {
                 CredentialsStorage.getInstance().storeSecureEntry(CredentialsStorage.SSH_PASSWORD, sshIdentityPasswordTextField.getTextChars());
             }
-            catch(StorageException | IOException ex) {
-                logger.log(Level.WARNING, "Could not save user password.", ex); //$NON-NLS-1$
-                ex.printStackTrace();
+            // If GPG password changed
+            if(gpgPasswordChanged) {
+                CredentialsStorage.getInstance().storeSecureEntry(CredentialsStorage.GPG_PASSWORD, gpgSecretTextField.getTextChars());
             }
+        }
+        catch(StorageException | IOException ex) {
+            logger.log(Level.WARNING, "Could not save user password.", ex); //$NON-NLS-1$
+            ex.printStackTrace();
         }
         
         return true;
@@ -248,6 +277,9 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         sshScanDirButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SSH_SCAN_DIR));
         sshIdentityFileTextField.setText(getPreferenceStore().getDefaultString(PREFS_SSH_IDENTITY_FILE));
         sshIdentityPasswordTextField.setText(""); //$NON-NLS-1$
+        
+        gpgSecretTextField.setText(""); //$NON-NLS-1$
+        gpgSigningKeyTextField.setText(""); //$NON-NLS-1$
         
         super.performDefaults();
     }

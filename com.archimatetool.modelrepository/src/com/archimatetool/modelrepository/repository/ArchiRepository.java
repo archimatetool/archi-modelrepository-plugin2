@@ -224,6 +224,10 @@ public class ArchiRepository implements IArchiRepository {
         // JGit will resolve hooksPath to localrepo/.git/hooks
         config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_HOOKS_PATH, null);
         
+        // TODO: get these for new repos in preferences and/or new repo dialog for commit and tag signing
+        //config.setBoolean(ConfigConstants.CONFIG_COMMIT_SECTION, null, ConfigConstants.CONFIG_KEY_GPGSIGN, true);
+        //config.setBoolean(ConfigConstants.CONFIG_TAG_SECTION, null, ConfigConstants.CONFIG_KEY_GPGSIGN, true);
+        
         config.save();
     }
     

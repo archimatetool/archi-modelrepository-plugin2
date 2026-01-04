@@ -27,6 +27,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.CoreConfig.EolStreamType;
+import org.eclipse.jgit.lib.GpgConfig;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -51,10 +52,12 @@ import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.TreeWalk.OperationType;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.util.RawParseUtils;
 import org.eclipse.jgit.util.io.EolStreamTypeUtil;
 
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.authentication.GPGCredentialsProvider;
 
 /**
  * Extends JGit's Git class to offer some convenience methods.
@@ -78,6 +81,31 @@ public class GitUtils extends Git {
     private GitUtils(Repository repository, boolean closeRepo) {
         super(repository);
         this.closeRepo = closeRepo;
+    }
+
+    /**
+     * This is based on {@link RevCommit#getRawGpgSignature()} but lightweight
+     * @return true if commit is signed
+     */
+    public static boolean isCommitSigned(RevCommit commit) {
+        final byte[] header = { 'g', 'p', 'g', 's', 'i', 'g' };
+        return RawParseUtils.headerStart(header, commit.getRawBuffer(), 0) >= 0;
+    }
+    
+    public GpgConfig getGpgConfig() {
+        return new GpgConfig(getRepository().getConfig());
+    }
+    
+    public void setSignedCommits(boolean value) throws IOException {
+        StoredConfig config = getRepository().getConfig();
+        config.setBoolean(ConfigConstants.CONFIG_COMMIT_SECTION, null, ConfigConstants.CONFIG_KEY_GPGSIGN, value);
+        config.save();
+    }
+    
+    public void setSignedTags(boolean value) throws IOException {
+        StoredConfig config = getRepository().getConfig();
+        config.setBoolean(ConfigConstants.CONFIG_TAG_SECTION, null, ConfigConstants.CONFIG_KEY_GPGSIGN, value);
+        config.save();
     }
 
     /**
@@ -106,7 +134,8 @@ public class GitUtils extends Git {
                 .setAuthor(getUserDetails())
                 .setMessage(commitMessage)
                 .setAmend(amend)
-                .setSign(false) // No GPG signing
+                .setCredentialsProvider(GPGCredentialsProvider.getDefault())
+                .setSigningKey(GPGCredentialsProvider.getDefault().getSigningKey())
                 .call();
     }
 
