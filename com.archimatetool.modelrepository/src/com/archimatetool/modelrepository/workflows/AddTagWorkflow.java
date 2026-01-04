@@ -11,10 +11,12 @@ import java.util.logging.Logger;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.signing.ssh.SshSignerFactory;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.modelrepository.authentication.SSHCredentialsProvider;
 import com.archimatetool.modelrepository.dialogs.AddTagDialog;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
@@ -66,11 +68,14 @@ public class AddTagWorkflow extends AbstractRepositoryWorkflow {
             // Create the tag
             logger.info("Creating tag: " + tagName); //$NON-NLS-1$
             utils.tag()
-                 .setObjectId(revCommit)
-                 .setName(tagName)
-                 .setMessage(tagMessage)
-                 .setSigned(false) // No GPG signing
-                 .call();
+               .setObjectId(revCommit)
+               .setName(tagName)
+               .setMessage(tagMessage)
+               .setCredentialsProvider(SSHCredentialsProvider.getDefault())
+               .setSigned(true)
+               .setSigner(new SshSignerFactory().create())
+               .setSigningKey("~/.ssh/id_ed25519_github.pub")
+               .call();
 
             // Notify listeners
             notifyChangeListeners(IRepositoryListener.TAGS_CHANGED);
