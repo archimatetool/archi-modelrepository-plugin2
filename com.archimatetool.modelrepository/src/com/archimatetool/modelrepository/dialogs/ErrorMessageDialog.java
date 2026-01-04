@@ -38,7 +38,9 @@ public class ErrorMessageDialog extends MessageDialog {
     
     public static void open(Shell parentShell, String dialogTitle, String message, Throwable ex) {
         StringWriter sw = new StringWriter();
-        ex.printStackTrace(new PrintWriter(sw));
+        try(PrintWriter pw = new PrintWriter(sw)) {
+            ex.printStackTrace(pw);
+        }
         open(parentShell, dialogTitle, message, sw.toString());
     }
 

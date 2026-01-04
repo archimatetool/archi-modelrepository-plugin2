@@ -79,14 +79,10 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
     }
     
     /**
-     * Display a simple errror dialog with title and message
+     * Display a simple Error MessageDialog with title and message
      */
     protected void displayErrorDialog(String title, String message) {
-        MessageDialog.openError(workbenchWindow.getShell(),
-                title,
-                Messages.AbstractRepositoryWorkflow_0 +
-                    "\n\n" + //$NON-NLS-1$
-                    message);
+        MessageDialog.openError(workbenchWindow.getShell(), title, message);
     }
 
     /**
