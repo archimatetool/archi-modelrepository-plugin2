@@ -5,6 +5,9 @@
  */
 package com.archimatetool.modelrepository.workflows;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +41,8 @@ public class FetchUpdateWorkflow extends AbstractRepositoryWorkflow {
     
     private static Logger logger = Logger.getLogger(FetchUpdateWorkflow.class.getName());
     
+    private record ExceptionDetail(IArchiRepository repo, Exception ex) {}
+    
     public FetchUpdateWorkflow(IWorkbenchWindow workbenchWindow) {
         super(workbenchWindow, null);
     }
@@ -49,9 +54,11 @@ public class FetchUpdateWorkflow extends AbstractRepositoryWorkflow {
             return;
         }
         
-        ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         Set<IArchiRepository> updatedRepos = new HashSet<>();
+        List<ExceptionDetail> exceptions = new ArrayList<>();
         
+        ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
+
         try {
             IRunnable.run(dialog, true, true, monitor -> {
                 ProgressMonitorWrapper wrapper = new ProgressMonitorWrapper(monitor, Messages.FetchUpdateWorkflow_0);
@@ -85,20 +92,52 @@ public class FetchUpdateWorkflow extends AbstractRepositoryWorkflow {
                             }
                         }
                     }
+                    catch(Exception ex) { 
+                        // Catch exceptions here and collect them so we can continue to fetch all repos
+                        logger.log(Level.SEVERE, "Fetch", ex); //$NON-NLS-1$
+                        exceptions.add(new ExceptionDetail(repository, ex));
+                    }
                 }
                 
             });
         }
         catch(Exception ex) {
             logger.log(Level.SEVERE, "Fetch", ex); //$NON-NLS-1$
-            displayErrorDialog(Messages.FetchUpdateWorkflow_2, ex);
+            exceptions.add(new ExceptionDetail(null, ex));
         }
-        finally {
-            // Fire notifications for updated repos outside of the IRunnable
-            for(IArchiRepository repository : updatedRepos) {
-                RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(IRepositoryListener.HISTORY_CHANGED, repository);
+        
+        // Fire notifications for updated repos outside of the IRunnable
+        for(IArchiRepository repository : updatedRepos) {
+            RepositoryListenerManager.getInstance().fireRepositoryChangedEvent(IRepositoryListener.HISTORY_CHANGED, repository);
+        }
+
+        // If there were any exceptions display them
+        if(!exceptions.isEmpty()) {
+            displayExceptions(exceptions);
+        }
+    }
+    
+    /**
+     * Display any exceptions in a dialog
+     */
+    private void displayExceptions(List<ExceptionDetail> exceptions) {
+        StringBuilder sb = new StringBuilder();
+        
+        for(ExceptionDetail ed : exceptions) {
+            if(ed.repo() != null) {
+                sb.append(ed.repo().getName());
+                sb.append("\n------\n"); //$NON-NLS-1$
+            }
+            
+            StringWriter sw = new StringWriter();
+            try(PrintWriter pw = new PrintWriter(sw)) {
+                ed.ex().printStackTrace(pw);
+                sb.append(sw);
+                sb.append("\n"); //$NON-NLS-1$
             }
         }
+        
+        displayErrorDialog(Messages.FetchUpdateWorkflow_2, "Exceptions occurred:", sb.toString()); //$NON-NLS-1$
     }
     
     @Override
