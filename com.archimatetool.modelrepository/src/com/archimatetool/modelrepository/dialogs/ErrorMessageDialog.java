@@ -23,6 +23,8 @@ import org.eclipse.swt.widgets.Text;
 /**
  * Error Message Dialog with text area to show a long message in a text box
  * 
+ * TODO: Remove this and use the one from main Archi when coArchi2 requires minimum of Archi 5.7.0
+ * 
  * @author Phillip Beauvoir
  */
 public class ErrorMessageDialog extends MessageDialog {

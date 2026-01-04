@@ -16,8 +16,8 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.IRunnable;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
@@ -74,10 +74,10 @@ public class CloneModelWorkflow extends AbstractRepositoryWorkflow {
             
             ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
             
-            IRunnable.run(dialog, monitor -> {
+            IRunnable.run(dialog, true, true, monitor -> {
                 monitor.beginTask(Messages.CloneModelWorkflow_1, IProgressMonitor.UNKNOWN);
                 archiRepository.cloneModel(url, credentials.getCredentialsProvider(), new ProgressMonitorWrapper(monitor, Messages.CloneModelWorkflow_1));
-            }, true);
+            });
 
             // Get the main model file
             File modelFile = archiRepository.getModelFile();

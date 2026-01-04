@@ -21,9 +21,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.IRunnable;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.authentication.SSHCredentials;
@@ -203,11 +203,11 @@ public abstract class AbstractRepositoryWorkflow implements IRepositoryWorkflow 
             ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
 
             try {
-                IRunnable.run(dialog, monitor -> {
+                IRunnable.run(dialog, true, false, monitor -> {
                     logger.info("Commiting changes for: " + archiRepository.getModelFile()); //$NON-NLS-1$
                     monitor.beginTask(Messages.AbstractRepositoryWorkflow_9, IProgressMonitor.UNKNOWN);
                     utils.commitChangesWithManifest(commitMessage, amend);
-                }, true);
+                });
             }
             catch(Exception ex) {
                 logger.log(Level.SEVERE, "Commit Exception", ex); //$NON-NLS-1$

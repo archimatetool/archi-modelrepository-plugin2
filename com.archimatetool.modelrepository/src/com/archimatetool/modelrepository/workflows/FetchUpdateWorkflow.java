@@ -18,8 +18,8 @@ import org.eclipse.jgit.transport.TrackingRefUpdate;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.modelrepository.IRunnable;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.authentication.SSHCredentials;
@@ -53,7 +53,7 @@ public class FetchUpdateWorkflow extends AbstractRepositoryWorkflow {
         Set<IArchiRepository> updatedRepos = new HashSet<>();
         
         try {
-            IRunnable.run(dialog, monitor -> {
+            IRunnable.run(dialog, true, true, monitor -> {
                 ProgressMonitorWrapper wrapper = new ProgressMonitorWrapper(monitor, Messages.FetchUpdateWorkflow_0);
                 monitor.beginTask(Messages.FetchUpdateWorkflow_0, IProgressMonitor.UNKNOWN);
                 
@@ -87,7 +87,7 @@ public class FetchUpdateWorkflow extends AbstractRepositoryWorkflow {
                     }
                 }
                 
-            }, true);
+            });
         }
         catch(Exception ex) {
             logger.log(Level.SEVERE, "Fetch", ex); //$NON-NLS-1$

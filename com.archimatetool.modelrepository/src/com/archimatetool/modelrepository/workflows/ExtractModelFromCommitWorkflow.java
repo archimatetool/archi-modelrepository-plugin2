@@ -19,9 +19,9 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.IRunnable;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoConstants;
@@ -57,7 +57,7 @@ public class ExtractModelFromCommitWorkflow extends AbstractRepositoryWorkflow {
             // Create a temporary folder to extract to
             tempFolder.set(Files.createTempDirectory("archi-").toFile()); //$NON-NLS-1$
             
-            IRunnable.run(dialog, monitor -> {
+            IRunnable.run(dialog, true, false, monitor -> {
                 monitor.beginTask(Messages.ExtractModelFromCommitWorkflow_3, IProgressMonitor.UNKNOWN);
                 
                 try(GitUtils utils = GitUtils.open(archiRepository.getWorkingFolder())) {
@@ -65,7 +65,7 @@ public class ExtractModelFromCommitWorkflow extends AbstractRepositoryWorkflow {
                     logger.info("Extracting the commit"); //$NON-NLS-1$
                     utils.extractCommit(revCommit, tempFolder.get(), false);
                 }
-            }, true);
+            });
 
             // If the model file exists, open it
             File modelFile = new File(tempFolder.get(), RepoConstants.MODEL_FILENAME);

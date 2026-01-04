@@ -23,9 +23,9 @@ import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.modelrepository.IRunnable;
 import com.archimatetool.modelrepository.authentication.CredentialsStorage;
 import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.authentication.UsernamePassword;
@@ -150,11 +150,12 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
     private boolean isRemoteEmpty(String repoURL, CredentialsProvider credentialsProvider) throws Exception {
         logger.info("Checking if remote is empty: " + repoURL); //$NON-NLS-1$
         
-        ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
-        
         AtomicReference<Collection<Ref>> refsResult = new AtomicReference<>();
         
-        IRunnable.run(dialog, monitor -> {
+        // Use a separate dialog here because cancelable is false
+        ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
+        
+        IRunnable.run(dialog, true, false, monitor -> {
             monitor.beginTask(Messages.CreateRepoFromModelWorkflow_4, IProgressMonitor.UNKNOWN);
             
             Collection<Ref> refs = Git.lsRemoteRepository()
@@ -164,7 +165,7 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
                     .call();
             
             refsResult.set(refs);
-        }, true);
+        });
         
         return refsResult.get().isEmpty();
     }
@@ -175,9 +176,10 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
     private void push(GitUtils utils, String repoURL, CredentialsProvider credentialsProvider) throws Exception {
         logger.info("Pushing to remote: " + repoURL); //$NON-NLS-1$
         
+        // Use a separate dialog here because cancelable is true
         ProgressMonitorDialog dialog = new ProgressMonitorDialog(workbenchWindow.getShell());
         
-        IRunnable.run(dialog, monitor -> {
+        IRunnable.run(dialog, true, true, monitor -> {
             monitor.beginTask(Messages.CreateRepoFromModelWorkflow_2, IProgressMonitor.UNKNOWN);
             
             PushResult pushResult = utils.pushToRemote(credentialsProvider, new ProgressMonitorWrapper(monitor,
@@ -189,7 +191,7 @@ public class CreateRepoFromModelWorkflow extends AbstractPushResultWorkflow {
             // Status
             checkPushResultStatus(pushResult);
             
-        }, true);
+        });
     }
     
     @Override
