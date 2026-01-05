@@ -197,6 +197,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             case IRepositoryListener.MODEL_RENAMED,
                  IRepositoryListener.MODEL_SAVED,
                  IRepositoryListener.BRANCHES_CHANGED,
+                 IRepositoryListener.TAGS_CHANGED,
                  IRepositoryListener.HISTORY_CHANGED -> {
                      
                 RepositoryRef ref = RepositoryTreeModel.getInstance().findRepositoryRef(repository.getWorkingFolder()).orElse(null);
