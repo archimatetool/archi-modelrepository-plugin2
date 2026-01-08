@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ILazyContentProvider;
@@ -39,7 +40,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 
-import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.editor.ui.ThemeUtils;
 import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
@@ -433,7 +433,7 @@ public class HistoryTableViewer extends TableViewer {
                 if(cell.getColumnIndex() == 0) {
                     cell.setForeground(null);
                     cell.setText(Messages.HistoryTableViewer_7);
-                    cell.setFont(FontFactory.SystemFontBold);
+                    cell.setFont(JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT));
                     Image image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_BLANK);
                     cell.setImage(image);
                 }
