@@ -39,4 +39,12 @@ public class RepositoryTreeModelTests {
         
         assertNull(RepositoryTreeModel.getInstance().findRepositoryRef(new File("folder3")).orElse(null));
     }
+    
+    @Test
+    public void findRepositoryRefRelativePath() {
+        File folder = new File("/path1/hello");
+        File folderToFind = new File("/path1/hello/../hello/");
+        RepositoryRef ref = RepositoryTreeModel.getInstance().addNewRepositoryRef(folder);
+        assertEquals(ref, RepositoryTreeModel.getInstance().findRepositoryRef(folderToFind).orElse(null));
+    }
 }

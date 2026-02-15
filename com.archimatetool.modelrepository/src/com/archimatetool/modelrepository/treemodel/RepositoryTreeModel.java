@@ -7,6 +7,7 @@ package com.archimatetool.modelrepository.treemodel;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -72,8 +73,11 @@ public class RepositoryTreeModel extends Group {
             return Optional.empty();
         }
         
+        // Use a normalized path in case of ".."
+        Path path = repoFolder.toPath().toAbsolutePath().normalize();
+        
         for(RepositoryRef ref : getAllChildRepositoryRefs()) {
-            if(repoFolder.equals(ref.getArchiRepository().getWorkingFolder())) {
+            if(path.equals(ref.getArchiRepository().getWorkingFolder().toPath().toAbsolutePath().normalize())) {
                 return Optional.of(ref);
             }
         }
