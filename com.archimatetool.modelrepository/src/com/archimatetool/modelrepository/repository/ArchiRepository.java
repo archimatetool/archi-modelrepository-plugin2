@@ -49,17 +49,17 @@ public class ArchiRepository implements IArchiRepository {
     /**
      * The working directory of the git repository
      */
-    private File repoFolder;
+    private final File repoFolder;
     
     /**
      * The .git directory under the working directory
      */
-    private File gitFolder;
+    private final File gitFolder;
     
     /**
      * The model.archimate file in the working directory
      */
-    private File modelFile;
+    private final File modelFile;
     
     public ArchiRepository(File repoFolder) {
         this.repoFolder = repoFolder;
@@ -186,13 +186,14 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public boolean equals(Object obj) {
         // Equality based on repo (working) folder
-        return obj instanceof ArchiRepository repo ? Objects.equals(repoFolder, repo.repoFolder) : false;
+        return obj instanceof ArchiRepository repo ? Objects.equals(repoFolder.toPath().toAbsolutePath().normalize(),
+                                                                    repo.repoFolder.toPath().toAbsolutePath().normalize()) : false;
     }
     
     @Override
     public int hashCode() {
         // Equality based on repo (working) folder for Java sets
-        return repoFolder != null ? repoFolder.hashCode() : super.hashCode();
+        return repoFolder != null ? repoFolder.toPath().toAbsolutePath().normalize().hashCode() : super.hashCode();
     }
 
     /**
