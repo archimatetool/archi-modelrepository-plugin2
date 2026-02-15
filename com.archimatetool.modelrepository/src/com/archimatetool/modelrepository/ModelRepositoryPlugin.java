@@ -8,6 +8,7 @@ package com.archimatetool.modelrepository;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.ILog;
@@ -98,13 +99,20 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin {
         String path = getPreferenceStore().getString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER);
         
         if(StringUtils.isSet(path)) {
-            File file = new File(path);
+            File file = normalizedFile(path);
             if(file.canWrite()) {
                 return file;
             }
         }
         
         // Default
-        return new File(getPreferenceStore().getDefaultString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER));
+        return normalizedFile(getPreferenceStore().getDefaultString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER));
+    }
+    
+    /**
+     * @return File normalized so that any ".." is removed
+     */
+    private File normalizedFile(String filePath) {
+        return Path.of(filePath).toAbsolutePath().normalize().toFile();
     }
 }
