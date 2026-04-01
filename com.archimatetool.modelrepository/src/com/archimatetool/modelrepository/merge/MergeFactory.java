@@ -1,8 +1,3 @@
-/**
- * This program and the accompanying materials
- * are made available under the terms of the License
- * which accompanies this distribution in the file LICENSE.txt
- */
 package com.archimatetool.modelrepository.merge;
 
 import org.eclipse.emf.common.notify.Notifier;
@@ -32,137 +27,115 @@ import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 
-
 /**
- * Factory to create custom merge classes
- * 
- * See https://eclipse.dev/emf/compare/documentation/latest/developer/developer-guide.html
- * See https://www.eclipse.org/forums/index.php/t/1081892/
- * 
- * @author Phillip Beauvoir
+ * Builds the EMF Compare stack for repository merges: ID-first matching, synthetic IDs for bounds/features/etc.,
+ * then runs the comparison for the given left, right, and origin model roots.
  */
 @SuppressWarnings("nls")
 public class MergeFactory {
-    
-    /**
-     * This is a replacement for the constructor MatchEngineFactoryImpl(IEObjectMatcher matcher, IComparisonFactory comparisonFactory)
-     * but that constructor is deprecated, so this is the equivalent.
-     */
-    private static class ExtendedMatchEngineFactoryImpl extends MatchEngineFactoryImpl {
-        private boolean USE_CUSTOM_ID_MATCHER = true;
-        private boolean USE_CUSTOM_EQUALITY_HELPER = false; // Experimental, not used
-      
-        ExtendedMatchEngineFactoryImpl() {
-            // Initialise with defaults
-            super();
-            
-             // Default matcher
-            IEObjectMatcher defaultMatcher = DefaultMatchEngine.createDefaultEObjectMatcher(UseIdentifiers.WHEN_AVAILABLE);
-            
-            // Custom matcher using a function that returns an identifier for an object
-            IEObjectMatcher customIDMatcher = new IdentifierEObjectMatcher(defaultMatcher, eObject -> createIdentifier(eObject));
-            
-            // Comparison Factory with either custom or default equality helper
-            IComparisonFactory comparisonFactory = new DefaultComparisonFactory(USE_CUSTOM_EQUALITY_HELPER ?
-                    new CustomEqualityHelperFactory() : new DefaultEqualityHelperFactory());
-            
-            // Match engine
-            matchEngine = new DefaultMatchEngine(USE_CUSTOM_ID_MATCHER ? customIDMatcher : defaultMatcher, comparisonFactory);
-            
-            // The default engine ranking is 10, so this must be higher to override it
-            setRanking(20);
-        }
-    }
-    
-    /**
-     * Experimental EqualityHelperFactory
-     */
-    private static class CustomEqualityHelperFactory extends DefaultEqualityHelperFactory {
-        @Override
-        public IEqualityHelper createEqualityHelper() {
-            return new EqualityHelper(EqualityHelper.createDefaultCache(getCacheBuilder())) {
-                
-                @Override
-                protected boolean matchingEObjects(EObject object1, EObject object2) {
-                    // If objects have identifiers use default method
-                    if(object1 instanceof IIdentifier && object2 instanceof IIdentifier) {
-                        return super.matchingEObjects(object1, object2);
-                    }
-                    
-                    // Else match on custom identifiers
-                    String id1 = createIdentifier(object1);
-                    String id2 = createIdentifier(object2);
-                    return id1 != null && id2 != null && id1.equals(id2); // Check both are not null
-                }
-            };
-        }
-    }
-    
-    /**
-     * Create a new MatchEngineFactoryRegistryImpl that uses our custom ID matcher
-     */
-    public static IMatchEngine.Factory.Registry createMatchEngineFactoryRegistry() {
-        // Create the registry
-        IMatchEngine.Factory.Registry registry = MatchEngineFactoryRegistryImpl.createStandaloneInstance();
-        
-        // Add our MatchEngineFactory to the registry
-        registry.add(new ExtendedMatchEngineFactoryImpl());
-        
-        return registry;
-    }
-    
-    /**
-     * Create a Comparison for left, right and options base origin using DefaultComparisonScope and our MatchEngineFactoryRegistry
-     * @param left Left root of this comparison.
-     * @param right Right root of this comparison.
-     * @param origin Common ancestor of <code>left</code> and <code>right</code>.
-     */
-    public static Comparison createComparison(Notifier left, Notifier right, Notifier origin) {
-        // Use our MatchEngineFactoryRegistry
-        IMatchEngine.Factory.Registry matchEngineFactoryRegistry = createMatchEngineFactoryRegistry();
-        
-        // Default ComparisonScope
-        IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
-        
-        // Build the Comparison
-        return EMFCompare.builder().setMatchEngineFactoryRegistry(matchEngineFactoryRegistry).build().compare(scope);
-    }
-    
-    /**
-     * @return a unique identifier for an object or null
-     */
-    private static String createIdentifier(EObject eObject) {
-        // Object has an identifier so use it
-        if(eObject instanceof IIdentifier identifier) {
-            return identifier.getId();
-        }
-        
-        // The object does not have an identifier but the parent container has one
-        if(eObject.eContainer() instanceof IIdentifier parent) {
-            switch(eObject) {
-                // EMFCompare can see these IBounds as the same object in different parents:
-                // <bounds x="120" y="240" width="120" height="55"/>
-                // <bounds x="596" y="240" width="120" height="55"/>
-                case IBounds bounds -> {
-                    return parent.getId() + "#bounds";
-                }
-                case IFeature feature -> {
-                    return parent.getId() + "#feature#" + feature.getName();
-                }
-                case IProperty property -> {
-                    return parent.getId() + "#property#" + property.getKey() + "#" + ((IProperties)parent).getProperties().indexOf(property);
-                }
-                case IDiagramModelBendpoint bendpoint -> {
-                    return parent.getId() + "#bendpoint#" + ((IDiagramModelConnection)parent).getBendpoints().indexOf(bendpoint);
-                }
-                default -> {
-                    // a null return tells the match engine to fall back to the other matchers
-                    return null;
-                }
-            }
-        }
-        
-        // a null return tells the match engine to fall back to the other matchers
-        return null;
-    }
+
+	/** Match-engine factory that registers ID-first matching and a custom {@link EqualityHelper}. */
+	private static class ExtendedMatchEngineFactoryImpl extends MatchEngineFactoryImpl {
+		/** Builds the default matcher, wraps it with {@link IdentifierEObjectMatcher}, and sets a high ranking. */
+		ExtendedMatchEngineFactoryImpl() {
+			super();
+			IEObjectMatcher defaultMatcher = DefaultMatchEngine
+					.createDefaultEObjectMatcher(UseIdentifiers.WHEN_AVAILABLE);
+			
+			// Use a more aggressive ID matcher that prioritizes IDs over everything else
+			IEObjectMatcher customIDMatcher = new IdentifierEObjectMatcher(defaultMatcher,
+					eObject -> {
+						String id = createIdentifier(eObject);
+						// Log for debug if needed
+						// System.out.println("ID for " + eObject.eClass().getName() + ": " + id);
+						return id;
+					});
+			
+			IComparisonFactory comparisonFactory = new DefaultComparisonFactory(new CustomEqualityHelperFactory());
+			matchEngine = new DefaultMatchEngine(customIDMatcher, comparisonFactory);
+			setRanking(100); // Increase ranking to ensure it's used
+		}
+	}
+
+	/** Supplies an {@link EqualityHelper} that treats synthetic {@link MergeFactory#createIdentifier(EObject)} strings as equality for non-{@link IIdentifier} objects. */
+	private static class CustomEqualityHelperFactory extends DefaultEqualityHelperFactory {
+		/** {@inheritDoc} */
+		@Override
+		public IEqualityHelper createEqualityHelper() {
+			return new EqualityHelper(EqualityHelper.createDefaultCache(getCacheBuilder())) {
+				/**
+				 * Two {@link IIdentifier}s use default EMF equality; otherwise compare {@link MergeFactory#createIdentifier(EObject)} when both non-null.
+				 */
+				@Override
+				protected boolean matchingEObjects(EObject object1, EObject object2) {
+					if (object1 instanceof IIdentifier && object2 instanceof IIdentifier) {
+						return super.matchingEObjects(object1, object2);
+					}
+					String id1 = createIdentifier(object1);
+					String id2 = createIdentifier(object2);
+					if (id1 != null && id2 != null) {
+						return id1.equals(id2);
+					}
+					return super.matchingEObjects(object1, object2);
+				}
+			};
+		}
+	}
+
+	/**
+	 * Standalone registry containing only our extended factory (ranking 100).
+	 *
+	 * @return registry suitable for {@link EMFCompare.Builder#setMatchEngineFactoryRegistry(org.eclipse.emf.compare.match.IMatchEngine.Factory.Registry)}
+	 */
+	public static IMatchEngine.Factory.Registry createMatchEngineFactoryRegistry() {
+		IMatchEngine.Factory.Registry registry = MatchEngineFactoryRegistryImpl.createStandaloneInstance();
+		registry.add(new ExtendedMatchEngineFactoryImpl());
+		return registry;
+	}
+
+	/**
+	 * Runs EMF Compare on three model roots. In repository merge, {@code left} is typically “theirs”, {@code right} is “ours”.
+	 *
+	 * @param left   left side of the comparison scope (REMOTE in merge)
+	 * @param right  right side (LOCAL / ours)
+	 * @param origin common ancestor model, or {@code null} if unavailable
+	 * @return populated {@link Comparison} with matches, diffs, and conflicts
+	 */
+	public static Comparison createComparison(Notifier left, Notifier right, Notifier origin) {
+		IMatchEngine.Factory.Registry registry = createMatchEngineFactoryRegistry();
+		IComparisonScope scope = new DefaultComparisonScope(left, right, origin);
+
+		// Default EMF Compare conflict detection; stricter object matching comes from the custom registry above.
+		return EMFCompare.builder().setMatchEngineFactoryRegistry(registry).build().compare(scope);
+	}
+
+	/**
+	 * Stable string id for matching “anonymous” diagram parts (bounds, bendpoints, features, properties) under an {@link IIdentifier} parent.
+	 *
+	 * @param eObject any model object
+	 * @return Archi id for {@link IIdentifier}, synthetic key for attached value objects, or {@code null}
+	 */
+	private static String createIdentifier(EObject eObject) {
+		if (eObject == null)
+			return null;
+		if (eObject instanceof IIdentifier identifier)
+			return identifier.getId();
+
+		EObject container = eObject.eContainer();
+		if (container instanceof IIdentifier parent) {
+			String parentId = parent.getId();
+			if (eObject instanceof IBounds)
+				return parentId + "#bounds";
+			if (eObject instanceof IProperty prop)
+				return parentId + "#prop#" + prop.getKey();
+			if (eObject instanceof IDiagramModelBendpoint) {
+				if (container instanceof IDiagramModelConnection conn) {
+					return parentId + "#bendpoint#" + conn.getBendpoints().indexOf(eObject);
+				}
+			}
+			if (eObject instanceof IFeature feature)
+				return parentId + "#feature#" + feature.getName();
+		}
+		return null;
+	}
 }
