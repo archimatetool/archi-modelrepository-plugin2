@@ -16,7 +16,7 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import com.archimatetool.modelrepository.IRunnable;
+import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;

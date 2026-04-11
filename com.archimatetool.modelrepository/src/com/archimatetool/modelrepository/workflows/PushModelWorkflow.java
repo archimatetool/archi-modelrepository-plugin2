@@ -20,7 +20,7 @@ import org.eclipse.jgit.transport.TrackingRefUpdate;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import com.archimatetool.modelrepository.IRunnable;
+import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.dialogs.Dialogs;
 import com.archimatetool.modelrepository.repository.BranchInfo;

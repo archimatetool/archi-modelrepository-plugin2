@@ -18,7 +18,7 @@ import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import com.archimatetool.modelrepository.IRunnable;
+import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.BranchInfo;

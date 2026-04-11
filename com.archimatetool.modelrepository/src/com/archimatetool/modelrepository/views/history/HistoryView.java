@@ -51,11 +51,11 @@ import org.eclipse.ui.SelectionListenerFactory.Predicates;
 import org.eclipse.ui.part.IContributedContentsView;
 import org.eclipse.ui.part.ViewPart;
 
+import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
-import com.archimatetool.modelrepository.IRunnable;
 import com.archimatetool.modelrepository.ModelRepositoryPlugin;
 import com.archimatetool.modelrepository.actions.AddBranchAction;
 import com.archimatetool.modelrepository.actions.AddTagAction;

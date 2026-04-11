@@ -21,8 +21,8 @@ import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.TrackingRefUpdate;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.ui.components.IRunnable;
 import com.archimatetool.editor.utils.StringUtils;
-import com.archimatetool.modelrepository.IRunnable;
 import com.archimatetool.modelrepository.authentication.ICredentials;
 import com.archimatetool.modelrepository.merge.MergeHandler;
 import com.archimatetool.modelrepository.merge.MergeHandler.MergeHandlerResult;
