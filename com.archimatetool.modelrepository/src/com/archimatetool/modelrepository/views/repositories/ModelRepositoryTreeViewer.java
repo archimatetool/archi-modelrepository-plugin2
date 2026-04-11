@@ -33,14 +33,13 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TreeItem;
-import org.jdom2.JDOMException;
 
 import com.archimatetool.editor.ui.components.TreeTextCellEditor;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.modelrepository.IModelRepositoryImages;
 import com.archimatetool.modelrepository.repository.BranchInfo;
-import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.BranchInfo.Option;
+import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.IRepositoryListener;
 import com.archimatetool.modelrepository.repository.RepositoryListenerManager;
@@ -86,10 +85,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         RepositoryListenerManager.getInstance().addListener(this);
         
-        // Dispose of this and clean up
+        // Remove listener
         getTree().addDisposeListener(e -> {
             RepositoryListenerManager.getInstance().removeListener(ModelRepositoryTreeViewer.this);
-            RepositoryTreeModel.getInstance().dispose();
         });
         
         // Tooltip support
@@ -165,14 +163,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 return element instanceof Group;
             }
         });
-        
-        try {
-            RepositoryTreeModel.getInstance().loadManifest();
-        }
-        catch(IOException | JDOMException ex) {
-            ex.printStackTrace();
-            logger.log(Level.SEVERE, "Loading Manifest", ex); //$NON-NLS-1$
-        }
         
         RepositoryTreeModel.getInstance().addListener(this);
         

@@ -8,9 +8,10 @@ package com.archimatetool.modelrepository.treemodel;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -28,6 +29,8 @@ import com.archimatetool.modelrepository.repository.RepoUtils;
  */
 public class RepositoryTreeModel extends Group {
     
+    private static Logger logger = Logger.getLogger(RepositoryTreeModel.class.getName());
+
     // Can be set to false for testing
     static boolean saveToManifest = true;
     
@@ -54,6 +57,14 @@ public class RepositoryTreeModel extends Group {
     
     private RepositoryTreeModel() {
         super(null);
+        
+        try {
+            loadBackingFile();
+        }
+        catch(IOException | JDOMException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, "Loading Backing File", ex); //$NON-NLS-1$
+        }
     }
 
     /**
@@ -85,10 +96,7 @@ public class RepositoryTreeModel extends Group {
         return Optional.empty();
     }
     
-    public void loadManifest() throws IOException, JDOMException {
-        groups = new ArrayList<>();
-        repos = new ArrayList<>();
-        
+    private void loadBackingFile() throws IOException, JDOMException {
         if(backingFile.exists()) {
             Document doc = JDOMUtils.readXMLFile(backingFile);
             if(doc.hasRootElement()) {
@@ -185,12 +193,5 @@ public class RepositoryTreeModel extends Group {
                 listener.treeEntryChanged(entry);
             }
         }
-    }
-    
-    public void dispose() {
-        listeners = null;
-        groups = null;
-        repos = null;
-        instance = null;
     }
 }
