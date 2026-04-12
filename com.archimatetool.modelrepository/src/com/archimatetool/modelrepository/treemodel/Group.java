@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -24,6 +26,8 @@ import com.archimatetool.modelrepository.repository.IArchiRepository;
 @SuppressWarnings("nls")
 public class Group implements IModelRepositoryTreeEntry {
     
+    private static Logger logger = Logger.getLogger(Group.class.getName());
+
     private String name;
     private Group parent;
     
@@ -52,6 +56,7 @@ public class Group implements IModelRepositoryTreeEntry {
                 }
                 catch(IOException ex) {
                     ex.printStackTrace();
+                    logger.log(Level.SEVERE, "Save Manifest", ex); //$NON-NLS-1$
                 }
             }
         }
@@ -71,6 +76,7 @@ public class Group implements IModelRepositoryTreeEntry {
         }
         catch(IOException ex) {
             ex.printStackTrace();
+            logger.log(Level.SEVERE, "Save Manifest", ex); //$NON-NLS-1$
         }
         
         return ref;
@@ -98,6 +104,7 @@ public class Group implements IModelRepositoryTreeEntry {
         }
         catch(IOException ex) {
             ex.printStackTrace();
+            logger.log(Level.SEVERE, "Save Manifest", ex); //$NON-NLS-1$
         }
         
         return group;

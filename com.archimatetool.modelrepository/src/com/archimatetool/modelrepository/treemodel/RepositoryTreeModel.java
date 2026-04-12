@@ -59,11 +59,11 @@ public class RepositoryTreeModel extends Group {
         super(null);
         
         try {
-            loadBackingFile();
+            loadManifest();
         }
         catch(IOException | JDOMException ex) {
             ex.printStackTrace();
-            logger.log(Level.SEVERE, "Loading Backing File", ex); //$NON-NLS-1$
+            logger.log(Level.SEVERE, "Loading Manifest", ex); //$NON-NLS-1$
         }
     }
 
@@ -96,7 +96,7 @@ public class RepositoryTreeModel extends Group {
         return Optional.empty();
     }
     
-    private void loadBackingFile() throws IOException, JDOMException {
+    private void loadManifest() throws IOException, JDOMException {
         if(backingFile.exists()) {
             Document doc = JDOMUtils.readXMLFile(backingFile);
             if(doc.hasRootElement()) {
