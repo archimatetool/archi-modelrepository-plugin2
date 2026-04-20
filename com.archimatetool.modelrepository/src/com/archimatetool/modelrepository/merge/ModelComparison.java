@@ -5,9 +5,7 @@
  */
 package com.archimatetool.modelrepository.merge;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,10 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.eclipse.emf.common.util.Diagnostic;
-import org.eclipse.emf.compare.AttributeChange;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.DifferenceKind;
@@ -27,9 +23,7 @@ import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.ArchiLabelProvider;
-import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IBounds;
@@ -44,7 +38,6 @@ import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.ArchimateModelUtils;
 import com.archimatetool.modelrepository.repository.GitUtils;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
-import com.archimatetool.modelrepository.repository.RepoConstants;
 
 /**
  * Represents a comparison of changes between two models
@@ -57,30 +50,8 @@ import com.archimatetool.modelrepository.repository.RepoConstants;
 @SuppressWarnings("nls")
 public class ModelComparison {
     
-    private static Logger logger = Logger.getLogger(ModelComparison.class.getName());
-    
-/*
-
-- A Comparison consists of a number of Diffs
-- A Diff has a Match
-- A Match gives us Left (current) and Right (previous) objects from the current and previous models
-- If Left is null the object was deleted
-- If Right is null the object was added
-
-- The Diff can be:
-    - ReferenceChange: a child object added/deleted.
-                       getValue() returns this child object.
-                       This child object can be an element, relation, profile, feature, bounds. 
-    - AttributeChange: an existing attribute of an object is changed.
-                       getAttribute() is used get the attribute to get its value from left or right.
-
-*/
-    
     /**
      * Represents a model object change of interest.
-     * changedObject is the object of interest to display in a tree.
-     * children are the child objects (in a View)
-     * diffs are the diffs of interest related to the changed object.
      */
     public static class Change {
         private EObject changedObject;
@@ -88,22 +59,27 @@ public class ModelComparison {
         private Map<EObject, Change> children = new HashMap<>();
         private List<Object> changes;
         
+        /** @param changedObject root object this change node represents (often a diagram or folder) */
         public Change(EObject changedObject) {
             this.changedObject = changedObject;
         }
         
+        /** @return root {@link EObject} for this change tree node */
         public EObject getChangedObject() {
             return changedObject;
         }
         
+        /** @return direct {@link Diff}s attached to this node */
         public Set<Diff> getDiffs() {
             return diffs;
         }
         
+        /** @return nested change nodes (e.g. diagram components under a view) */
         public Collection<Change> getChildren() {
             return children.values();
         }
         
+        /** @return lazily built flat list of diffs plus child {@link Change} objects for UI trees */
         public List<Object> getChanges() {
             if(changes == null) {
                 changes = new ArrayList<>();
@@ -113,10 +89,12 @@ public class ModelComparison {
             return changes;
         }
         
+        /** @return existing or new child node keyed by {@code eObject} */
         private Change addChild(EObject eObject) {
             return children.computeIfAbsent(eObject, object -> new Change(object));
         }
         
+        /** Registers a diff belonging to this change node. */
         private void addDiff(Diff diff) {
             diffs.add(diff);
         }
@@ -130,9 +108,10 @@ public class ModelComparison {
 
     
     /**
-     * Use this for when we are comparing revCommit with the working tree
-     * @param repository
-     * @param revCommit1
+     * Compare {@code revCommit} to the current working-tree model ({@link #getSecondRevCommit()} stays {@code null}).
+     *
+     * @param repository repo whose working folder is read
+     * @param revCommit  baseline commit
      */
     public ModelComparison(IArchiRepository repository, RevCommit revCommit) {
         this.repository = repository;
@@ -140,9 +119,11 @@ public class ModelComparison {
     }
 
     /**
-     * @param repository The Repository
-     * @param revCommit1 Revision Commit 1
-     * @param revCommit2 Revision Commit 2
+     * Compare two commits; stores them in chronological order (older = {@link #getFirstRevCommit()}).
+     *
+     * @param repository repo whose Git data is used
+     * @param revCommit1 one side
+     * @param revCommit2 other side
      */
     public ModelComparison(IArchiRepository repository, RevCommit revCommit1, RevCommit revCommit2) {
         this.repository = repository;
@@ -182,8 +163,10 @@ public class ModelComparison {
     }
     
     /**
-     * Load the two models to be compared and create the Comparison
-     * @throws IOException
+     * Loads {@code model1}/{@code model2} and builds {@link #getComparison()} (idempotent).
+     *
+     * @return {@code this}
+     * @throws IOException if a model file is missing or compare setup fails
      */
     public ModelComparison init() throws IOException {
         if(comparison != null) {
@@ -192,14 +175,14 @@ public class ModelComparison {
         
         try(GitUtils utils = GitUtils.open(repository.getWorkingFolder())) {
             // Load the model from first commit
-            model1 = loadModel(utils, revCommit1.getName());
+            model1 = ModelLoader.loadModel(utils, revCommit1.getName());
             
             if(model1 == null) {
                 throw new IOException("Model was null for " + revCommit1.getName());
             }
 
-            // Load the model from the second commit or the working tree. If the second commit is null, load the working tree
-            model2 = isWorkingTreeComparison() ? getWorkingTreeModel() : loadModel(utils, revCommit2.getName());
+            // Load the model from the second commit or the working tree
+            model2 = isWorkingTreeComparison() ? ModelLoader.loadWorkingTreeModel(repository) : ModelLoader.loadModel(utils, revCommit2.getName());
             
             if(model2 == null) {
                 throw new IOException("Model was null for " + (isWorkingTreeComparison() ? "working tree" : revCommit1.getName()));
@@ -208,11 +191,10 @@ public class ModelComparison {
             // Create Comparison
             comparison = MergeFactory.createComparison(model2, model1, null);  // Left/Right are swapped!
             
-            // Print and log any diagnostic errors and warnings
+            // Log any diagnostic errors and warnings
             for(Diagnostic diagnostic : comparison.getDiagnostic().getChildren()) {
                 if(diagnostic.getSeverity() == Diagnostic.WARNING || diagnostic.getSeverity() == Diagnostic.ERROR) {
-                    System.out.println(diagnostic.getMessage());
-                    logger.warning(diagnostic.getMessage());
+                    System.out.println("[ModelComparison] " + diagnostic.getMessage());
                 }
             }
         }
@@ -220,47 +202,38 @@ public class ModelComparison {
         return this;
     }
     
-    /**
-     * @return The Comparison. Ensure init() is called first.
-     */
+    /** @return EMF Compare result after {@link #init()}, or {@code null} before init */
     public Comparison getComparison() {
         return comparison;
     }
     
     /**
-     * @return The Objects that show interesting changes
+     * Groups interesting diffs into a tree of {@link Change} nodes for UI presentation.
+     *
+     * @return top-level change roots (e.g. per diagram)
      */
     public List<Change> getChangedObjects() {
         Map<EObject, Change> changes = new HashMap<>();
 
         for(Diff diff : comparison.getDifferences()) {
             Match match = diff.getMatch();
-            
-            EObject changedObject = match.getLeft();      // Left is the most recent, can be null
+            EObject changedObject = match.getLeft();
             
             if(changedObject != null) {
-                // Root parent of changed object
                 EObject rootObject = getRootParent(changedObject);
                 
-                // Reference of object (object added/deleted/moved)
                 if(diff instanceof ReferenceChange referenceChange) {
-                    // If the changed object is a folder, get the referenceChange (child) object if not Property or feature
                     if(changedObject instanceof IFolder && !(referenceChange.getValue() instanceof IProperty)
                                                         && !(referenceChange.getValue() instanceof IFeature)) {
                         rootObject = referenceChange.getValue();
                     }
-                    // If the changed object is a diagram object container and referenceChange is a child dmo, get the dmo
                     if(changedObject instanceof IDiagramModelContainer && referenceChange.getValue() instanceof IDiagramModelObject dmo) {
-                        // TODO: Removing this line fixes the bug of getting the wrong IDiagramModel, but do we need to do it?
-                        //rootObject = getRootParent(dmo);
                         changedObject = dmo;
                     }
                 }
                 
-                // Add it
                 Change change = changes.computeIfAbsent(rootObject, object -> new Change(object));
                 
-                // If the parent object is a Diagram Model Component add it as a child
                 if(rootObject instanceof IDiagramModel) {
                     EObject eObject = getParent(changedObject);
                     if(eObject instanceof IDiagramModelComponent && eObject != rootObject) {
@@ -268,164 +241,64 @@ public class ModelComparison {
                     }
                 }
 
-                // Add the diff
                 if(isInteresting(diff)) {
                     change.addDiff(diff);
                 }
             }
         }
         
-        // Debug
-        // printChanges(changes.values());
-        
         return new ArrayList<>(changes.values());
     }
     
     /**
-     * @return true if the Diff is something we want to display
+     * Filters out noise such as automatic {@link IBounds} additions.
+     *
+     * @param diff candidate diff on the LEFT side
      */
     public boolean isInteresting(Diff diff) {
         if(diff instanceof ReferenceChange referenceChange && referenceChange.getValue() instanceof IBounds && referenceChange.getKind() == DifferenceKind.ADD) {
             return false;
         }
-        
         return true;
     }
     
     /**
-     * @return The list of differences for eObject. Never null, but can be empty
+     * @param eObject object in the “first” (older) model tree
+     * @return all diffs on that object’s match, or an empty list
      */
     public List<Diff> getDifferences(EObject eObject) {
         Match match = comparison.getMatch(eObject);
-        if(match != null) {
-            return match.getDifferences();
-        }
-        return new ArrayList<>();
+        return match != null ? match.getDifferences() : new ArrayList<>();
     }
 
-    /**
-     * Get the parent eContainer of eObject if eObject is Bounds, Properties, Feature, Profile
-     * Else return the object itself
-     */
+    /** Walks past non-{@link IArchimateModelObject} wrappers unless {@link IProfile}. */
     private static EObject getParent(EObject eObject) {
         if(eObject != null && (!(eObject instanceof IArchimateModelObject) || eObject instanceof IProfile)) {
             eObject = eObject.eContainer();
         }
-        
         return eObject;
     }
     
-    /**
-     * If eObject is Bounds, Properties, Feature or Profile then return the parent object.
-     * If eObject is a diagram component return the diagram
-     */
+    /** For diagram components, returns the owning {@link IDiagramModel}. */
     private static EObject getRootParent(EObject eObject) {
         eObject = getParent(eObject);
-        
         if(eObject instanceof IDiagramModelComponent dmc) {
             eObject = dmc.getDiagramModel();
         }
-        
         return eObject;
     }
     
-    /**
-     * Find an object by ID in the first model (the oldest commit)
-     */
+    /** @param id Archi element id */
     public EObject findObjectInFirstModel(String id) {
         return ArchimateModelUtils.getObjectByID(model1, id);
     }
     
-    /**
-     * Find an object by ID in the second model (the later commit, or working tree)
-     */
+    /** @param id Archi element id */
     public EObject findObjectInSecondModel(String id) {
         return ArchimateModelUtils.getObjectByID(model2, id);
     }
 
-    private IArchimateModel getWorkingTreeModel() throws IOException {
-        // Load it from file in all cases, not from the open model in the Models Tree
-        // For example, if we do a model comparison when we restore a commit the restored commit is written to the working folder
-        return IEditorModelManager.INSTANCE.load(repository.getModelFile());
-    }
-    
-    /**
-     * Load a model from its revision string
-     */
-    private IArchimateModel loadModel(GitUtils utils, String revStr) throws IOException {
-        File tempFolder = Files.createTempDirectory("archi-").toFile();
-        
-        try {
-            utils.extractCommit(revStr, tempFolder, false);
-            
-            // Load it
-            File modelFile = new File(tempFolder, RepoConstants.MODEL_FILENAME);
-            return modelFile.exists() ? IEditorModelManager.INSTANCE.load(modelFile) : null;
-        }
-        finally {
-            FileUtils.deleteFolder(tempFolder);
-        }
-    }
-    
-    
-
-    // ================================ DEBUG STUFF ==========================================
-    
-    void printChanges(Collection<Change> changes) {
-        System.out.println("================ NEW COMPARISON ================");
-        System.out.println();
-        
-        System.out.println("----------- Diffs ------------");
-        System.out.println();
-        for(Diff diff : comparison.getDifferences()) {
-            printDiff(diff);
-        }
-        
-        System.out.println("---------- Changes -----------");
-        System.out.println();
-        for(Change change : changes) {
-            printChange(change);
-        }
-
-        System.out.println();
-        System.out.println();
-    }
-    
-    void printDiff(Diff diff) {
-        Match match = diff.getMatch();
-        
-        EObject left = match.getLeft();      // Left is the most recent, can be null
-        EObject right = match.getRight();    // Right is previous, can be null
-        
-        System.out.println("diff:            " + diff);
-        System.out.println("left:            " + left);
-        System.out.println("right:           " + right);
-        
-        if(diff instanceof ReferenceChange refChange) {
-            System.out.println("reference:       " + refChange.getValue());
-        }
-        if(diff instanceof AttributeChange attChange) {
-            System.out.println("attribute left:  " + left.eGet(attChange.getAttribute()));
-            System.out.println("attribute right: " + right.eGet(attChange.getAttribute()));
-        }
-        
-        System.out.println();
-    }
-    
-    void printChange(Change change) {
-        System.out.println(getObjectName(change.getChangedObject()));
-        
-        for(Diff diff : change.getDiffs()) {
-            System.out.println(" diff:  -  " + diff);
-        }
-        
-        for(Change child : change.getChildren()) {
-            printChange(child);
-        }
-        
-        System.out.println();
-    }
-
+    /** Label plus EMF class name for debug / compare UI. */
     String getObjectName(EObject eObject) {
         String name = ArchiLabelProvider.INSTANCE.getLabel(eObject);
         if(name.isEmpty()) {
