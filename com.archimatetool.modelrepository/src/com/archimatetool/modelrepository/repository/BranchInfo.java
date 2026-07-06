@@ -7,10 +7,10 @@ package com.archimatetool.modelrepository.repository;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
@@ -43,7 +43,7 @@ public class BranchInfo {
     private boolean hasUnpushedCommits;
     private boolean hasRemoteCommits;
     private boolean isMerged;
-    private Option[] options;
+    private Set<Option> options;
     
     /**
      * Extra options from the BranchInfo
@@ -78,7 +78,7 @@ public class BranchInfo {
 
     BranchInfo(Repository repository, Ref ref, RevWalk revWalk, Option... options) throws IOException, GitAPIException {
         repoDir = repository.getWorkTree();
-        this.options = options;
+        this.options = Set.of(options);
         init(repository, ref, revWalk);
     }
     
@@ -98,20 +98,16 @@ public class BranchInfo {
         latestCommit = getLatestCommit(repository);
         
         // Optional and more expensive queries
-        if(options != null && options.length > 0) {
-            EnumSet<Option> set = EnumSet.of(options[0], options);
-            
-            if(set.contains(Option.ISREMOTEDELETED) || set.contains(Option.ALL)) {
-                isRemoteDeleted = isRemoteDeleted(repository);
-            }
-            
-            if(set.contains(Option.COMMIT_STATUS) || set.contains(Option.ALL)) {
-                updateCommitStatus(repository);
-            }
+        if(options.contains(Option.ISREMOTEDELETED) || options.contains(Option.ALL)) {
+            isRemoteDeleted = isRemoteDeleted(repository);
+        }
 
-            if(set.contains(Option.ISMERGED) || set.contains(Option.ALL)) {
-                isMerged = isMergedIntoOtherBranches(repository, revWalk);
-            }
+        if(options.contains(Option.COMMIT_STATUS) || options.contains(Option.ALL)) {
+            updateCommitStatus(repository);
+        }
+
+        if(options.contains(Option.ISMERGED) || options.contains(Option.ALL)) {
+            isMerged = isMergedIntoOtherBranches(repository, revWalk);
         }
     }
     
