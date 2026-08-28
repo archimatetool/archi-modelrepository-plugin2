@@ -84,16 +84,22 @@ public class RepoUtils {
     
     /**
      * Check if a folder is an Archi Git Repo
-     * Return true if there is a model file named "model.archimate" in the folder and it has a .git sub-folder
+     * Return true if there is a model file named "model.archimate" in the folder and it has a .git sub-folder with "HEAD" file
      */
     public static boolean isArchiGitRepository(File folder) {
-        if(folder == null || !folder.exists() || !folder.isDirectory()) {
+        if(folder == null || !folder.isDirectory()) {
+            return false;
+        }
+        
+        File modelFile = new File(folder, RepoConstants.MODEL_FILENAME);
+        if(!modelFile.isFile()) {
             return false;
         }
         
         File gitFolder = new File(folder, ".git");
-        File modelFile = new File(folder, RepoConstants.MODEL_FILENAME);
-        return gitFolder.isDirectory() && modelFile.exists();
+        File gitHeadFile = new File(gitFolder, "HEAD");
+        
+        return gitFolder.isDirectory() && gitHeadFile.isFile();
     }
     
     /**

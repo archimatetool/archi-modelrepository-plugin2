@@ -89,6 +89,9 @@ public class RepoUtilsTests {
         assertFalse(RepoUtils.isArchiGitRepository(tmpFolder));
         
         new File(tmpFolder, RepoConstants.MODEL_FILENAME).createNewFile();
+        assertFalse(RepoUtils.isArchiGitRepository(tmpFolder));
+        
+        new File(gitFolder, "HEAD").createNewFile();
         assertTrue(RepoUtils.isArchiGitRepository(tmpFolder));
     }
     
@@ -105,6 +108,9 @@ public class RepoUtilsTests {
 
         File gitFolder = new File(tmpFolder, ".git");
         gitFolder.mkdirs();
+        assertFalse(RepoUtils.isModelInArchiRepository(model));
+        
+        new File(gitFolder, "HEAD").createNewFile();
         assertTrue(RepoUtils.isModelInArchiRepository(model));
     }
 
@@ -123,6 +129,9 @@ public class RepoUtilsTests {
         
         File gitFolder = new File(tmpFolder, ".git");
         gitFolder.mkdirs();
+        assertNull(RepoUtils.getWorkingFolderForModel(model).orElse(null));
+        
+        new File(gitFolder, "HEAD").createNewFile();
         assertEquals(tmpFolder, RepoUtils.getWorkingFolderForModel(model).orElse(null));
     }
 }
