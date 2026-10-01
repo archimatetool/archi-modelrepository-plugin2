@@ -19,6 +19,7 @@ import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.ModelVersion;
 import com.archimatetool.modelrepository.repository.ArchiRepository;
 import com.archimatetool.modelrepository.repository.IArchiRepository;
 import com.archimatetool.modelrepository.repository.RepoConstants;
@@ -67,6 +68,7 @@ public class GitHelper {
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
         model.setAdapter(IArchiveManager.class, IArchiveManager.FACTORY.createArchiveManager(model));        
         model.setDefaults();
+        model.setVersion(ModelVersion.VERSION);
         
         // One diagram model
         IArchimateDiagramModel dm = IArchimateFactory.eINSTANCE.createArchimateDiagramModel();
