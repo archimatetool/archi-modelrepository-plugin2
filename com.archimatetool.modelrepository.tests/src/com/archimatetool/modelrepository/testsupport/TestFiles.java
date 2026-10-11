@@ -14,7 +14,9 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import com.archimatetool.editor.model.IArchiveManager;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.ModelVersion;
 import com.archimatetool.model.util.ArchimateResourceFactory;
 
 
@@ -26,7 +28,10 @@ import com.archimatetool.model.util.ArchimateResourceFactory;
 @SuppressWarnings("nls")
 public class TestFiles {
 
-    public static File TEST_MODEL_SIMPLE = getTestFile("simple-model.archimate");
+    // If ModelVersion is >= 6.0.0 use the A4 model
+    public static File TEST_MODEL_SIMPLE = StringUtils.compareVersionNumbers(ModelVersion.VERSION, "6.0.0") >= 0 ? 
+                                                        getTestFile("simple-model-a4.archimate") : 
+                                                        getTestFile("simple-model.archimate");
     
     public static File getTestDataFolder() {
         return getLocalBundleFolder("com.archimatetool.modelrepository.tests", "testdata");
