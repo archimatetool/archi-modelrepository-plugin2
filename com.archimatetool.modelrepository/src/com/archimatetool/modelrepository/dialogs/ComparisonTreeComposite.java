@@ -426,62 +426,59 @@ public class ComparisonTreeComposite extends Composite {
      * Return the underlying object that changed as a string representation
      */
     private String getChangedObjectAsString(Diff diff, DifferenceSource source) {
-        // Get the referenced EObject that changed
+        // ReferenceChange
         if(diff instanceof ReferenceChange referenceChange) {
             EObject changedObject = referenceChange.getValue();
             String className = changedObject.eClass().getName();
             
-            if(changedObject instanceof INameable nameable) {
-                return className + " [" + nameable.getName() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
-            }
-            
-            if(changedObject instanceof IProperty property) {
-                return className + " [" + property.getKey() + ": " + getObjectAsSingleLine(property.getValue()) + "]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-            }
-            
-            if(changedObject instanceof IFeature feature) {
-                return className + " [" + feature.getName() + ": " + getObjectAsSingleLine(feature.getValue()) + "]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-            }
-            
-            if(changedObject instanceof IBounds bounds) {
-                return className + " [x: " + bounds.getX() + ", y: " + bounds.getY() + ", w: " + bounds.getWidth() + ", h: " + bounds.getHeight() + "]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-            }
-            
-            return className;
+            return switch(changedObject) {
+                case INameable nameable  -> String.format("%s [%s]", //$NON-NLS-1$
+                                                   className, nameable.getName());
+                case IProperty property  -> String.format("%s [%s: %s]", //$NON-NLS-1$
+                                                   className, property.getKey(), getObjectAsSingleLine(property.getValue()));
+                case IFeature feature    -> String.format("%s [%s: %s]", //$NON-NLS-1$
+                                                   className, feature.getName(), getObjectAsSingleLine(feature.getValue()));
+                case IBounds bounds      -> String.format("%s [x: %s, y: %s, w: %s, h: %s]", //$NON-NLS-1$
+                                                   className, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+                default                  -> className;
+            };
         }
         
+        // Else get eObject of Match left or right
         Match match = diff.getMatch();
         EObject eObject = (source == DifferenceSource.LEFT) ? match.getLeft() : match.getRight();
         if(eObject == null) {
             return null;
         }
         
-        // Get the referenced Attribute that changed
+        // Class name of object
+        String className = eObject.eClass().getName();
+        
+        // AttributeChange
         if(diff instanceof AttributeChange attributeChange) {
-            // Get the Attribute that changed
+            // The Attribute that changed
             EAttribute eAttribute = attributeChange.getAttribute();
-            // Get the value of the Attribute
-            Object value = eObject.eGet(eAttribute);
             
-            StringBuilder sb = new StringBuilder();
+            // Attribute name
+            String name = eAttribute.getName();
             
-            if(eObject instanceof IFeature feature) {
-                sb.append(feature.getName());
+            // If a Property show Property key
+            if(eObject instanceof IProperty property) {
+                name = property.getKey();
             }
-            else {
-                sb.append(eObject.eClass().getName());
+            // If a Feature show Feature name
+            else if(eObject instanceof IFeature feature) {
+                name = feature.getName();
             }
             
-            sb.append(" ["); //$NON-NLS-1$
-            sb.append(eAttribute.getName());
-            sb.append(": "); //$NON-NLS-1$
-            sb.append(getObjectAsSingleLine(value));
-            sb.append("]"); //$NON-NLS-1$
+            // Attribute value
+            String value = getObjectAsSingleLine(eObject.eGet(eAttribute));
             
-            return sb.toString();
+            return String.format("%s [%s: %s]", className, name, value); //$NON-NLS-1$
         }
         
-        return eObject.eClass().getName();
+        // Default
+        return className;
     }
     
     // Convert the object into a String and remove any newlines
