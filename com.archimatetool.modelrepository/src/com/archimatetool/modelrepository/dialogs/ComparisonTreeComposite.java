@@ -7,6 +7,7 @@ package com.archimatetool.modelrepository.dialogs;
 
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import org.eclipse.emf.compare.DifferenceSource;
 import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -45,7 +47,6 @@ import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
-import com.archimatetool.model.IArchimatePackage;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IBounds;
 import com.archimatetool.model.IDiagramModel;
@@ -54,6 +55,7 @@ import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperty;
+import com.archimatetool.model.util.ArchimateModelUtils;
 import com.archimatetool.modelrepository.merge.ModelComparison;
 import com.archimatetool.modelrepository.merge.ModelComparison.Change;
 
@@ -296,39 +298,15 @@ public class ComparisonTreeComposite extends Composite {
             return children;
         }
         
-        // Elements sorted by category -> class name -> element name
+        // Elements sorted by class order then element name
         List<Change> sortElements(List<Change> changes) {
             Collator collator = Collator.getInstance();
+            List<EClass> elementClasses = Arrays.asList(ArchimateModelUtils.getAllArchimateClasses());
             
             changes.sort(Comparator.comparingInt((Change change) -> { // Category
-                if(change.getChangedObject() instanceof IArchimateElement element) {
-                    if(IArchimatePackage.eINSTANCE.getStrategyElement().isSuperTypeOf(element.eClass())) {
-                        return 0;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getBusinessElement().isSuperTypeOf(element.eClass())) {
-                        return 1;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getApplicationElement().isSuperTypeOf(element.eClass())) {
-                        return 2;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getTechnologyElement().isSuperTypeOf(element.eClass())) {
-                        return 3;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getPhysicalElement().isSuperTypeOf(element.eClass())) {
-                        return 4;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getMotivationElement().isSuperTypeOf(element.eClass())) {
-                        return 5;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getImplementationMigrationElement().isSuperTypeOf(element.eClass())) {
-                        return 6;
-                    }
-                }
-                
-                return 10;
-                
+                int index = elementClasses.indexOf(change.getChangedObject().eClass());
+                return index != -1 ? index : elementClasses.size();
             })
-            .thenComparing(change -> change.getChangedObject().eClass().getName(), collator::compare) // EClass name
             .thenComparing(change -> ArchiLabelProvider.INSTANCE.getLabel(change.getChangedObject()), collator::compare)); // Element name
             
             return changes;
