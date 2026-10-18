@@ -20,6 +20,7 @@ import org.eclipse.emf.compare.DifferenceSource;
 import org.eclipse.emf.compare.Match;
 import org.eclipse.emf.compare.ReferenceChange;
 import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -300,33 +301,41 @@ public class ComparisonTreeComposite extends Composite {
         List<Change> sortElements(List<Change> changes) {
             Collator collator = Collator.getInstance();
             
+            EClass commonElement = (EClass)IArchimatePackage.eINSTANCE.getEClassifier("CommonElement"); //$NON-NLS-1$
+            
+            List<EClass> sortOrder = new ArrayList<>();
+            
+            // ArchiMate 3
+            if(commonElement == null) {
+                sortOrder.add(IArchimatePackage.eINSTANCE.getStrategyElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getBusinessElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getApplicationElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getTechnologyElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getPhysicalElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getMotivationElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getImplementationMigrationElement());
+            }
+            // ArchiMate 4
+            else {
+                sortOrder.add(IArchimatePackage.eINSTANCE.getMotivationElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getStrategyElement());
+                sortOrder.add(commonElement);
+                sortOrder.add(IArchimatePackage.eINSTANCE.getBusinessElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getApplicationElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getTechnologyElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getPhysicalElement());
+                sortOrder.add(IArchimatePackage.eINSTANCE.getImplementationMigrationElement());
+            }
+            
             changes.sort(Comparator.comparingInt((Change change) -> { // Category
                 if(change.getChangedObject() instanceof IArchimateElement element) {
-                    if(IArchimatePackage.eINSTANCE.getStrategyElement().isSuperTypeOf(element.eClass())) {
-                        return 0;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getBusinessElement().isSuperTypeOf(element.eClass())) {
-                        return 1;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getApplicationElement().isSuperTypeOf(element.eClass())) {
-                        return 2;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getTechnologyElement().isSuperTypeOf(element.eClass())) {
-                        return 3;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getPhysicalElement().isSuperTypeOf(element.eClass())) {
-                        return 4;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getMotivationElement().isSuperTypeOf(element.eClass())) {
-                        return 5;
-                    }
-                    if(IArchimatePackage.eINSTANCE.getImplementationMigrationElement().isSuperTypeOf(element.eClass())) {
-                        return 6;
+                    for(int index = 0; index < sortOrder.size(); index++) {
+                        if(sortOrder.get(index).isSuperTypeOf(element.eClass())) {
+                            return index;
+                        }
                     }
                 }
-                
                 return 10;
-                
             })
             .thenComparing(change -> change.getChangedObject().eClass().getName(), collator::compare) // EClass name
             .thenComparing(change -> ArchiLabelProvider.INSTANCE.getLabel(change.getChangedObject()), collator::compare)); // Element name
