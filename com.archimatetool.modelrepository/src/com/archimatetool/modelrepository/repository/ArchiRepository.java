@@ -7,9 +7,12 @@ package com.archimatetool.modelrepository.repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.DosFileAttributeView;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -120,13 +123,47 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public void deleteWorkingFolderContents() throws IOException {
-        Path gitFolder = Path.of(getWorkingFolder().getPath(), ".git");
-        
-        Files.walk(getWorkingFolder().toPath())
-             .filter(path -> !path.startsWith(gitFolder)) // Not the .git folder
-             .sorted(Comparator.reverseOrder())           // Has to be sorted in reverse order to prevent removal of a non-empty directory
-             .map(Path::toFile)
-             .forEach(File::delete);
+        Path workingFolder = getWorkingFolder().toPath();
+        Path gitFolder = workingFolder.resolve(".git");
+
+        Files.walkFileTree(workingFolder, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                safeDelete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                // Don't walk and delete the .git folder
+                return dir.equals(gitFolder) ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException ex) throws IOException {
+                if(ex != null) {
+                    throw ex;
+                }
+                
+                if(!dir.equals(workingFolder)) { // Don't delete the top working folder
+                    safeDelete(dir);
+                }
+                
+                return FileVisitResult.CONTINUE;
+            }
+
+            private void safeDelete(Path path) throws IOException {
+                // Clear the Windows read-only attribute if present
+                if(PlatformUtils.isWindows()) {
+                    DosFileAttributeView dosAttrs = Files.getFileAttributeView(path, DosFileAttributeView.class);
+                    if(dosAttrs != null) {
+                        dosAttrs.setReadOnly(false);
+                    }
+                }
+                
+                Files.delete(path);
+            }
+        });
     }
     
     @Override
