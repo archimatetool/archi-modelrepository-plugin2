@@ -12,6 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.FileUtils;
+import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.modelrepository.testsupport.GitHelper;
@@ -133,12 +136,25 @@ public class ArchiRepositoryTests {
     @Test
     public void deleteWorkingFolderContents() throws Exception {
         IArchiRepository repo = GitHelper.createNewRepository().init();
-        File file = GitHelper.writeFileToTestRepo(repo, "file.txt", "123");
+        
+        Path subFolder = Path.of(repo.getWorkingFolder().getPath(), "folder");
+        Files.createDirectory(subFolder);
+        
+        if(PlatformUtils.isWindows()) {
+            Files.setAttribute(subFolder, "dos:readonly", true); // Test that the folder is deleted on Windows with Java 25
+        }
+        
+        File file = GitHelper.writeFileToTestRepo(repo, "folder/file.txt", "123");
+        if(PlatformUtils.isWindows()) {
+            Files.setAttribute(file.toPath(), "dos:readonly", true); // Test that the folder is deleted on Windows with Java 25
+        }
+        
         assertTrue(file.exists());
         assertTrue(repo.getGitFolder().exists());
         
         repo.deleteWorkingFolderContents();
         assertFalse(file.exists());
+        assertTrue(repo.getWorkingFolder().exists());
         assertTrue(repo.getGitFolder().exists());
     }
 
