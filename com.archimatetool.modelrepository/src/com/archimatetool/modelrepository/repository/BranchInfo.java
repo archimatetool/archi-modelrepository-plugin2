@@ -7,6 +7,8 @@ package com.archimatetool.modelrepository.repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,7 +45,7 @@ public class BranchInfo {
     private boolean hasUnpushedCommits;
     private boolean hasRemoteCommits;
     private boolean isMerged;
-    private Set<Option> options;
+    private Set<Option> optionSet;
     
     /**
      * Extra options from the BranchInfo
@@ -78,7 +80,10 @@ public class BranchInfo {
 
     BranchInfo(Repository repository, Ref ref, RevWalk revWalk, Option... options) throws IOException, GitAPIException {
         repoDir = repository.getWorkTree();
-        this.options = Set.of(options);
+        
+        // This allows null entries and duplicates whereas Set.of(options) will throw exception with duplicates
+        optionSet = (options != null && options.length != 0) ? new HashSet<>(Arrays.asList(options)) : Set.of();
+        
         init(repository, ref, revWalk);
     }
     
@@ -98,15 +103,15 @@ public class BranchInfo {
         latestCommit = getLatestCommit(repository);
         
         // Optional and more expensive queries
-        if(options.contains(Option.ISREMOTEDELETED) || options.contains(Option.ALL)) {
+        if(optionSet.contains(Option.ISREMOTEDELETED) || optionSet.contains(Option.ALL)) {
             isRemoteDeleted = isRemoteDeleted(repository);
         }
 
-        if(options.contains(Option.COMMIT_STATUS) || options.contains(Option.ALL)) {
+        if(optionSet.contains(Option.COMMIT_STATUS) || optionSet.contains(Option.ALL)) {
             updateCommitStatus(repository);
         }
 
-        if(options.contains(Option.ISMERGED) || options.contains(Option.ALL)) {
+        if(optionSet.contains(Option.ISMERGED) || optionSet.contains(Option.ALL)) {
             isMerged = isMergedIntoOtherBranches(repository, revWalk);
         }
     }

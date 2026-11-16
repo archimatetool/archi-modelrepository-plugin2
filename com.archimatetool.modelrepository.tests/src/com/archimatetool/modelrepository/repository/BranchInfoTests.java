@@ -40,6 +40,16 @@ public class BranchInfoTests {
     }
     
     @Test
+    public void shouldIgnoreDuplicateOptions() throws Exception {
+        BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.ALL, Option.ALL);
+    }
+    
+    @Test
+    public void shouldIgnoreNullOption() throws Exception {
+        BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.ALL, null);
+    }
+
+    @Test
     public void currentLocalBranchInfo_Main() throws Exception {
         RevCommit commit = utils.commitChanges("Commit 1", false);
         BranchInfo branchInfo = BranchInfo.currentLocalBranchInfo(repo.getWorkingFolder(), Option.ALL).orElse(null);
