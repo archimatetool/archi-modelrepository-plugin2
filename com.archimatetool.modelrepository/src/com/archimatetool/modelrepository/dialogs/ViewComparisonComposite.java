@@ -19,6 +19,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 
 import com.archimatetool.editor.diagram.util.DiagramUtils;
@@ -104,6 +105,9 @@ public class ViewComparisonComposite extends Composite {
         
         private AtomicInteger lastScaleValue;
         
+        // On Windows with multi displays we need to refresh the image in the label
+        private Listener zoomListener = e -> viewLabel.setSize(viewLabel.computeSize( SWT.DEFAULT, SWT.DEFAULT));
+        
         private ViewComposite(Composite parent, AtomicInteger lastScaleValue) {
             super(parent, SWT.NONE);
             
@@ -131,9 +135,12 @@ public class ViewComparisonComposite extends Composite {
             scImage.setContent(viewLabel);
             
             addDisposeListener(e -> {
+                getShell().removeListener(SWT.ZoomChanged, zoomListener);
                 disposeImages();
                 diagramModel = null;
             });
+            
+            getShell().addListener(SWT.ZoomChanged, zoomListener);
         }
         
         private void setDiagramModel(IDiagramModel diagramModel) {
@@ -150,6 +157,7 @@ public class ViewComparisonComposite extends Composite {
             setScaledImage(diagramModel != null ? lastScaleValue.get() : 0);
         }
 
+        @SuppressWarnings("deprecation")
         private void setScaledImage(int scale) {
             Image image = scale > 0 ?
                     scaledImages.computeIfAbsent(scale, s -> DiagramUtils.createImage(diagramModel, (double)s / SCALE_MAX, 5))
