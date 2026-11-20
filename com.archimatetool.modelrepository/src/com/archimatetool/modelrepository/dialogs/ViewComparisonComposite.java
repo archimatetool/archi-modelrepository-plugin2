@@ -22,7 +22,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 
-import com.archimatetool.editor.diagram.util.DiagramUtils;
+import com.archimatetool.editor.diagram.util.DiagramImageFactory;
+import com.archimatetool.editor.diagram.util.DiagramImageFactory.Option;
 import com.archimatetool.model.IDiagramModel;
 
 /**
@@ -157,10 +158,13 @@ public class ViewComparisonComposite extends Composite {
             setScaledImage(diagramModel != null ? lastScaleValue.get() : 0);
         }
 
-        @SuppressWarnings("deprecation")
         private void setScaledImage(int scale) {
             Image image = scale > 0 ?
-                    scaledImages.computeIfAbsent(scale, s -> DiagramUtils.createImage(diagramModel, (double)s / SCALE_MAX, 5))
+                    scaledImages.computeIfAbsent(scale, s -> {
+                        try(DiagramImageFactory imageFactory = DiagramImageFactory.withShell()) {
+                            return imageFactory.createImage(diagramModel, (double)s / SCALE_MAX, 5, Option.NO_UPSCALE);
+                        }
+                    })
                     : null;
             
             viewLabel.setImage(image);
