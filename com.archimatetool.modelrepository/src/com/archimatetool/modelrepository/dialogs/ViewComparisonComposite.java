@@ -25,7 +25,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 
-import com.archimatetool.editor.diagram.util.DiagramUtils;
+import com.archimatetool.editor.diagram.util.DiagramImageFactory;
+import com.archimatetool.editor.diagram.util.DiagramImageFactory.Option;
 import com.archimatetool.model.IDiagramModel;
 
 /**
@@ -190,7 +191,6 @@ public class ViewComparisonComposite extends Composite {
             getShell().addListener(SWT.ZoomChanged, zoomListener);
         }
         
-        @SuppressWarnings("deprecation")
         private void setDiagramModel(IDiagramModel diagramModel) {
             if(this.diagramModel == diagramModel) {
                 return;
@@ -201,7 +201,9 @@ public class ViewComparisonComposite extends Composite {
             if(diagramModel != null) {
                 image = images.computeIfAbsent(diagramModel, key -> {
                     BusyIndicator.showWhile(Display.getCurrent(), () -> {
-                        image = DiagramUtils.createImage(diagramModel, 1, 5);
+                        try(DiagramImageFactory imageFactory = DiagramImageFactory.withShell()) {
+                            image =  imageFactory.createImage(diagramModel, 1, 5, Option.UPSCALE);
+                        }
                     });
                     return image;
                 });
